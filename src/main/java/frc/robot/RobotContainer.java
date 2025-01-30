@@ -20,12 +20,14 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class RobotContainer {
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+
+    //speed is divided by 3 to accommodate for small testing spaces
+    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) / 3; // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.2).withRotationalDeadband(MaxAngularRate * 0.2) // Add a 10% and 20% deadband to the drive and steer respectively
+            .withDeadband(MaxSpeed * 0.2).withRotationalDeadband(MaxAngularRate * 0.2) // Adds a 20% deadband to the controller
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -46,23 +48,32 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-eggYoke.getY() * MaxSpeed / 3) // Drive forward with negative Y (forward)
-                    .withVelocityY(-eggYoke.getX() * MaxSpeed / 3) // Drive left with negative X (left)
+                drive.withVelocityX(-eggYoke.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)
             )
         );
 
-        eggYoke.button(5).toggleOnTrue(drivetrain.applyRequest(() -> drive.withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
-        eggYoke.button(12).whileTrue(drivetrain.applyRequest(() -> brake));
-        eggYoke.button(3).whileTrue(drivetrain.applyRequest(() ->
+
+        //code (only useful for testing purposes) that can isolate steering and driving
+        eggYoke.button(5).onTrue(drivetrain.applyRequest(() -> drive.withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
+        eggYoke.button(3).onTrue(drivetrain.applyRequest(() -> 
+            drive.withVelocityX(-eggYoke.getY() * MaxSpeed)
+                .withVelocityY(-eggYoke.getX() * MaxSpeed)
+            )
+        );
+
+        eggYoke.button(6).whileTrue(drivetrain.applyRequest(() -> brake));
+        eggYoke.button(4).whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-eggYoke.getY(), -eggYoke.getX()))
         ));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
-        //eggYoke.button(6).and(eggYoke.).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        //eggYoke.button(6).and(eggYoke.getX()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        //eggYoke.button(4).and(eggYoke.getY()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        //eggYoke.button(4).and(eggYoke.getX()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        eggYoke.button(12).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        eggYoke.button(11).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        eggYoke.button(12).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        eggYoke.button(11).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
         eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));

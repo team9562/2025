@@ -4,6 +4,13 @@
 
 package frc.robot;
 
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeAlgaeOnField;
+
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -12,6 +19,14 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+
+  StructArrayPublisher<Pose3d> coralPoses = NetworkTableInstance.getDefault()
+  .getStructArrayTopic("CoralPoseArray", Pose3d.struct)
+  .publish();
+
+  StructArrayPublisher<Pose3d> algaePoses = NetworkTableInstance.getDefault()
+  .getStructArrayTopic("AlgaePoseArray", Pose3d.struct)
+  .publish();
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -71,5 +86,19 @@ public class Robot extends TimedRobot {
   public void testExit() {}
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationInit() {
+    SimulatedArena arena = SimulatedArena.getInstance();
+    arena.resetFieldForAuto();
+    arena.addGamePiece(new ReefscapeAlgaeOnField(new Translation2d(3, 3))); // testing
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    SimulatedArena arena = SimulatedArena.getInstance();
+
+    arena.simulationPeriodic();
+
+    coralPoses.set(arena.getGamePiecesArrayByType("Coral"));
+    algaePoses.set(arena.getGamePiecesArrayByType("Algae"));
+  }
 }

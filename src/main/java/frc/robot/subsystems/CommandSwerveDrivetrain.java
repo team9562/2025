@@ -240,7 +240,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
     }
 
-    private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;
+    public MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;
     private void startSimThread() {
         mapleSimSwerveDrivetrain = new MapleSimSwerveDrivetrain(
                 Seconds.of(kSimLoopPeriod),

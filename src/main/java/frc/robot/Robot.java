@@ -4,6 +4,21 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeAlgaeOnField;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeAlgaeOnFly;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnField;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -12,6 +27,16 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
   private final RobotContainer m_robotContainer;
+
+  // maplesim game piece telemetry via wpilib networktables
+  // in here instead of Telemetry.java partially because it was midnight and partially because here we can distinguish between whats a simulation and whats not
+  StructArrayPublisher<Pose3d> coralPoses = NetworkTableInstance.getDefault()
+  .getStructArrayTopic("CoralPoseArray", Pose3d.struct)
+  .publish();
+
+  StructArrayPublisher<Pose3d> algaePoses = NetworkTableInstance.getDefault()
+  .getStructArrayTopic("AlgaePoseArray", Pose3d.struct)
+  .publish();
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -71,5 +96,34 @@ public class Robot extends TimedRobot {
   public void testExit() {}
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationInit() {
+    SimulatedArena arena = SimulatedArena.getInstance();
+    arena.resetFieldForAuto(); // spawn default coral and algae stacks
+    arena.addGamePiece(new ReefscapeAlgaeOnField(new Translation2d(3, 3))); // testing
+    arena.addGamePiece(new ReefscapeCoralOnField(new Pose2d(new Translation2d(8, 8), new Rotation2d())));
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    SimulatedArena arena = SimulatedArena.getInstance();
+
+    arena.simulationPeriodic(); // update simulation
+
+    // publish game piece data via wpilib networktables for viewing in advantagescope
+    coralPoses.set(arena.getGamePiecesArrayByType("Coral"));
+    algaePoses.set(arena.getGamePiecesArrayByType("Algae"));
+
+    // can't test the robot without a joystick, so i need some way to make sure the sim works ¯\_(ツ)_/¯
+    //ReefscapeAlgaeOnFly testAlgae = new ReefscapeAlgaeOnFly(
+    //  m_robotContainer.drivetrain.mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose().getTranslation(),
+    //  new Translation2d(),
+    //  m_robotContainer.drivetrain.mapleSimSwerveDrivetrain.mapleSimDrive.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+    //  m_robotContainer.drivetrain.mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose().getRotation(),
+    //  Meter.of(1),
+    //  MetersPerSecond.of(3), 
+    //  Angle.ofBaseUnits(Math.toRadians(55), Radians)
+    //);
+    //testAlgae.enableBecomesGamePieceOnFieldAfterTouchGround();
+    //arena.addGamePieceProjectile(testAlgae);
+  }
 }

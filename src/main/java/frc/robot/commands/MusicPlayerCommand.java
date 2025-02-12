@@ -3,6 +3,7 @@ package frc.robot.commands;
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.StatusCode;
 
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class MusicPlayerCommand extends Command {
@@ -14,7 +15,7 @@ public class MusicPlayerCommand extends Command {
     }
 
     public void initialize() {
-        StatusCode loadMusicStatus = m_orchestra.loadMusic("music.chrp");
+        StatusCode loadMusicStatus = m_orchestra.loadMusic(Filesystem.getDeployDirectory()+"/music.chrp");
         if (loadMusicStatus.isOK()) {
             m_orchestra.play();
         } else {

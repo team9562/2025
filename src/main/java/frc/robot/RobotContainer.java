@@ -8,6 +8,10 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.ctre.phoenix6.Orchestra;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.MusicPlayerCommand;
 import frc.robot.commands.turnAround;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -41,10 +46,18 @@ public class RobotContainer {
 
     private final Command turnAround = new turnAround(drivetrain, drive, MaxAngularRate);
 
+    public final Orchestra m_orchestra = new Orchestra();
+    private final Command playMusicCommand = new MusicPlayerCommand(m_orchestra);
+
     public RobotContainer() {
 
         NamedCommands.registerCommand("turnAround", turnAround);
         configureBindings();
+
+        for (SwerveModule<TalonFX, TalonFX, CANcoder> module : drivetrain.getModules()) {
+            m_orchestra.addInstrument(module.getSteerMotor());
+            m_orchestra.addInstrument(module.getDriveMotor());
+        }
     }
 
     private void configureBindings() {
@@ -85,6 +98,8 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+        eggYoke.button(8).onTrue(playMusicCommand);
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

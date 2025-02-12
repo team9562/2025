@@ -10,23 +10,23 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class turnAround extends Command {
+public class TurnAroundCommand extends Command {
 
-  private final CommandSwerveDrivetrain ta_drivetrain;
-  private final SwerveRequest.FieldCentric ta_drive;
+  private final CommandSwerveDrivetrain m_drivetrain;
+  private final SwerveRequest.FieldCentric m_drive;
   private Pigeon2 imu;
   private double target;
   private double currentYaw;
   private double ta_AngularRate;
 
-  public turnAround(CommandSwerveDrivetrain subsystem, FieldCentric request, double angularRate) {
+  public TurnAroundCommand(CommandSwerveDrivetrain subsystem, FieldCentric request, double angularRate) {
 
-    this.ta_drivetrain = subsystem;
-    this.ta_drive = request;
+    this.m_drivetrain = subsystem;
+    this.m_drive = request;
     this.ta_AngularRate = angularRate;
-    imu = ta_drivetrain.getPigeon2();
+    imu = m_drivetrain.getPigeon2();
 
-    addRequirements(ta_drivetrain);
+    addRequirements(m_drivetrain);
   }
 
   private double getPigeonYaw(){
@@ -55,7 +55,7 @@ public class turnAround extends Command {
   public void execute() {
 
     //sets the wheel direction
-    this.ta_drivetrain.setControl(ta_drive.withRotationalRate(1 * ta_AngularRate));
+    this.m_drivetrain.setControl(m_drive.withRotationalRate(1 * ta_AngularRate));
 
     this.currentYaw = getPigeonYaw();
 

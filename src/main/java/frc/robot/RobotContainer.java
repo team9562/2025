@@ -7,7 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import com.pathplanner.lib.auto.NamedCommands;
-
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -106,6 +106,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        //return Commands.print("No autonomous command configured");
+        return new PathPlannerAuto("New Auto");
     }
 }

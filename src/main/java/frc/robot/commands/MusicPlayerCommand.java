@@ -15,7 +15,7 @@ public class MusicPlayerCommand extends Command {
     }
 
     public void initialize() {
-        StatusCode loadMusicStatus = m_orchestra.loadMusic(Filesystem.getDeployDirectory()+"/music.chrp");
+        StatusCode loadMusicStatus = m_orchestra.loadMusic(Filesystem.getDeployDirectory()+"/music_angry_birds.chrp");
         if (loadMusicStatus.isOK()) {
             m_orchestra.play();
         } else {
@@ -24,7 +24,7 @@ public class MusicPlayerCommand extends Command {
     }
 
     public void end() {
-
+        m_orchestra.stop();
     }
 
     public boolean isFinished() {

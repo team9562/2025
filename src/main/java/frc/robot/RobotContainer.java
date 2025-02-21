@@ -6,8 +6,10 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -16,6 +18,8 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
@@ -38,12 +42,15 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+    private final SwerveRequest.FieldCentricFacingAngle driveAndPoint = new SwerveRequest.FieldCentricFacingAngle();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     public final CommandJoystick eggYoke = new CommandJoystick(0);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+
+    private SendableChooser<Command> m_autoChooser;
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
@@ -52,13 +59,19 @@ public class RobotContainer {
 
     public RobotContainer() {
 
-        NamedCommands.registerCommand("turnAround", turnAroundCommand);
-        configureBindings();
+        if (Constants.currentMode == Constants.Mode.REAL) { // NO TELEOP IN SIM - implement later if necessary
+            NamedCommands.registerCommand("turnAround", turnAroundCommand);
+            configureBindings();
 
-        for (SwerveModule<TalonFX, TalonFX, CANcoder> module : drivetrain.getModules()) {
-            m_orchestra.addInstrument(module.getSteerMotor());
-            m_orchestra.addInstrument(module.getDriveMotor());
+            m_autoChooser = AutoBuilder.buildAutoChooser();
+            SmartDashboard.putData("Select Auto", m_autoChooser);
+
+            for (SwerveModule<TalonFX, TalonFX, CANcoder> module : drivetrain.getModules()) {
+                m_orchestra.addInstrument(module.getSteerMotor());
+                m_orchestra.addInstrument(module.getDriveMotor());
+            }
         }
+
     }
 
     private void configureBindings() {
@@ -75,6 +88,7 @@ public class RobotContainer {
 
         //drivetrain.setDefaultCommand(turnAround);
         eggYoke.button(7).onTrue(turnAroundCommand);
+        eggYoke.button(8).onTrue(playMusicCommand);
 
         //code (only useful for testing purposes) that can isolate steering and driving
         eggYoke.button(5).whileTrue(drivetrain.applyRequest(() -> drive.withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
@@ -90,6 +104,12 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-eggYoke.getY(), -eggYoke.getX()))
         ));
 
+        eggYoke.button(9).toggleOnTrue(drivetrain.applyRequest(() ->
+            driveAndPoint.withVelocityX(eggYoke.getY() * MaxSpeed)
+                .withVelocityY(eggYoke.getX() * MaxSpeed)
+                .withTargetDirection(new Rotation2d(eggYoke.getRawAxis(5), eggYoke.getRawAxis(6)))
+        ));
+
         // Run SysId routines when holding 11 or 12
         // Note that each routine should be run exactly once in a single log.
         eggYoke.button(12).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -100,13 +120,17 @@ public class RobotContainer {
         // reset the field-centric heading on left bumper press
         eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        eggYoke.button(8).onTrue(playMusicCommand);
-
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {
         //return Commands.print("No autonomous command configured");
-        return new PathPlannerAuto("New Auto");
+        //return new PathPlannerAuto("New Auto");
+        switch (Constants.currentMode) {
+            case REAL:
+                return m_autoChooser.getSelected();
+            default: // NO AUTONOMOUS IN SIM (dont really want to figure it out now)
+                return Commands.none();
+        }
     }
 }

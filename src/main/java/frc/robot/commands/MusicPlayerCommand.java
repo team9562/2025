@@ -9,13 +9,25 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class MusicPlayerCommand extends Command {
 
     private final Orchestra m_orchestra;
+    private String m_soundName;
 
     public MusicPlayerCommand(Orchestra orchestra) {
         m_orchestra = orchestra;
+        m_soundName = "angry_birds";
+    }
+
+    public MusicPlayerCommand(Orchestra orchestra, String soundName) {
+        m_orchestra = orchestra;
+        m_soundName = soundName;
+    }
+
+    public MusicPlayerCommand withSoundName(String soundName) {
+        m_soundName = soundName;
+        return this;
     }
 
     public void initialize() {
-        StatusCode loadMusicStatus = m_orchestra.loadMusic(Filesystem.getDeployDirectory()+"/music_angry_birds.chrp");
+        StatusCode loadMusicStatus = m_orchestra.loadMusic(Filesystem.getDeployDirectory()+"/music/"+m_soundName+".chrp");
         if (loadMusicStatus.isOK()) {
             m_orchestra.play();
         } else {

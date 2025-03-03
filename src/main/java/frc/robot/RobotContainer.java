@@ -17,14 +17,15 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-//import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.MusicPlayerCommand;
 import frc.robot.commands.TurnAroundCommand;
+import frc.robot.commands.ElevatorCommands.MoveToL2;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.ElevatorSubsystem;
 
 public class RobotContainer {
 
@@ -42,23 +43,37 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     public final CommandJoystick eggYoke = new CommandJoystick(0);
+    public final CommandXboxController elevatorController = new CommandXboxController(1);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
+    public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
+    private final Command zero = new MoveToL2(m_elevatorSubsystem);
 
     public final Orchestra m_orchestra = new Orchestra();
     private final Command playMusicCommand = new MusicPlayerCommand(m_orchestra);
 
     public RobotContainer() {
-
-        NamedCommands.registerCommand("turnAround", turnAroundCommand);
+        registerCommands();
+        m_elevatorSubsystem.burnFlash();
         configureBindings();
 
         for (SwerveModule<TalonFX, TalonFX, CANcoder> module : drivetrain.getModules()) {
             m_orchestra.addInstrument(module.getSteerMotor());
             m_orchestra.addInstrument(module.getDriveMotor());
         }
+    }
+
+    private void registerCommands() {
+        NamedCommands.registerCommand("turnAround", turnAroundCommand);
+    }
+
+    private void burnAllFlash(){
+        m_elevatorSubsystem.burnFlash();
+        //arm
+        //intake
     }
 
     private void configureBindings() {
@@ -75,6 +90,9 @@ public class RobotContainer {
 
         //drivetrain.setDefaultCommand(turnAround);
         eggYoke.button(7).onTrue(turnAroundCommand);
+
+        m_elevatorSubsystem.setDefaultCommand(zero);
+        m_elevatorSubsystem.move(elevatorController.getLeftY());
 
         //code (only useful for testing purposes) that can isolate steering and driving
         eggYoke.button(5).whileTrue(drivetrain.applyRequest(() -> drive.withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));

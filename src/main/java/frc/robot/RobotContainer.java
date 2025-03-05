@@ -50,7 +50,6 @@ public class RobotContainer {
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
-    private final Command zero = new MoveToL2(m_elevatorSubsystem);
 
     public final Orchestra m_orchestra = new Orchestra();
     private final Command playMusicCommand = new MusicPlayerCommand(m_orchestra);
@@ -88,19 +87,15 @@ public class RobotContainer {
             )
         );
 
-        //drivetrain.setDefaultCommand(turnAround);
         eggYoke.button(7).onTrue(turnAroundCommand);
 
-        m_elevatorSubsystem.setDefaultCommand(zero);
-        m_elevatorSubsystem.move(elevatorController.getLeftY());
 
-        //code (only useful for testing purposes) that can isolate steering and driving
-        eggYoke.button(5).whileTrue(drivetrain.applyRequest(() -> drive.withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
-        eggYoke.button(3).whileTrue(drivetrain.applyRequest(() -> 
-            drive.withVelocityX(eggYoke.getY() * MaxSpeed)
-                .withVelocityY(eggYoke.getX() * MaxSpeed)
-            )
-        );
+        //elevator command stuff
+        eggYoke.button(5).whileTrue(m_elevatorSubsystem.moveElevator(eggYoke.getRawAxis(5)));
+        eggYoke.button(3).onChange(m_elevatorSubsystem.runCurrentZeroing());
+
+        //m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.moveElevator(eggYoke.getRawAxis(5)));
+
 
         eggYoke.button(6).whileTrue(drivetrain.applyRequest(() -> brake));
 

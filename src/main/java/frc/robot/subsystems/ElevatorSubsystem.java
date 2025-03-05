@@ -37,7 +37,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   private static final double kP = ElevatorConstants.kP;
   private static final double kI = ElevatorConstants.kI;
   private static final double kD = ElevatorConstants.kD;
-  private static final double kFF = ElevatorConstants.kP;
+  private static final double kFF = ElevatorConstants.kFF;
   private static final ClosedLoopSlot slot0 = ElevatorConstants.E_SLOT;
 
   private double tolerance = ElevatorConstants.E_TOLERANCE;
@@ -50,7 +50,7 @@ public class ElevatorSubsystem extends SubsystemBase {
       .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
       .idleMode(IdleMode.kBrake)
       .disableFollowerMode()
-      .inverted(false);
+      .inverted(true);
 
     rightConfig.closedLoop
       .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -69,10 +69,11 @@ public class ElevatorSubsystem extends SubsystemBase {
       .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, NeoMotorConstants.NEO_MAX_RPM)
       .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
       .idleMode(IdleMode.kBrake)
-      .inverted(true)
+      .inverted(false)
       .follow(ElevatorConstants.E_RIGHT_ID, true);
 
-    leftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+    leftConfig.closedLoop
+      .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
       .pidf(kP, kI, kD, kFF, slot0)
 
       .maxMotion
@@ -107,13 +108,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command moveElevator(double speed){
     return this
-    .run(() -> elevatorRight.set(speed * ElevatorConstants.E_MAXSPEED))
-    .until(() -> getEncoderPose() <= ElevatorConstants.E_MAXHEIGHT - 10 || Utility.betweenRange(getEncoderPose(), 0, 2))
-    .finallyDo(() -> elevatorRight.stopMotor());
-  }
-
-  public void move(double speed){
-    pid.setReference(speed, ControlType.kMAXMotionVelocityControl, slot0);
+    .run(() -> pid.setReference(speed, ControlType.kMAXMotionVelocityControl, slot0));
   }
 
   public double getError(double targetHeight){
@@ -144,5 +139,11 @@ public class ElevatorSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("current: ", elevatorRight.getOutputCurrent());
     SmartDashboard.putNumber("voltage: ", elevatorRight.getBusVoltage());
     SmartDashboard.putBoolean("Target Reached: ", isAtTarget());
+
+    if(!(Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10))){
+      stopElevator();
+      run(() -> elevatorRight.setVoltage(-2))
+      .until(() -> Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10));
+    }
   }
 }

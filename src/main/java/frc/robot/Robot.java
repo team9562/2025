@@ -4,6 +4,18 @@
 
 package frc.robot;
 
+import java.util.Scanner;
+
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.swerve.SwerveModule;
+
+import edu.wpi.first.math.estimator.PoseEstimator;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+
 //import static edu.wpi.first.units.Units.Meter;
 //import static edu.wpi.first.units.Units.MetersPerSecond;
 //import static edu.wpi.first.units.Units.Radians;
@@ -20,23 +32,34 @@ package frc.robot;
 //import edu.wpi.first.networktables.NetworkTableInstance;
 //import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.followGuzPath;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
+  CommandSwerveDrivetrain m_drivetrain = RobotContainer.drivetrain;
+  Pigeon2 gyro = m_drivetrain.getPigeon2();
+
+  SwerveModule m_frontLeft = m_drivetrain.getModule(0);
+  SwerveModule m_frontRight = m_drivetrain.getModule(1);
+  SwerveModule m_backLeft = m_drivetrain.getModule(2);
+  SwerveModule m_backRight = m_drivetrain.getModule(3);
+
+  SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
+    m_drivetrain.getKinematics(), 
+    gyro.getRotation2d(), 
+    new SwerveModulePosition[]{ 
+      m_frontLeft.getPosition(true),
+      m_frontRight.getPosition(true),
+      m_backLeft.getPosition(true),
+      m_backRight.getPosition(true),
+    }, new Pose2d(0, 0, new Rotation2d(0)));
+
   private final RobotContainer m_robotContainer;
-
-  // maplesim game piece telemetry via wpilib networktables
-  // in here instead of Telemetry.java partially because it was midnight and partially because here we can distinguish between whats a simulation and whats not
-  //StructArrayPublisher<Pose3d> coralPoses = NetworkTableInstance.getDefault()
-  //.getStructArrayTopic("CoralPoseArray", Pose3d.struct)
-  //.publish();
-
-  //StructArrayPublisher<Pose3d> algaePoses = NetworkTableInstance.getDefault()
-  //.getStructArrayTopic("AlgaePoseArray", Pose3d.struct)
-  //.publish();
 
   public Robot() {
     m_robotContainer = new RobotContainer();
@@ -44,7 +67,20 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    CommandScheduler.getInstance().run(); 
+    poseEstimator.update(gyro.getRotation2d(), 
+    new SwerveModulePosition[]{ 
+      m_frontLeft.getPosition(true),
+      m_frontRight.getPosition(true),
+      m_backLeft.getPosition(true),
+      m_backRight.getPosition(true),
+    });
+
+    double currentPosX = poseEstimator.getEstimatedPosition().getX();
+    double currentPosY = poseEstimator.getEstimatedPosition().getY();
+    CommandScheduler.getInstance().run();
+
+    System.out.println("X: " + currentPosX);
+    System.out.println("Y: " + currentPosY);
   }
 
   @Override
@@ -96,34 +132,8 @@ public class Robot extends TimedRobot {
   public void testExit() {}
 
   @Override
-  public void simulationInit() {
-    //SimulatedArena arena = SimulatedArena.getInstance();
-    //arena.resetFieldForAuto(); // spawn default coral and algae stacks
-    //arena.addGamePiece(new ReefscapeAlgaeOnField(new Translation2d(3, 3))); // testing
-    //arena.addGamePiece(new ReefscapeCoralOnField(new Pose2d(new Translation2d(8, 8), new Rotation2d())));
-  }
+  public void simulationInit() {}
 
   @Override
-  public void simulationPeriodic() {
-    //SimulatedArena arena = SimulatedArena.getInstance();
-
-    //arena.simulationPeriodic(); // update simulation
-
-    // publish game piece data via wpilib networktables for viewing in advantagescope
-    //coralPoses.set(arena.getGamePiecesArrayByType("Coral"));
-    //algaePoses.set(arena.getGamePiecesArrayByType("Algae"));
-
-    // can't test the robot without a joystick, so i need some way to make sure the sim works ¯\_(ツ)_/¯
-    //ReefscapeAlgaeOnFly testAlgae = new ReefscapeAlgaeOnFly(
-    //  m_robotContainer.drivetrain.mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose().getTranslation(),
-    //  new Translation2d(),
-    //  m_robotContainer.drivetrain.mapleSimSwerveDrivetrain.mapleSimDrive.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-    //  m_robotContainer.drivetrain.mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose().getRotation(),
-    //  Meter.of(1),
-    //  MetersPerSecond.of(3), 
-    //  Angle.ofBaseUnits(Math.toRadians(55), Radians)
-    //);
-    //testAlgae.enableBecomesGamePieceOnFieldAfterTouchGround();
-    //arena.addGamePieceProjectile(testAlgae);
-  }
+  public void simulationPeriodic() {}
 }

@@ -20,8 +20,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.MusicPlayerCommand;
 import frc.robot.commands.TurnAroundCommand;
+import frc.robot.commands.followGuzPath;
 import frc.robot.commands.ElevatorCommands.MoveToL2;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -30,7 +30,7 @@ import frc.robot.subsystems.ElevatorSubsystem;
 public class RobotContainer {
 
     //speed is divided by 3 to accommodate for small testing spaces
-    private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+    public static double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
@@ -42,27 +42,21 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    public final CommandJoystick eggYoke = new CommandJoystick(0);
+    public final static CommandJoystick eggYoke = new CommandJoystick(0);
     public final CommandXboxController elevatorController = new CommandXboxController(1);
 
-    public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-
+    public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
-    public final Orchestra m_orchestra = new Orchestra();
-    private final Command playMusicCommand = new MusicPlayerCommand(m_orchestra);
+    public static final Command follow = new followGuzPath(drivetrain, eggYoke);
 
     public RobotContainer() {
         registerCommands();
         m_elevatorSubsystem.burnFlash();
         configureBindings();
-
-        for (SwerveModule<TalonFX, TalonFX, CANcoder> module : drivetrain.getModules()) {
-            m_orchestra.addInstrument(module.getSteerMotor());
-            m_orchestra.addInstrument(module.getDriveMotor());
-        }
     }
 
     private void registerCommands() {
@@ -113,7 +107,7 @@ public class RobotContainer {
         // reset the field-centric heading on left bumper press
         eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        eggYoke.button(8).onTrue(playMusicCommand);
+        eggYoke.button(10).toggleOnTrue(follow);
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

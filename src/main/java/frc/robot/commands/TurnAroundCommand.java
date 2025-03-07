@@ -17,13 +17,13 @@ public class TurnAroundCommand extends Command {
   private Pigeon2 imu;
   private double target;
   private double currentYaw;
-  private double ta_AngularRate;
+  private double m_angularRate;
 
   public TurnAroundCommand(CommandSwerveDrivetrain subsystem, FieldCentric request, double angularRate) {
 
     this.m_drivetrain = subsystem;
     this.m_drive = request;
-    this.ta_AngularRate = angularRate;
+    this.m_angularRate = angularRate;
     imu = m_drivetrain.getPigeon2();
 
     addRequirements(m_drivetrain);
@@ -54,7 +54,7 @@ public class TurnAroundCommand extends Command {
   public void execute() {
 
     //sets the wheel direction
-    this.m_drivetrain.setControl(m_drive.withRotationalRate(1 * ta_AngularRate));
+    this.m_drivetrain.setControl(m_drive.withRotationalRate(1 * m_angularRate));
 
     this.currentYaw = getPigeonYaw();
 

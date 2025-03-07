@@ -38,52 +38,51 @@ public class ArmSubsystem extends SubsystemBase {
 
   public ArmSubsystem() {
     basicConfig
-      .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-      .disableFollowerMode();
+        .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
+        .disableFollowerMode();
 
     basicConfig.closedLoop
-      .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 
-    .maxMotion
-      .allowedClosedLoopError(ArmConstants.A_TOLERANCE, slot0)
-      .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC)
-      .maxVelocity(NeoMotorConstants.NEO_MAX_VEL)
-      .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
+            .maxMotion
+        .allowedClosedLoopError(ArmConstants.A_TOLERANCE, slot0)
+        .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC)
+        .maxVelocity(NeoMotorConstants.NEO_MAX_VEL)
+        .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
 
     pitchConfig
-      .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT)
-      .inverted(false)
-    .encoder
-      .positionConversionFactor(ArmConstants.pConversionFactor);
+        .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT)
+        .inverted(false).encoder
+        .positionConversionFactor(ArmConstants.pConversionFactor);
 
     pitchConfig.closedLoop
-      .pidf(
-        ArmConstants.kP_PITCH,
-        ArmConstants.kI_PITCH,
-        ArmConstants.kD_PITCH,
-        ArmConstants.kF_PITCH,
-        slot0);
-    
+        .pidf(
+            ArmConstants.kP_PITCH,
+            ArmConstants.kI_PITCH,
+            ArmConstants.kD_PITCH,
+            ArmConstants.kF_PITCH,
+            slot0);
+
     openConfig
-      .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, NeoMotorConstants.NEO_MAX_RPM)
-      .inverted(false)
-    .encoder
-      .positionConversionFactor(ArmConstants.oConversionFactor);
+        .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT,
+            NeoMotorConstants.NEO_MAX_RPM)
+        .inverted(false).encoder
+        .positionConversionFactor(ArmConstants.oConversionFactor);
 
     openConfig.closedLoop
-      .pidf(
-        ArmConstants.kP_OPEN,
-        ArmConstants.kI_OPEN,
-        ArmConstants.kD_OPEN,
-        ArmConstants.kF_OPEN,
-        slot0);
+        .pidf(
+            ArmConstants.kP_OPEN,
+            ArmConstants.kI_OPEN,
+            ArmConstants.kD_OPEN,
+            ArmConstants.kF_OPEN,
+            slot0);
   }
 
-  public double getEncoderPose(RelativeEncoder encoder){
+  public double getEncoderPose(RelativeEncoder encoder) {
     return encoder.getPosition();
   }
 
-  public void burnFlash(){
+  public void burnFlash() {
     pitchSpark.configureAsync(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     openSpark.configureAsync(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -93,14 +92,14 @@ public class ArmSubsystem extends SubsystemBase {
 
   public Command turnPitchMotor(double degrees) {
     return this
-    .run(() -> pidPitch.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
+        .run(() -> pidPitch.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
   }
 
   public Command turnOpenMotor(double degrees) {
     return this
-    .run(() -> pidOpen.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
+        .run(() -> pidOpen.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
   }
-  
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

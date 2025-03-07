@@ -24,7 +24,8 @@ public class SetAngleCommand extends Command {
   private double target;
   private double currentYaw;
 
-  public SetAngleCommand(CommandSwerveDrivetrain subsystem, FieldCentric request, double MaxAngularRate, CommandJoystick yoke) {
+  public SetAngleCommand(CommandSwerveDrivetrain subsystem, FieldCentric request, double MaxAngularRate,
+      CommandJoystick yoke) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.m_drivetrain = subsystem;
     this.m_drive = request;
@@ -34,11 +35,11 @@ public class SetAngleCommand extends Command {
     addRequirements(m_drivetrain);
   }
 
-  private double getPigeonYaw(){
+  private double getPigeonYaw() {
     return Math.abs(Math.round(imu.getAngle() % 360));
   }
 
-  public void outputYawTarget(){
+  public void outputYawTarget() {
     System.out.println("Yaw: " + currentYaw);
     System.out.println("Target: " + target);
   }
@@ -55,21 +56,20 @@ public class SetAngleCommand extends Command {
 
     xTrue = Math.abs(thumbpadX) > Math.abs(thumbpadY) ? true : false;
 
-    if(xTrue){
-      if(thumbpadX > 0){
+    if (xTrue) {
+      if (thumbpadX > 0) {
         target = 0;
-      }
-      else if(thumbpadX < 0){
+      } else if (thumbpadX < 0) {
         target = 180;
       }
     }
-    
-    if(!xTrue){
-      if(thumbpadY > 0){
+
+    if (!xTrue) {
+      if (thumbpadY > 0) {
         target = 90;
       }
 
-      else if(thumbpadY < 0){
+      else if (thumbpadY < 0) {
         target = 270;
       }
     }
@@ -77,11 +77,13 @@ public class SetAngleCommand extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+  }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+  }
 
   // Returns true when the command should end.
   @Override

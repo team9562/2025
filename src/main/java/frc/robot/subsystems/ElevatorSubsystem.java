@@ -46,89 +46,91 @@ public class ElevatorSubsystem extends SubsystemBase {
   public ElevatorSubsystem() {
 
     rightConfig
-      .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, NeoMotorConstants.NEO_MAX_RPM)
-      .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-      .idleMode(IdleMode.kBrake)
-      .disableFollowerMode()
-      .inverted(true);
+        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT,
+            NeoMotorConstants.NEO_MAX_RPM)
+        .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
+        .idleMode(IdleMode.kBrake)
+        .disableFollowerMode()
+        .inverted(true);
 
     rightConfig.closedLoop
-      .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-      .pidf(kP, kI, kD, kFF, slot0)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .pidf(kP, kI, kD, kFF, slot0)
 
-    .maxMotion
-      .allowedClosedLoopError(ElevatorConstants.E_TOLERANCE, slot0)
-      .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC, slot0)
-      .maxVelocity(NeoMotorConstants.NEO_MAX_VEL, slot0)
-      .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
+            .maxMotion
+        .allowedClosedLoopError(ElevatorConstants.E_TOLERANCE, slot0)
+        .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC, slot0)
+        .maxVelocity(NeoMotorConstants.NEO_MAX_VEL, slot0)
+        .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
 
     rightConfig.encoder
-      .positionConversionFactor(ElevatorConstants.kConversionFactor); // mm / 25.4 = in
+        .positionConversionFactor(ElevatorConstants.kConversionFactor); // mm / 25.4 = in
 
     leftConfig
-      .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, NeoMotorConstants.NEO_MAX_RPM)
-      .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-      .idleMode(IdleMode.kBrake)
-      .inverted(false)
-      .follow(ElevatorConstants.E_RIGHT_ID, true);
+        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT,
+            NeoMotorConstants.NEO_MAX_RPM)
+        .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
+        .idleMode(IdleMode.kBrake)
+        .inverted(false)
+        .follow(ElevatorConstants.E_RIGHT_ID, true);
 
     leftConfig.closedLoop
-      .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-      .pidf(kP, kI, kD, kFF, slot0)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .pidf(kP, kI, kD, kFF, slot0)
 
-      .maxMotion
+            .maxMotion
         .allowedClosedLoopError(ElevatorConstants.E_TOLERANCE, slot0)
         .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC, slot0)
         .maxVelocity(NeoMotorConstants.NEO_MAX_VEL, slot0)
         .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
 
     leftConfig.encoder
-      .positionConversionFactor(ElevatorConstants.kConversionFactor)
-      .velocityConversionFactor(ElevatorConstants.kConversionFactor / 60);
+        .positionConversionFactor(ElevatorConstants.kConversionFactor)
+        .velocityConversionFactor(ElevatorConstants.kConversionFactor / 60);
   }
 
-  public void burnFlash(){
+  public void burnFlash() {
     elevatorLeft.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     elevatorRight.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public double getEncoderPose(){
+  public double getEncoderPose() {
     return rightEncoder.getPosition();
   }
 
-  public void resetEncoderPose(){
+  public void resetEncoderPose() {
     rightEncoder.setPosition(0);
     leftEncoder.setPosition(0);
   }
 
-  public void stopElevator(){
+  public void stopElevator() {
     elevatorRight.stopMotor();
     elevatorLeft.stopMotor();
   }
 
-  public Command moveElevator(double speed){
+  public Command moveElevator(double speed) {
     return this
-    .run(() -> pid.setReference(speed, ControlType.kMAXMotionVelocityControl, slot0));
+        .run(() -> pid.setReference(speed, ControlType.kMAXMotionVelocityControl, slot0));
   }
 
-  public double getError(double targetHeight){
+  public double getError(double targetHeight) {
     this.target = targetHeight;
     return targetHeight - getEncoderPose();
   }
 
-  public void setElevatorHeight(double targetHeight){
+  public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
     pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0);
   }
 
-  public Command runCurrentZeroing(){
+  public Command runCurrentZeroing() {
     return this
-      .run(()-> elevatorRight.setVoltage(-1)) //decrease??
-      .until(()-> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
-      .finallyDo(()-> resetEncoderPose());
+        .run(() -> elevatorRight.setVoltage(-1)) // decrease??
+        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
+        .finallyDo(() -> resetEncoderPose());
   }
 
-  public Boolean isAtTarget(){
+  public Boolean isAtTarget() {
     return Utility.withinTolerance(getEncoderPose(), target, tolerance);
   }
 
@@ -140,10 +142,10 @@ public class ElevatorSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("voltage: ", elevatorRight.getBusVoltage());
     SmartDashboard.putBoolean("Target Reached: ", isAtTarget());
 
-    if(!(Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10))){
+    if (!(Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10))) {
       stopElevator();
       run(() -> elevatorRight.setVoltage(-2))
-      .until(() -> Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10));
+          .until(() -> Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10));
     }
   }
 }

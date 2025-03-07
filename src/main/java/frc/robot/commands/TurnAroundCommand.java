@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.commands;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
@@ -29,11 +30,11 @@ public class TurnAroundCommand extends Command {
     addRequirements(m_drivetrain);
   }
 
-  private double getPigeonYaw(){
+  private double getPigeonYaw() {
     return Math.abs(Math.round(imu.getAngle() % 360));
   }
 
-  public void outputYawTarget(){
+  public void outputYawTarget() {
     System.out.println("Yaw: " + currentYaw);
     System.out.println("Target: " + target);
   }
@@ -41,24 +42,24 @@ public class TurnAroundCommand extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    
-    //if it should subtract 180 or add 180 to the value
-    //imu.setYaw(0);
+
+    // if it should subtract 180 or add 180 to the value
+    // imu.setYaw(0);
     currentYaw = getPigeonYaw();
     target = currentYaw < 180 ? currentYaw + 180 : currentYaw - 180;
-    target = Math.round(target/10)*10;
+    target = Math.round(target / 10) * 10;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
 
-    //sets the wheel direction
+    // sets the wheel direction
     this.m_drivetrain.setControl(m_drive.withRotationalRate(1 * m_angularRate));
 
     this.currentYaw = getPigeonYaw();
 
-    //debug info
+    // debug info
     System.out.println("command is executing");
     outputYawTarget();
   }
@@ -74,7 +75,7 @@ public class TurnAroundCommand extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    //stops when the yaw is at the same rotation as the target
-    return Math.round(currentYaw/10)*10 == target - 30;
+    // stops when the yaw is at the same rotation as the target
+    return Math.round(currentYaw / 10) * 10 == target - 30;
   }
 }

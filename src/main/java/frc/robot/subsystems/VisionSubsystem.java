@@ -30,13 +30,14 @@ public class VisionSubsystem extends SubsystemBase {
   private PhotonCamera camera3;
   private PhotonCamera camera4;
 
-  private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+  private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
+      .loadField(AprilTagFields.k2025Reefscape);
 
   private Transform3d camera1ToRobot;
   private Transform3d camera2ToRobot;
   private Transform3d camera3ToRobot;
   private Transform3d camera4ToRobot;
-  private final Transform3d[] cameraPositions = {camera1ToRobot, camera2ToRobot, camera3ToRobot, camera4ToRobot};
+  private final Transform3d[] cameraPositions = { camera1ToRobot, camera2ToRobot, camera3ToRobot, camera4ToRobot };
 
   Pose3d robotPose;
 
@@ -49,7 +50,7 @@ public class VisionSubsystem extends SubsystemBase {
   PhotonPipelineResult result2;
   PhotonPipelineResult result3;
   PhotonPipelineResult result4;
-  PhotonPipelineResult[] allResults = {result1, result2, result3, result4};
+  PhotonPipelineResult[] allResults = { result1, result2, result3, result4 };
 
   public VisionSubsystem() {
     this.cameraPositions[0] = VisionConstants.camera1ToRobot;
@@ -63,16 +64,16 @@ public class VisionSubsystem extends SubsystemBase {
     this.camera4 = new PhotonCamera(VisionConstants.cameraName4);
   }
 
-  public PhotonTrackedTarget getBestTarget(int i){
+  public PhotonTrackedTarget getBestTarget(int i) {
     return allResults[i].getBestTarget();
   }
 
-  public Pose2d estimatePose(int i){
-    if(aprilTagFieldLayout.getTagPose(getBestTarget(i).getFiducialId()).isPresent()){
+  public Pose2d estimatePose(int i) {
+    if (aprilTagFieldLayout.getTagPose(getBestTarget(i).getFiducialId()).isPresent()) {
       robotPose = PhotonUtils.estimateFieldToRobotAprilTag(
-        getBestTarget(i).getBestCameraToTarget(), 
-        aprilTagFieldLayout.getTagPose(getBestTarget(i).getFiducialId()).get(), 
-        cameraPositions[i]);
+          getBestTarget(i).getBestCameraToTarget(),
+          aprilTagFieldLayout.getTagPose(getBestTarget(i).getFiducialId()).get(),
+          cameraPositions[i]);
     }
     return robotPose.toPose2d();
   }
@@ -85,7 +86,7 @@ public class VisionSubsystem extends SubsystemBase {
     allResults[1] = camera2.getLatestResult();
     allResults[2] = camera3.getLatestResult();
     allResults[3] = camera4.getLatestResult();
-    
+
     hasTargets = result1.hasTargets();
     totalTargets = result1.getTargets();
   }

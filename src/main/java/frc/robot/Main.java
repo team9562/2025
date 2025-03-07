@@ -12,7 +12,9 @@ import frc.robot.utils.guzPath;
 public final class Main {
   public static final int john = 0;
   public static ArrayList<PVector> botPath = new ArrayList<PVector>();
-  private Main() {}
+
+  private Main() {
+  }
 
   public static void main(String... args) {
     guzPath guzBot = new guzPath();

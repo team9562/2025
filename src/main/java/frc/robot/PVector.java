@@ -8,18 +8,17 @@ package frc.robot;
 public class PVector {
     public double x, y, z;
 
-    public PVector (double a, double b, double c){
-        x=a;
-        y=b;
-        z=c;
+    public PVector(double a, double b, double c) {
+        x = a;
+        y = b;
+        z = c;
     }
 
-    public double dist2D(PVector t){
-
-    return Math.sqrt(Math.pow(t.x - this.x, 2) + Math.pow((t.y - this.y), 2) );
+    public double dist2D(PVector t) {
+        return Math.sqrt(Math.pow(t.x - this.x, 2) + Math.pow((t.y - this.y), 2));
     }
 
-    public String toString(){
-        return "(" + x + ','+ y + ')'; //I don't car about Z right now, maybe never who knows.
+    public String toString() {
+        return "(" + x + ',' + y + ')'; // I don't car about Z right now, maybe never who knows.
     }
 }

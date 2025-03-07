@@ -50,14 +50,14 @@ public class Robot extends TimedRobot {
   SwerveModule m_backRight = m_drivetrain.getModule(3);
 
   SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
-    m_drivetrain.getKinematics(), 
-    gyro.getRotation2d(), 
-    new SwerveModulePosition[]{ 
-      m_frontLeft.getPosition(true),
-      m_frontRight.getPosition(true),
-      m_backLeft.getPosition(true),
-      m_backRight.getPosition(true),
-    }, new Pose2d(0, 0, new Rotation2d(0)));
+      m_drivetrain.getKinematics(),
+      gyro.getRotation2d(),
+      new SwerveModulePosition[] {
+          m_frontLeft.getPosition(true),
+          m_frontRight.getPosition(true),
+          m_backLeft.getPosition(true),
+          m_backRight.getPosition(true),
+      }, new Pose2d(0, 0, new Rotation2d(0)));
 
   private final RobotContainer m_robotContainer;
 
@@ -67,13 +67,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    poseEstimator.update(gyro.getRotation2d(), 
-    new SwerveModulePosition[]{ 
-      m_frontLeft.getPosition(true),
-      m_frontRight.getPosition(true),
-      m_backLeft.getPosition(true),
-      m_backRight.getPosition(true),
-    });
+    poseEstimator.update(gyro.getRotation2d(),
+        new SwerveModulePosition[] {
+            m_frontLeft.getPosition(true),
+            m_frontRight.getPosition(true),
+            m_backLeft.getPosition(true),
+            m_backRight.getPosition(true),
+        });
 
     double currentPosX = poseEstimator.getEstimatedPosition().getX();
     double currentPosY = poseEstimator.getEstimatedPosition().getY();
@@ -84,13 +84,16 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
   @Override
-  public void disabledExit() {}
+  public void disabledExit() {
+  }
 
   @Override
   public void autonomousInit() {
@@ -102,10 +105,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
-  public void autonomousExit() {}
+  public void autonomousExit() {
+  }
 
   @Override
   public void teleopInit() {
@@ -115,10 +120,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
-  public void teleopExit() {}
+  public void teleopExit() {
+  }
 
   @Override
   public void testInit() {
@@ -126,14 +133,18 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   @Override
-  public void testExit() {}
+  public void testExit() {
+  }
 
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 }

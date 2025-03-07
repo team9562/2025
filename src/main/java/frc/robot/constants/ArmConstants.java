@@ -3,8 +3,8 @@ package frc.robot.constants;
 import com.revrobotics.spark.ClosedLoopSlot;
 
 public class ArmConstants {
-    public static final int A_PITCH_ID = 0;
-    public static final int A_OPEN_ID = 0;
+    public static final int A_PITCH_ID = 30;
+    public static final int A_OPEN_ID = 29;
 
     public static final int PITCH_STALL_LIMIT = 5;
     public static final int OPEN_STALL_LIMIT = 5;

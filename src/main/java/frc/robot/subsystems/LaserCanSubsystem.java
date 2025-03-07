@@ -15,7 +15,7 @@ public class LaserCanSubsystem extends SubsystemBase {
 
   /** Creates a new LaserCanSubsystem. */
   public LaserCanSubsystem() {
-    lc = new LaserCan(0);
+    lc = new LaserCan(31);
     // Optionally initialise the settings of the LaserCAN, if you haven't already done so in GrappleHook
     try {
       lc.setRangingMode(LaserCan.RangingMode.SHORT);

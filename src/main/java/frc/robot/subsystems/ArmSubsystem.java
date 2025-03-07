@@ -16,6 +16,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.NeoMotorConstants;
@@ -31,7 +32,8 @@ public class ArmSubsystem extends SubsystemBase {
   private final SparkMaxConfig basicConfig = new SparkMaxConfig();
   private final SparkMaxConfig pitchConfig = new SparkMaxConfig();
   private final SparkMaxConfig openConfig = new SparkMaxConfig();
-
+  private final SparkClosedLoopController pidPitch = pitchSpark.getClosedLoopController();
+  private final SparkClosedLoopController pidOpen = openSpark.getClosedLoopController();
   private final ClosedLoopSlot slot0 = ArmConstants.ARM_SLOT;
 
   public ArmSubsystem() {
@@ -89,6 +91,16 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
   }
 
+  public Command turnPitchMotor(double degrees) {
+    return this
+    .run(() -> pidPitch.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
+  }
+
+  public Command turnOpenMotor(double degrees) {
+    return this
+    .run(() -> pidOpen.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
+  }
+  
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

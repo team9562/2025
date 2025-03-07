@@ -24,6 +24,7 @@ import frc.robot.commands.MusicPlayerCommand;
 import frc.robot.commands.TurnAroundCommand;
 import frc.robot.commands.ElevatorCommands.MoveToL2;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsystem;
 
@@ -43,12 +44,12 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     public final CommandJoystick eggYoke = new CommandJoystick(0);
-    public final CommandXboxController elevatorController = new CommandXboxController(1);
+    public final CommandXboxController XBOXController = new CommandXboxController(1);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-
+    public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
     public final Orchestra m_orchestra = new Orchestra();
@@ -116,6 +117,11 @@ public class RobotContainer {
         eggYoke.button(8).onTrue(playMusicCommand);
 
         drivetrain.registerTelemetry(logger::telemeterize);
+        //For the arm
+        double x = XBOXController.getRightX();
+        double y = XBOXController.getRightY();
+        double direction = Math.toDegrees(Math.atan2(x,y));
+        XBOXController.a().toggleOnTrue(m_ArmSubsystem.turnPitchMotor(direction));
     }
 
     public Command getAutonomousCommand() {

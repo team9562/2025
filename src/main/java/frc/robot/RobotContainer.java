@@ -111,10 +111,10 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
         // For the arm
-        double x = XBOXController.getRightX();
+        /*double x = XBOXController.getRightX();
         double y = XBOXController.getRightY();
-        double direction = Math.toDegrees(Math.atan2(x, y));
-        XBOXController.a().toggleOnTrue(m_ArmSubsystem.turnPitchMotor(direction));
+        double direction = Math.toDegrees(Math.atan2(x, y));*/
+        XBOXController.a().toggleOnTrue(m_ArmSubsystem.turnPitchMotor(XBOXController.getRightX()));
     }
 
     public Command getAutonomousCommand() {

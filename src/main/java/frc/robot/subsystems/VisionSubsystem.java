@@ -7,7 +7,9 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
@@ -29,28 +31,26 @@ public class VisionSubsystem extends SubsystemBase {
   private PhotonCamera camera2;
   private PhotonCamera camera3;
   private PhotonCamera camera4;
+  private PhotonCamera[] cameras = {camera1, camera2, camera3, camera4};
 
-  private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
-      .loadField(AprilTagFields.k2025Reefscape);
+  private PhotonPipelineResult[] results = new PhotonPipelineResult[4];
 
   private Transform3d camera1ToRobot;
   private Transform3d camera2ToRobot;
   private Transform3d camera3ToRobot;
   private Transform3d camera4ToRobot;
-  private final Transform3d[] cameraPositions = { camera1ToRobot, camera2ToRobot, camera3ToRobot, camera4ToRobot };
+  private final Transform3d[] cameraPositions = {camera1ToRobot, camera2ToRobot, camera3ToRobot, camera4ToRobot};
+
+  private static final Map<PhotonCamera, Double> CAMERA_HEIGHTS = new HashMap<>();
+  private static final Map<PhotonCamera, Double> CAMERA_PITCHES = new HashMap<>();
+
+  PhotonTrackedTarget closestTarget = null;
+  PhotonTrackedTarget bestCamera = null;
 
   Pose3d robotPose;
 
-  List<PhotonTrackedTarget> totalTargets;
-  PhotonTrackedTarget trueTarget;
-  int targetID;
-  boolean hasTargets;
-
-  PhotonPipelineResult result1;
-  PhotonPipelineResult result2;
-  PhotonPipelineResult result3;
-  PhotonPipelineResult result4;
-  PhotonPipelineResult[] allResults = { result1, result2, result3, result4 };
+  private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
+  .loadField(AprilTagFields.k2025Reefscape);
 
   public VisionSubsystem() {
     this.cameraPositions[0] = VisionConstants.camera1ToRobot;
@@ -62,10 +62,41 @@ public class VisionSubsystem extends SubsystemBase {
     this.camera2 = new PhotonCamera(VisionConstants.cameraName2);
     this.camera3 = new PhotonCamera(VisionConstants.cameraName3);
     this.camera4 = new PhotonCamera(VisionConstants.cameraName4);
+
+    CAMERA_HEIGHTS.put(camera1, VisionConstants.camera1Z);
+    CAMERA_HEIGHTS.put(camera2, VisionConstants.camera2Z);
+    CAMERA_HEIGHTS.put(camera3, VisionConstants.camera3Z);
+    CAMERA_HEIGHTS.put(camera4, VisionConstants.camera4Z);
+
+    CAMERA_PITCHES.put(camera1, VisionConstants.camera1pitch);
+    CAMERA_PITCHES.put(camera2, VisionConstants.camera2pitch);
+    CAMERA_PITCHES.put(camera3, VisionConstants.camera3pitch);
+    CAMERA_PITCHES.put(camera3, VisionConstants.camera4pitch);
   }
 
-  public PhotonTrackedTarget getBestTarget(int i) {
-    return allResults[i].getBestTarget();
+  public void findBestCameraToTarget(){
+    for(PhotonCamera camera : cameras){
+      PhotonPipelineResult result = camera.getLatestResult();
+
+      if(result.hasTargets()){
+        List<PhotonTrackedTarget> targets = result.getTargets();
+
+        double CamHeight = CAMERA_HEIGHTS.get(camera);
+        double CamPitch = CAMERA_PITCHES.get(camera);
+
+        for (PhotonTrackedTarget target : targets){
+          double distance = PhotonUtils.calculateDistanceToTargetMeters(CamHeight, 0, 0, 0);
+        }
+      }
+    }
+  }
+
+  public PhotonTrackedTarget getBestTarget(int cameraNum){
+    results[0] = camera1.getLatestResult();
+    results[1] = camera2.getLatestResult();
+    results[2] = camera3.getLatestResult();
+    results[3] = camera4.getLatestResult();
+    return results[cameraNum].getBestTarget();
   }
 
   public Pose2d estimatePose(int i) {
@@ -81,13 +112,5 @@ public class VisionSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-
-    allResults[0] = camera1.getLatestResult();
-    allResults[1] = camera2.getLatestResult();
-    allResults[2] = camera3.getLatestResult();
-    allResults[3] = camera4.getLatestResult();
-
-    hasTargets = result1.hasTargets();
-    totalTargets = result1.getTargets();
   }
 }

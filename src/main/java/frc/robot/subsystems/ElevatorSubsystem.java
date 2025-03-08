@@ -108,9 +108,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     elevatorLeft.stopMotor();
   }
 
-  public Command moveElevator(double speed) {
-    return this
-        .run(() -> pid.setReference(speed, ControlType.kMAXMotionVelocityControl, slot0));
+  public void moveElevator(double speed) {
+    pid.setReference(speed, ControlType.kMAXMotionVelocityControl, slot0);
   }
 
   public double getError(double targetHeight) {

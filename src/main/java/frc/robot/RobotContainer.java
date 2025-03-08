@@ -9,10 +9,6 @@ import static edu.wpi.first.units.Units.*;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.Orchestra;
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -22,7 +18,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.TurnAroundCommand;
 import frc.robot.commands.followGuzPath;
-import frc.robot.commands.ElevatorCommands.MoveToL2;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -31,29 +26,26 @@ import frc.robot.subsystems.ElevatorSubsystem;
 public class RobotContainer {
 
     // speed is divided by 3 to accommodate for small testing spaces
-    public static double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
-                                                                                        // speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
-                                                                                      // max angular velocity
+    public static double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
+    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second - max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.2).withRotationalDeadband(MaxAngularRate * 0.3) // Adds a 20% deadband to the
-                                                                                       // controller - UPDATED
-                                                                                       // ROTATIONAL DEADBAND TO 30
+            .withDeadband(MaxSpeed * 0.2).withRotationalDeadband(MaxAngularRate * 0.3) // Adds a 20% deadband to the controller - UPDATED - ROTATIONAL DEADBAND TO 30
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    public final static CommandJoystick eggYoke = new CommandJoystick(0);
-    public final CommandXboxController XBOXController = new CommandXboxController(1);
+    private static CommandJoystick eggYoke = new CommandJoystick(0);
+    static CommandXboxController XController = new CommandXboxController(0);
 
     public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
     public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
+
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
     public static final Command follow = new followGuzPath(drivetrain, eggYoke);
@@ -79,18 +71,20 @@ public class RobotContainer {
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
-                drivetrain.applyRequest(() -> drive.withVelocityX(eggYoke.getY() * MaxSpeed) // Drive forward with
-                                                                                             // negative Y (forward)
+                drivetrain.applyRequest(() -> drive
+                        .withVelocityX(eggYoke.getY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
+
+        m_elevatorSubsystem.setDefaultCommand(
+                m_elevatorSubsystem.run(() -> this.m_elevatorSubsystem.moveElevator(XController.getLeftY() * 3))
+                        .onlyWhile(() -> Math.abs(Math.round(XController.getLeftY())) != 0)
+                        .finallyDo(() -> m_elevatorSubsystem.stopElevator()));
 
         eggYoke.button(7).onTrue(turnAroundCommand);
 
         // elevator command stuff
-        eggYoke.button(5).whileTrue(m_elevatorSubsystem.moveElevator(eggYoke.getRawAxis(5)));
         eggYoke.button(3).onChange(m_elevatorSubsystem.runCurrentZeroing());
-
-        // m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.moveElevator(eggYoke.getRawAxis(5)));
 
         eggYoke.button(6).whileTrue(drivetrain.applyRequest(() -> brake));
 
@@ -110,11 +104,6 @@ public class RobotContainer {
         eggYoke.button(10).toggleOnTrue(follow);
 
         drivetrain.registerTelemetry(logger::telemeterize);
-        // For the arm
-        /*double x = XBOXController.getRightX();
-        double y = XBOXController.getRightY();
-        double direction = Math.toDegrees(Math.atan2(x, y));*/
-        XBOXController.a().toggleOnTrue(m_ArmSubsystem.turnPitchMotor(XBOXController.getRightX()));
     }
 
     public Command getAutonomousCommand() {

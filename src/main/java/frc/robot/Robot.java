@@ -32,11 +32,15 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 //import edu.wpi.first.networktables.NetworkTableInstance;
 //import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.followGuzPath;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.VisionSubsystem;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -44,12 +48,32 @@ public class Robot extends TimedRobot {
   CommandSwerveDrivetrain m_drivetrain = RobotContainer.drivetrain;
   Pigeon2 gyro = m_drivetrain.getPigeon2();
 
+  VisionSubsystem m_vision = new VisionSubsystem();
+
+  CommandXboxController xController = RobotContainer.XController;
+
   SwerveModule m_frontLeft = m_drivetrain.getModule(0);
   SwerveModule m_frontRight = m_drivetrain.getModule(1);
   SwerveModule m_backLeft = m_drivetrain.getModule(2);
   SwerveModule m_backRight = m_drivetrain.getModule(3);
 
-  SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
+  SwerveDrivePoseEstimator poseEstimator;
+
+  public static double currentPosX = 0;
+  public static double currentPosY = 0;
+
+  private final RobotContainer m_robotContainer;
+
+  public void updateCameraReadings(){
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(0), kDefaultPeriod);
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(1), kDefaultPeriod);
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(2), kDefaultPeriod);
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(3), kDefaultPeriod);
+  }
+
+  public Robot() {
+
+    poseEstimator = new SwerveDrivePoseEstimator(
       m_drivetrain.getKinematics(),
       gyro.getRotation2d(),
       new SwerveModulePosition[] {
@@ -57,16 +81,16 @@ public class Robot extends TimedRobot {
           m_frontRight.getPosition(true),
           m_backLeft.getPosition(true),
           m_backRight.getPosition(true),
-      }, new Pose2d(0, 0, new Rotation2d(0)));
+      }, m_vision.estimatePose(0));
 
-  private final RobotContainer m_robotContainer;
+      updateCameraReadings();
 
-  public Robot() {
     m_robotContainer = new RobotContainer();
   }
 
   @Override
   public void robotPeriodic() {
+
     poseEstimator.update(gyro.getRotation2d(),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(true),
@@ -75,12 +99,15 @@ public class Robot extends TimedRobot {
             m_backRight.getPosition(true),
         });
 
-    double currentPosX = poseEstimator.getEstimatedPosition().getX();
-    double currentPosY = poseEstimator.getEstimatedPosition().getY();
+    updateCameraReadings();
+
+    currentPosX = poseEstimator.getEstimatedPosition().getX();
+    currentPosY = poseEstimator.getEstimatedPosition().getY();
+
     CommandScheduler.getInstance().run();
 
-    System.out.println("X: " + currentPosX);
-    System.out.println("Y: " + currentPosY);
+    //System.out.println("X: " + currentPosX);
+    //System.out.println("Y: " + currentPosY);
   }
 
   @Override

@@ -4,14 +4,14 @@ import java.util.Scanner;
 
 import frc.robot.Main;
 import frc.robot.PVector;
-import frc.robot.RobotContainer;
+import frc.robot.Robot;
 import frc.robot.commands.followGuzPath;
 
 public class guzPath extends Thread {
 
     String name = "test";
-    int startX = 0; // Tile index values NOT units actual
-    int startY = 0;
+    int startX = (int)Robot.currentPosX; // Tile index values NOT units actual
+    int startY = (int)Robot.currentPosY;
 int destX = 0, destY = 0;
     public guzPath() {
     }

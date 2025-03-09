@@ -1,23 +1,26 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
-
-//IP OF ROBOT: http://10.95.62.2/
 
 import au.grapplerobotics.ConfigurationFailedException;
 import au.grapplerobotics.LaserCan;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LaserCanSubsystem extends SubsystemBase {
   private LaserCan lc;
 
-  /** Creates a new LaserCanSubsystem. */
+  // Store recent valid distance measurements
+  private static final int SAMPLES = 5;           // Number of samples to collect
+  private static final double SD_THRESHOLD = 5.0; // Standard deviation threshold for classification
+  private static final double MAX_VALID_DIST = 2000.0; // e.g., 2000 mm (2 meters)
+  private List<Double> recentDistances = new ArrayList<>();
+
   public LaserCanSubsystem() {
+    // Instantiate LaserCan on CAN ID 31
     lc = new LaserCan(31);
-    // Optionally initialise the settings of the LaserCAN, if you haven't already done so in GrappleHook
     try {
+      // Configure LaserCan settings
       lc.setRangingMode(LaserCan.RangingMode.SHORT);
       lc.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
       lc.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
@@ -28,15 +31,61 @@ public class LaserCanSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
+    // Read the latest measurement from LaserCan
     LaserCan.Measurement measurement = lc.getMeasurement();
-    if (measurement != null && measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT) {
-      System.out.println("The target is " + measurement.distance_mm + "mm away!");
+
+    // Check if we got a valid measurement
+    if (measurement != null && 
+        measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT &&
+        measurement.distance_mm > 0 && 
+        measurement.distance_mm < MAX_VALID_DIST) {
+
+      double currentDistance = measurement.distance_mm;
+      System.out.println("LaserCAN distance: " + currentDistance + " mm");
+
+      // Add the new distance to the recentDistances list
+      recentDistances.add(currentDistance);
+      // If we have more samples than needed, remove the oldest one
+      if (recentDistances.size() > SAMPLES) {
+        recentDistances.remove(0);
+      }
+
+      // Only classify if we have enough samples
+      if (recentDistances.size() == SAMPLES) {
+        double stdDev = computeStandardDeviation(recentDistances);
+        // Classify based on standard deviation
+        if (stdDev < SD_THRESHOLD) {
+          System.out.println("Object Detected: Tube (Coral)");
+        } else {
+          System.out.println("Object Detected: Ball (Algae)");
+        }
+      }
+
     } else {
-      System.out.println("Oh no! The target is out of range, or we can't get a reliable measurement!");
-      // You can still use distance_mm in here, if you're ok tolerating a clamped value or an unreliable measurement.
+      // Measurement is invalid or out of range
+      System.out.println("No valid object detected or out of range.");
     }
-    // This method will be called once per scheduler run
   }
 
+  /**
+   * Computes the standard deviation of a list of doubles.
+   * @param values List of distance measurements
+   * @return Standard deviation
+   */
+  private double computeStandardDeviation(List<Double> values) {
+    if (values.isEmpty()) {
+      return 0.0;
+    }
+    double mean = 0.0;
+    for (double val : values) {
+      mean += val;
+    }
+    mean /= values.size();
 
+    double sumSquaredDiff = 0.0;
+    for (double val : values) {
+      sumSquaredDiff += Math.pow(val - mean, 2);
+    }
+    return Math.sqrt(sumSquaredDiff / values.size());
+  }
 }

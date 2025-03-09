@@ -15,6 +15,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -39,7 +40,8 @@ public class ArmSubsystem extends SubsystemBase {
   public ArmSubsystem() {
     basicConfig
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-        .disableFollowerMode();
+        .disableFollowerMode()
+        .idleMode(IdleMode.kBrake);
 
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -66,8 +68,7 @@ public class ArmSubsystem extends SubsystemBase {
     openConfig
         .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT,
             NeoMotorConstants.NEO_MAX_RPM)
-        .inverted(false).encoder
-        .positionConversionFactor(ArmConstants.oConversionFactor);
+        .inverted(false);
 
     openConfig.closedLoop
         .pidf(

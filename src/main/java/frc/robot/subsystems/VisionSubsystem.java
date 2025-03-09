@@ -156,10 +156,11 @@ public class VisionSubsystem extends SubsystemBase {
 
   public PhotonTrackedTarget getBestTarget(int cameraNum) {
     results[cameraNum] = cameras[cameraNum].getLatestResult();
-    if (results[cameraNum].hasTargets() && results[cameraNum] != null) {
+    if (results[cameraNum] != null && results[cameraNum].hasTargets()) {
+      System.out.println("--------------------- LINE 160 - " + results[cameraNum].getBestTarget());
       return results[cameraNum].getBestTarget();
     }
-    return null;
+    else return null;
   }
 
   public Pose2d estimatePose(int i, Pose2d oldPose) {
@@ -171,7 +172,6 @@ public class VisionSubsystem extends SubsystemBase {
             cameraPositions[i]);
         return robotPose.toPose2d();
       }
-
       else
         return oldPose;
     }
@@ -191,8 +191,6 @@ public class VisionSubsystem extends SubsystemBase {
       System.out.println("Pitch: " + closestTarget.getPitch());
       System.out.println("Area: " + closestTarget.getArea());
       System.out.println("Exact Distance (meters): " + newDist);
-    } else {
-      System.out.println("No targets detected.");
     }
   }
 }

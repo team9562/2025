@@ -69,17 +69,17 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        /*drivetrain.setDefaultCommand(
+        drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
                 drivetrain.applyRequest(() -> drive
                         .withVelocityX(eggYoke.getY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));*/
+                        .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
 
-        m_elevatorSubsystem.setDefaultCommand(
+        /*m_elevatorSubsystem.setDefaultCommand(
                 m_elevatorSubsystem.run(() -> this.m_elevatorSubsystem.moveElevator(eggYoke.getY() * 3))
                         .onlyWhile(() -> Math.abs(Math.round(eggYoke.getY())) != 0)
-                        .finallyDo(() -> m_elevatorSubsystem.stopElevator()));
+                        .finallyDo(() -> m_elevatorSubsystem.stopElevator()));*/
 
         eggYoke.button(7).onTrue(turnAroundCommand);
 
@@ -93,17 +93,21 @@ public class RobotContainer {
 
         // Run SysId routines when holding 11 or 12
         // Note that each routine should be run exactly once in a single log.
-        eggYoke.button(12).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        /*eggYoke.button(12).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
         eggYoke.button(11).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
         eggYoke.button(12).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        eggYoke.button(11).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        eggYoke.button(11).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));*/
 
         // reset the field-centric heading on left bumper press
         eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        eggYoke.button(10).toggleOnTrue(follow);
+        //eggYoke.button(10).toggleOnTrue(follow);
 
-        eggYoke.button(9).whileTrue(m_ArmSubsystem.turnPitchMotor(1));
+        eggYoke.button(8).onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(20)));
+
+        eggYoke.button(9).whileTrue(m_ArmSubsystem.turnOpenMotor(1));
+        eggYoke.button(10).whileTrue(m_ArmSubsystem.turnOpenMotor(-1));
+        eggYoke.button(11).onChange(m_ArmSubsystem.turnOpenMotor(0));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

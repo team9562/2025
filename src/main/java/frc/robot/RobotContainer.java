@@ -52,7 +52,7 @@ public class RobotContainer {
 
     public RobotContainer() {
         registerCommands();
-        m_elevatorSubsystem.burnFlash();
+        burnAllFlash();
         configureBindings();
     }
 
@@ -62,23 +62,23 @@ public class RobotContainer {
 
     private void burnAllFlash() {
         m_elevatorSubsystem.burnFlash();
-        // arm
+        m_ArmSubsystem.burnFlash();
         // intake
     }
 
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        drivetrain.setDefaultCommand(
+        /*drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
                 drivetrain.applyRequest(() -> drive
                         .withVelocityX(eggYoke.getY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
+                        .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));*/
 
         m_elevatorSubsystem.setDefaultCommand(
-                m_elevatorSubsystem.run(() -> this.m_elevatorSubsystem.moveElevator(XController.getLeftY() * 3))
-                        .onlyWhile(() -> Math.abs(Math.round(XController.getLeftY())) != 0)
+                m_elevatorSubsystem.run(() -> this.m_elevatorSubsystem.moveElevator(eggYoke.getY() * 3))
+                        .onlyWhile(() -> Math.abs(Math.round(eggYoke.getY())) != 0)
                         .finallyDo(() -> m_elevatorSubsystem.stopElevator()));
 
         eggYoke.button(7).onTrue(turnAroundCommand);
@@ -102,6 +102,8 @@ public class RobotContainer {
         eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         eggYoke.button(10).toggleOnTrue(follow);
+
+        eggYoke.button(9).whileTrue(m_ArmSubsystem.turnPitchMotor(1));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

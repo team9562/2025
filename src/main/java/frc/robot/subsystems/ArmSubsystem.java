@@ -95,9 +95,9 @@ public class ArmSubsystem extends SubsystemBase {
         .run(() -> pidPitch.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
   }
 
-  public Command turnOpenMotor(double degrees) {
+  public Command turnOpenMotor(double intake) {
     return this
-        .run(() -> pidOpen.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
+        .run(() -> pidOpen.setReference(intake, ControlType.kDutyCycle, slot0));
   }
 
   @Override

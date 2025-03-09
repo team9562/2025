@@ -4,6 +4,11 @@
 
 package frc.robot.constants;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -11,12 +16,19 @@ import edu.wpi.first.math.geometry.Translation3d;
 /** Add your docs here. */
 public class VisionConstants {
 
-        //APRIL TAG HEIGHTS in M
-        public static final double CORAL_STATION_TAG = 1.35;
-        public static final double PROCESSOR_TAG = 1.17;
-        public static final double REEF_TAG = 0.17;
+        // APRIL TAG HEIGHTS in M
+        public static final double CORAL_STATION_TAG = 1.35; // 1 & 2 for red //12 & 13 for blue
+        public static final double PROCESSOR_TAG = 1.17; // 3 for red // 16 for blue
+        public static final double REEF_TAG = 0.17; //6-11 for red // 17-22 for blue
         public static final double BARGE_TAG = 1.78;
+                // 5 facing red side and 15 facing blue side for red
+                // 14 facing blue side and 4 facing red side for blue
         public static final double[] APRIL_HEIGHTS = {CORAL_STATION_TAG, PROCESSOR_TAG, REEF_TAG, BARGE_TAG};
+        public static Set<Integer> Coral_ID = new HashSet<>(Set.of(1, 2, 12, 13)); //Coral Station
+        public static Set<Integer> Processor_ID = new HashSet<>(Set.of(3, 16)); //Coral Station
+        public static Set<Integer> Reef_ID = new HashSet<>(Set.of(6, 7, 8, 9, 10, 11,
+                                                                17, 18, 19, 20, 21, 22)); //Coral Station
+        public static Set<Integer> Barge_ID = new HashSet<>(Set.of(1, 2, 12, 13)); //Coral Station
 
         // in meters
         public static final double camera1X = -0.130175;

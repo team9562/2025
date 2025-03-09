@@ -109,7 +109,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public void moveElevator(double speed) {
-    pid.setReference(speed, ControlType.kMAXMotionVelocityControl, slot0);
+    pid.setReference(speed, ControlType.kVoltage, slot0);
   }
 
   public double getError(double targetHeight) {

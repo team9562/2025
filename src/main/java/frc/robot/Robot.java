@@ -64,11 +64,11 @@ public class Robot extends TimedRobot {
 
   private final RobotContainer m_robotContainer;
 
-  public void updateCameraReadings(){
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(0), kDefaultPeriod);
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(1), kDefaultPeriod);
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(2), kDefaultPeriod);
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(3), kDefaultPeriod);
+  public void addCameraReadings(){
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(0, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(1, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(2, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    poseEstimator.addVisionMeasurement(m_vision.estimatePose(3, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
   }
 
   public Robot() {
@@ -81,9 +81,9 @@ public class Robot extends TimedRobot {
           m_frontRight.getPosition(true),
           m_backLeft.getPosition(true),
           m_backRight.getPosition(true),
-      }, m_vision.estimatePose(0));
+      }, new Pose2d(0, 0, new Rotation2d(0)));
 
-      updateCameraReadings();
+      addCameraReadings();
 
     m_robotContainer = new RobotContainer();
   }
@@ -99,7 +99,7 @@ public class Robot extends TimedRobot {
             m_backRight.getPosition(true),
         });
 
-    updateCameraReadings();
+    addCameraReadings();
 
     currentPosX = poseEstimator.getEstimatedPosition().getX();
     currentPosY = poseEstimator.getEstimatedPosition().getY();

@@ -117,6 +117,9 @@ public class RobotContainer {
         //laserCan
         eggYoke.button(12).onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 
+        // eggYoke examples for led
+        eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem, RobotState.READY_TO_SHOOT));
+
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

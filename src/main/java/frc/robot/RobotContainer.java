@@ -5,6 +5,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -22,6 +23,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.LaserCanSubsystem;
 
 public class RobotContainer {
 
@@ -35,6 +37,9 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
+
+    // LazerCan
+    public final LaserCanSubsystem m_laserCanSubsystem = new LaserCanSubsystem();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -108,6 +113,9 @@ public class RobotContainer {
         eggYoke.button(9).whileTrue(m_ArmSubsystem.turnOpenMotor(1));
         eggYoke.button(10).whileTrue(m_ArmSubsystem.turnOpenMotor(-1));
         eggYoke.button(11).onChange(m_ArmSubsystem.turnOpenMotor(0));
+
+        //laserCan
+        eggYoke.button(12).onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

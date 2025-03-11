@@ -1,41 +1,58 @@
-# REEFSCAPE 2025
-## The official Bishop Reding 2025 REEFSCAPE robot repository.
-HCDSB
+# Team 9562 FRC REEFSCAPE 2025 🌊🌊🌊
+### Bishop Reding's FRC Reefscape Robot Repo
+![Java](https://img.shields.io/badge/Made%20with-Java-blue.svg)
 
-## Subsystems
-- Swerve Drivebase
-- Elevator (Three Stage)
-- Manipulator/Arm (For Coral and Algae)
-- Algae Ground Intake
-- LaserCan 
-- Vision (Arducam)
+![Royal Robotics](https://avatars.githubusercontent.com/u/160664591?s=200&v=4)
 
-## Specs
-- RoboRIO v2.0
+---
 
-### Swerve
-- SDS MK4i Swerve Modules
-    - L2 Gear Ratio
-    - CANCoder
-- CTRE Kraken X60 Motors
-- TalonFX Motor Controllers
+## 🔧 **Subsystems**
+- 🏎️ **Swerve Drivebase**  
+- 📏 **Elevator** *(Three-Stage Lift)*  
+- 🪸 **Manipulator/Arm** *(For Coral & Algae Handling)*  
+- 🌱 **Algae Ground Intake**  
+- 🔥 **LaserCan** *(Mounted on Arm for Object Detection)*  
+- 🎯 **Vision System** *(Using Arducam for AprilTag Tracking)*  
 
-### Other Subsystems
-- NEO V1.1
-- SparkMax Controllers
-- LaserCan
-- Servo (Hang Brake)
+---
 
-### Libraries
-- CTRE-Phoenix 6
-- Grapple Lib (LaserCan)
-- Photon Lib
-- Rev Lib
-- MapleSim
-- Pathplanner Lib
+## ⚙️ **Specs**
+### 🏎 **Swerve Drive**
+- **SDS MK4i Swerve Modules**
+    - *L2 Gear Ratio*
+    - *CANCoder for Steering Feedback*
+- **CTRE Kraken X60 Motors**
+- **TalonFX Motor Controllers**
 
-## Features
-- AprilTag Position Estimation with Photon Vision
-- Object Detection with LaserCan
-- Cool LED Lights
-- (Planned) PathFinding
+### ⚡ **Other Subsystems**
+- **NEO V1.1 Motors**
+- **SparkMax Controllers**
+- **LaserCan**
+- **Servo (Hang Brake)**
+
+---
+
+## 📚 **Libraries Used**
+- **CTRE-Phoenix 6** *(Motor Control)*  
+- **Grapple Lib** *(LaserCan Integration)*  
+- **Photon Lib** *(Vision Processing with AprilTags)*  
+- **Rev Lib** *(SparkMax Control)*  
+- **MapleSim** *(Physics Simulation & Kinematics)*  
+- **Pathplanner Lib** *(Path Planning)*  
+
+---
+
+## ✨ **Features** ✨
+🔹 **AprilTag Position Estimation** *(with PhotonVision & SwerveDrivePoseEstimator)*  
+🔹 **Object Detection In Manipulator** *(LaserCan)*  
+🔹 **Swerve Odometry** *(Accurate field positioning)*  
+🔹 **Cool LED Lights** *(For visualization & team branding!)* 
+
+### **Planned**
+🔹**Automatic Pathfinding Via Macros** *(GuzPath™ can find the nearest POI and map)*
+🔹**LaserCan Object Seperation Via Vision** *(Determine whether a Coral or Algae is in the Manipulator)*
+
+---
+
+## Naming Conventions
+//TODO

@@ -1,8 +1,6 @@
-# Team 9562 FRC REEFSCAPE 2025 🌊🌊🌊
-### Bishop Reding's FRC Reefscape Robot Repo
+# 🌊 REEFSCAPE 2025 🌊
+### Official Bishop Reding Repo for FRC Reefscape
 ![Java](https://img.shields.io/badge/Made%20with-Java-blue.svg)
-
-![Royal Robotics](https://avatars.githubusercontent.com/u/160664591?s=200&v=4)
 
 ---
 
@@ -16,7 +14,7 @@
 
 ---
 
-## ⚙️ **Specs**
+## ⚙️ **Specs** ⚙️
 ### 🏎 **Swerve Drive**
 - **SDS MK4i Swerve Modules**
     - *L2 Gear Ratio*
@@ -24,7 +22,7 @@
 - **CTRE Kraken X60 Motors**
 - **TalonFX Motor Controllers**
 
-### ⚡ **Other Subsystems**
+### ⚡ **Other Subsystems** ⚡
 - **NEO V1.1 Motors**
 - **SparkMax Controllers**
 - **LaserCan**
@@ -32,8 +30,8 @@
 
 ---
 
-## 📚 **Libraries Used**
-- **CTRE-Phoenix 6** *(Motor Control)*  
+## 📚 **Libraries Used** 📚
+- **CTRE-Phoenix 6** *(TalonFX Motor Control)*  
 - **Grapple Lib** *(LaserCan Integration)*  
 - **Photon Lib** *(Vision Processing with AprilTags)*  
 - **Rev Lib** *(SparkMax Control)*  
@@ -49,10 +47,12 @@
 🔹 **Cool LED Lights** *(For visualization & team branding!)* 
 
 ### **Planned**
-🔹**Automatic Pathfinding Via Macros** *(GuzPath™ can find the nearest POI and map)*
-🔹**LaserCan Object Seperation Via Vision** *(Determine whether a Coral or Algae is in the Manipulator)*
+🔹 **Automatic Pathfinding Via Macros** *(GuzPath™ can find the nearest POI and map)*
+🔹 **LaserCan Object Seperation Via Vision** *(Determine whether a Coral or Algae is in the Manipulator)*
 
 ---
 
 ## Naming Conventions
 //TODO
+
+![Royal Robotics](https://avatars.githubusercontent.com/u/160664591?s=200&v=4)

@@ -26,7 +26,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   /** Creates a new elevator. */
   private SparkMax elevatorLeft = new SparkMax(ElevatorConstants.E_LEFT_ID, MotorType.kBrushless);
   private SparkMax elevatorRight = new SparkMax(ElevatorConstants.E_RIGHT_ID, MotorType.kBrushless);
-  private final SparkClosedLoopController pid = elevatorLeft.getClosedLoopController();
+  private final SparkClosedLoopController pid = elevatorRight.getClosedLoopController();
 
   private RelativeEncoder leftEncoder = elevatorLeft.getEncoder();
   private RelativeEncoder rightEncoder = elevatorRight.getEncoder();
@@ -37,7 +37,6 @@ public class ElevatorSubsystem extends SubsystemBase {
   private static final double kP = ElevatorConstants.kP;
   private static final double kI = ElevatorConstants.kI;
   private static final double kD = ElevatorConstants.kD;
-  private static final double kFF = ElevatorConstants.kFF;
   private static final ClosedLoopSlot slot0 = ElevatorConstants.E_SLOT;
 
   private double tolerance = ElevatorConstants.E_TOLERANCE;
@@ -46,7 +45,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public ElevatorSubsystem() {
 
     rightConfig
-        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, 10000)
+        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .idleMode(IdleMode.kBrake)
         .disableFollowerMode()
@@ -54,7 +53,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     rightConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pidf(kP, kI, kD, kFF, slot0)
+        .pidf(kP, kI, kD, 0, slot0)
 
             .maxMotion
         .allowedClosedLoopError(ElevatorConstants.E_TOLERANCE, slot0)
@@ -74,7 +73,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     leftConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pidf(kP, kI, kD, kFF, slot0)
+        .pidf(kP, kI, kD, 0, slot0)
 
             .maxMotion
         .allowedClosedLoopError(ElevatorConstants.E_TOLERANCE, slot0)
@@ -105,25 +104,22 @@ public class ElevatorSubsystem extends SubsystemBase {
     elevatorLeft.stopMotor();
   }
 
-  public void moveElevator(double speed) {
-    pid.setReference(speed, ControlType.kVoltage, slot0);
-  }
-
   public double getError(double targetHeight) {
     this.target = targetHeight;
     return targetHeight - getEncoderPose();
   }
 
-  public void setElevatorHeight(double targetHeight) {
+  public Command setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0);
+    return this.run(() -> pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0));
   }
 
   public Command runCurrentZeroing() {
     return this
-        .run(() -> elevatorRight.setVoltage(-1)) // decrease??
-        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
-        .finallyDo(() -> resetEncoderPose());
+        .run(() -> elevatorRight.setVoltage(-2)) // decrease??
+        .until(() -> elevatorRight.getOutputCurrent() >= ElevatorConstants.E_STALL_LIMIT)
+        .finallyDo(() -> resetEncoderPose())
+        .finallyDo(() -> elevatorRight.setVoltage(0));
   }
 
   public Boolean isAtTarget() {
@@ -133,15 +129,16 @@ public class ElevatorSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("height: ", getEncoderPose());
-    SmartDashboard.putNumber("current: ", elevatorRight.getOutputCurrent());
-    SmartDashboard.putNumber("voltage: ", elevatorRight.getBusVoltage());
+    SmartDashboard.putNumber("Elevator Height: ", getEncoderPose());
+    SmartDashboard.putNumber("Elevator Current: ", elevatorRight.getOutputCurrent());
+    SmartDashboard.putNumber("Elevator Voltage: ", elevatorRight.getBusVoltage());
     SmartDashboard.putBoolean("Target Reached: ", isAtTarget());
+    SmartDashboard.putNumber("Target Height: ", target);
 
-    if (!(Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10))) {
+    /*if (!(Utility.betweenRange(getEncoderPose(), 2, ElevatorConstants.E_MAXHEIGHT - 10))) {
       stopElevator();
       run(() -> elevatorRight.setVoltage(-2))
           .until(() -> Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10));
-    }
+    }*/
   }
 }

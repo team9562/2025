@@ -23,7 +23,7 @@
 - **TalonFX Motor Controllers**
 
 ### ⚡ **Other Subsystems** ⚡
-- **NEO V1.1 Motors**
+- **REV NEO V1.1 Motors**
 - **SparkMax Controllers**
 - **LaserCan**
 - **Servo (Hang Brake)**
@@ -47,8 +47,8 @@
 🔹 **Cool LED Lights** *(For visualization & team branding!)* 
 
 ### **Planned**
-🔹 **Automatic Pathfinding Via Macros** *(GuzPath™ can find the nearest POI and map)*
-🔹 **LaserCan Object Seperation Via Vision** *(Determine whether a Coral or Algae is in the Manipulator)*
+🔹 **Automatic Pathfinding Via Macros** *(GuzPath™ can find the nearest POI and map)*  
+🔹 **Improved LaserCan Object Detection** *(Ability to differentiate Coral and Algae)*  
 
 ---
 

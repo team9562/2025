@@ -12,10 +12,10 @@ public class ElevatorConstants {
     public static final double E_PULLEY_LENGTH = 180 / 25.4; // 180 is the circumference in mm ( / 25.4 = in)
     public static final double kConversionFactor = E_GEAR_RATIO * E_PULLEY_LENGTH;
 
-    public static final double kP = 1.0;
+    public static final double kP = 0.05;
     public static final double kI = 0;
-    public static final double kD = 0.0001;
-    public static final double kFF = 0;
+    public static final double kD = 0.0;
+    public static final double kFF = 0.0;
     public static final ClosedLoopSlot E_SLOT = ClosedLoopSlot.kSlot0;
 
     // in

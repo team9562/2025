@@ -38,6 +38,8 @@ public class ArmSubsystem extends SubsystemBase {
   private final SparkClosedLoopController pidOpen = openSpark.getClosedLoopController();
   private final ClosedLoopSlot slot0 = ArmConstants.ARM_SLOT;
 
+  private double target;
+
   public ArmSubsystem() {
     basicConfig
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
@@ -54,7 +56,7 @@ public class ArmSubsystem extends SubsystemBase {
         .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
 
     pitchConfig
-        .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT)
+        .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .inverted(false)
     .encoder
         .positionConversionFactor(ArmConstants.pConversionFactor);
@@ -68,8 +70,7 @@ public class ArmSubsystem extends SubsystemBase {
             slot0);
 
     openConfig
-        .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT,
-            NeoMotorConstants.NEO_MAX_RPM)
+        .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .inverted(false);
 
     openConfig.closedLoop
@@ -93,9 +94,12 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public Command turnPitchMotor(double degrees) {
-    return this
-        .run(() -> pidPitch.setReference(degrees, ControlType.kMAXMotionPositionControl, slot0));
+  public double getError(double targetAngle){
+    return targetAngle - getEncoderPose(pitchEncoder);
+  }
+
+  public void turnPitchMotor(double degrees) {
+    pidPitch.setReference(getError(degrees), ControlType.kMAXMotionPositionControl, slot0);
   }
 
   public Command turnOpenMotor(double intake) {

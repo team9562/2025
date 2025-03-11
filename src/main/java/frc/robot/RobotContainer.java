@@ -31,12 +31,16 @@ import frc.robot.subsystems.LedSubsystem.RobotState;
 public class RobotContainer {
 
     // speed is divided by 3 to accommodate for small testing spaces
-    public static double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second - max angular velocity
+    public static double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top
+                                                                                        // speed
+    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second -
+                                                                                      // max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.2).withRotationalDeadband(MaxAngularRate * 0.3) // Adds a 20% deadband to the controller - UPDATED - ROTATIONAL DEADBAND TO 30
+            .withDeadband(MaxSpeed * 0.2).withRotationalDeadband(MaxAngularRate * 0.3) // Adds a 20% deadband to the
+                                                                                       // controller - UPDATED -
+                                                                                       // ROTATIONAL DEADBAND TO 30
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -47,13 +51,13 @@ public class RobotContainer {
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     private static CommandJoystick eggYoke = new CommandJoystick(0);
-    static CommandXboxController XController = new CommandXboxController(0);
+    static CommandXboxController XController = new CommandXboxController(1);
 
     public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
     public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
-    public final LedSubsystem ledSubsystem = new LedSubsystem();
+    // public final LedSubsystem ledSubsystem = new LedSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
@@ -85,15 +89,10 @@ public class RobotContainer {
                         .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
 
-        /*m_elevatorSubsystem.setDefaultCommand(
-                m_elevatorSubsystem.run(() -> this.m_elevatorSubsystem.moveElevator(eggYoke.getY() * 3))
-                        .onlyWhile(() -> Math.abs(Math.round(eggYoke.getY())) != 0)
-                        .finallyDo(() -> m_elevatorSubsystem.stopElevator()));*/
+        XController.a().onTrue(m_elevatorSubsystem.setElevatorHeight(67));
+        XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 
         eggYoke.button(7).onTrue(turnAroundCommand);
-
-        // elevator command stuff
-        eggYoke.button(3).onChange(m_elevatorSubsystem.runCurrentZeroing());
 
         eggYoke.button(6).whileTrue(drivetrain.applyRequest(() -> brake));
 
@@ -102,27 +101,30 @@ public class RobotContainer {
 
         // Run SysId routines when holding 11 or 12
         // Note that each routine should be run exactly once in a single log.
-        /*eggYoke.button(12).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        eggYoke.button(11).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        eggYoke.button(12).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        eggYoke.button(11).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));*/
+        /*
+         * eggYoke.button(12).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+         * eggYoke.button(11).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+         * eggYoke.button(12).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward))
+         * ;
+         * eggYoke.button(11).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse))
+         * ;
+         */
 
         // reset the field-centric heading on left bumper press
         eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        //eggYoke.button(10).toggleOnTrue(follow);
+        // eggYoke.button(10).toggleOnTrue(follow);
 
-        eggYoke.button(8).onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(20)));
+        XController.b().whileTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1)));
+        XController.b().whileFalse(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(0)));
 
-        eggYoke.button(9).onChange(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1)));
-
-
-        //Don't create a new command everytime it needs to be run, init at the top
-        //laserCan
+        // Don't create a new command everytime it needs to be run, init at the top
+        // laserCan
         eggYoke.button(12).onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 
         // eggYoke examples for led
-        eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem, RobotState.READY_TO_SHOOT));
+        // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,
+        // RobotState.READY_TO_SHOOT));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

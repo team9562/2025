@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.followGuzPath;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.utils.Utility;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -109,6 +110,8 @@ public class Robot extends TimedRobot {
 
     SmartDashboard.putNumber("Current X: ", currentPosX);
     SmartDashboard.putNumber("Current Y: ", currentPosY);
+
+    SmartDashboard.putString("XInput: ", Utility.getLatestXInput(xController));
 
     CommandScheduler.getInstance().run();
 

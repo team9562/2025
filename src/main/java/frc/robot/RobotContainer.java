@@ -17,13 +17,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.TurnAroundCommand;
 import frc.robot.commands.followGuzPath;
+import frc.robot.commands.LEDCommands.SetLedCommand;
+import frc.robot.commands.SwerveCommands.TurnAroundCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LaserCanSubsystem;
+import frc.robot.subsystems.LedSubsystem;
+import frc.robot.subsystems.LedSubsystem.RobotState;
 
 public class RobotContainer {
 
@@ -50,6 +53,7 @@ public class RobotContainer {
 
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
     public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
+    public final LedSubsystem ledSubsystem = new LedSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
@@ -110,10 +114,10 @@ public class RobotContainer {
 
         eggYoke.button(8).onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(20)));
 
-        eggYoke.button(9).whileTrue(m_ArmSubsystem.turnOpenMotor(1));
-        eggYoke.button(10).whileTrue(m_ArmSubsystem.turnOpenMotor(-1));
-        eggYoke.button(11).onChange(m_ArmSubsystem.turnOpenMotor(0));
+        eggYoke.button(9).onChange(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1)));
 
+
+        //Don't create a new command everytime it needs to be run, init at the top
         //laserCan
         eggYoke.button(12).onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 

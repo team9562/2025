@@ -14,18 +14,18 @@ public class ElevatorConstants {
 
     public static final double kP = 1.0;
     public static final double kI = 0;
-    public static final double kD = 0;
-    public static final double kFF = 0.01;
+    public static final double kD = 0.0001;
+    public static final double kFF = 0;
     public static final ClosedLoopSlot E_SLOT = ClosedLoopSlot.kSlot0;
 
     // in
     public static final int E_MAXHEIGHT = 70;
-    public static final double E_TOLERANCE = 0.05;
+    public static final double E_TOLERANCE = 0.5;
 
-    public static final int L1 = 0;
-    public static final int L2 = 0;
-    public static final int L3 = 0;
-    public static final int L4 = 0;
+    public static final double B = 67.17; //barge
+    public static final double L2 = 26.85;
+    public static final double L3 = 43.86;
+    public static final double L4 = 77.10;
 
     public static final double E_MAXSPEED = 0.25;
 }

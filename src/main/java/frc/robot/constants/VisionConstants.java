@@ -60,22 +60,22 @@ public class VisionConstants {
         // refer to the google sheets camera coordinate frames:
         // https://docs.google.com/spreadsheets/d/1hgVLrLa4U4E_CwgnRnyZ7TmENQ4SoZw2JJrL0kcaZ2w/edit?gid=0#gid=0
 
-        public static final String cameraName1 = "Arducam1"; // Camera TOP (HOPPER SIDE)
+        public static final String cameraName1 = "Camera1"; // Camera TOP (HOPPER SIDE)
         public static final Transform3d camera1ToRobot = new Transform3d(
                         new Translation3d(camera1X, camera1Y, camera1Z),
                         new Rotation3d(0, camera1pitch, camera1yaw));
 
-        public static final String cameraName2 = "Arducam2"; // Camera TOP (INTAKE SIDE)
+        public static final String cameraName2 = "Camera2"; // Camera TOP (INTAKE SIDE)
         public static final Transform3d camera2ToRobot = new Transform3d(
                         new Translation3d(camera2X, camera2Y, camera2Z),
                         new Rotation3d(0, camera2pitch, camera2yaw));
 
-        public static final String cameraName3 = "Arducam3"; // Camera TOP ANGLED RIGHT (INTAKE SIDE)
+        public static final String cameraName3 = "Camera3"; // Camera TOP ANGLED RIGHT (INTAKE SIDE)
         public static final Transform3d camera3ToRobot = new Transform3d(
                         new Translation3d(camera3X, camera3Y, camera3Z),
                         new Rotation3d(0, camera3pitch, camera3yaw));
 
-        public static final String cameraName4 = "Arducam4"; // Camera BOTTOM ANGLED LEFT (INTAKE SIDE)
+        public static final String cameraName4 = "Camera4"; // Camera BOTTOM ANGLED LEFT (INTAKE SIDE)
         public static final Transform3d camera4ToRobot = new Transform3d(
                         new Translation3d(camera4X, camera4Y, camera4Z),
                         new Rotation3d(0, camera4pitch, camera4yaw));

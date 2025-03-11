@@ -5,8 +5,8 @@ import com.revrobotics.spark.ClosedLoopSlot;
 public class IntakeConstants {
 
     // Motor IDs for your two intake motors
-    public static final int INTAKE_LEFT_ID  = 10;  
-    public static final int INTAKE_RIGHT_ID = 11;
+    public static final int INTAKE_LEFT_ID  = 27;  
+    public static final int INTAKE_RIGHT_ID = 28;
 
     public static final int I_STALL_LIMIT = 20;
     public static final ClosedLoopSlot INTAKE_SLOT = ClosedLoopSlot.kSlot0;

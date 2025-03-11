@@ -46,8 +46,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public ElevatorSubsystem() {
 
     rightConfig
-        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT,
-            NeoMotorConstants.NEO_MAX_RPM)
+        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, 10000)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .idleMode(IdleMode.kBrake)
         .disableFollowerMode()
@@ -67,8 +66,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         .positionConversionFactor(ElevatorConstants.kConversionFactor); // mm / 25.4 = in
 
     leftConfig
-        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT,
-            NeoMotorConstants.NEO_MAX_RPM)
+        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .idleMode(IdleMode.kBrake)
         .inverted(false)
@@ -85,8 +83,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
 
     leftConfig.encoder
-        .positionConversionFactor(ElevatorConstants.kConversionFactor)
-        .velocityConversionFactor(ElevatorConstants.kConversionFactor / 60);
+        .positionConversionFactor(ElevatorConstants.kConversionFactor);
   }
 
   public void burnFlash() {

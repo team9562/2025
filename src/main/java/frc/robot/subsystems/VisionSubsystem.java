@@ -21,6 +21,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.VisionConstants;
 
@@ -185,12 +186,12 @@ public class VisionSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     if (closestTarget != null && bestCamera != null) {
-      System.out.println("Using Camera: " + bestCamera.getName());
-      System.out.println("Closest Target Data:");
-      System.out.println("Yaw: " + closestTarget.getYaw());
-      System.out.println("Pitch: " + closestTarget.getPitch());
-      System.out.println("Area: " + closestTarget.getArea());
-      System.out.println("Exact Distance (meters): " + newDist);
+      System.out.println("SOMETHING IS FOUND!!!!!!!!!");
+      SmartDashboard.putString("Using Camera: ", bestCamera.getName().toString());
+      SmartDashboard.putNumber("Best Yaw: ", closestTarget.getYaw());
+      SmartDashboard.putNumber("Best Pitch: ", closestTarget.getPitch());
+      SmartDashboard.putNumber("Best Area: ", closestTarget.getArea());
+      SmartDashboard.putNumber("Exact Distance (meters): ", newDist);
     }
   }
 }

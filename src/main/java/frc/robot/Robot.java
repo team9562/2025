@@ -9,6 +9,7 @@ import java.util.Scanner;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveModule;
 
+import au.grapplerobotics.CanBridge;
 import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -73,6 +74,8 @@ public class Robot extends TimedRobot {
 
   public Robot() {
 
+    CanBridge.runTCP();
+
     poseEstimator = new SwerveDrivePoseEstimator(
       m_drivetrain.getKinematics(),
       gyro.getRotation2d(),
@@ -103,6 +106,9 @@ public class Robot extends TimedRobot {
 
     currentPosX = poseEstimator.getEstimatedPosition().getX();
     currentPosY = poseEstimator.getEstimatedPosition().getY();
+
+    SmartDashboard.putNumber("Current X: ", currentPosX);
+    SmartDashboard.putNumber("Current Y: ", currentPosY);
 
     CommandScheduler.getInstance().run();
 

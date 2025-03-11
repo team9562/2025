@@ -17,6 +17,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
@@ -46,7 +47,7 @@ public class ArmSubsystem extends SubsystemBase {
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 
-            .maxMotion
+    .maxMotion
         .allowedClosedLoopError(ArmConstants.A_TOLERANCE, slot0)
         .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC)
         .maxVelocity(NeoMotorConstants.NEO_MAX_VEL)
@@ -54,7 +55,8 @@ public class ArmSubsystem extends SubsystemBase {
 
     pitchConfig
         .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT)
-        .inverted(false).encoder
+        .inverted(false)
+    .encoder
         .positionConversionFactor(ArmConstants.pConversionFactor);
 
     pitchConfig.closedLoop
@@ -84,8 +86,8 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void burnFlash() {
-    pitchSpark.configureAsync(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    openSpark.configureAsync(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    pitchSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    openSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     pitchSpark.configure(pitchConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
@@ -103,6 +105,6 @@ public class ArmSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose(pitchEncoder));
   }
 }

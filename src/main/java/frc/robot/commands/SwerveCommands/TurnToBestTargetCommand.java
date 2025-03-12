@@ -44,7 +44,7 @@ public class TurnToBestTargetCommand extends Command {
 
     currentYaw = m_visionSubsystem.getBestYaw(); // get the yaw of the closest target
     double yawDirection;
-
+    double decreasingFactor = 0; //add some sort of decreasing factor for the angular rate to gradually decrease once it approaches yaw = 0
     if(currentYaw>0.1){
       yawDirection = -1;
     }
@@ -53,8 +53,7 @@ public class TurnToBestTargetCommand extends Command {
     } else {
       yawDirection = 0;
     }
-//add some sort of decreasing factor for the angular rate to gradually decrease once it approaches yaw = 0
-    this.m_drivetrain.setControl(m_drive.withRotationalRate(yawDirection * m_angularRate)); 
+    this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * m_angularRate)-decreasingFactor)); 
 
 
   }

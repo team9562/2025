@@ -15,13 +15,14 @@ public class SetHeightToPOI extends Command {
 
   ElevatorSubsystem m_elevator;
   CommandXboxController xbox;
+  String poi;
   double setpoint;
   double angle;
 
   /** Creates a new score. */
-  public SetHeightToPOI(ElevatorSubsystem sub1, CommandXboxController xInput) {
+  public SetHeightToPOI(ElevatorSubsystem sub1, String POI) {
     this.m_elevator = sub1;
-    this.xbox = xInput;
+    this.poi = POI;
     addRequirements(m_elevator);
     // Use addRequirements() here to declare subsystem dependencies.
   }
@@ -29,21 +30,26 @@ public class SetHeightToPOI extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    switch (Utility.getLatestXInput(xbox)) {
+    switch (poi.toLowerCase()) {
       default:
         setpoint = m_elevator.getEncoderPose();
+        break;
 
-      case "x":
+      case "l2":
         setpoint = ElevatorConstants.L2;
+        break;
 
-      case "y":
+      case "l3":
         setpoint = ElevatorConstants.L3;
+        break;
 
-      case "a":
+      case "l4":
         setpoint = ElevatorConstants.L4;
+        break;
 
       case "b":
         setpoint = ElevatorConstants.B;
+        break;
     }
   }
 

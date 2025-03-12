@@ -4,69 +4,65 @@
 
 package frc.robot.commands.ArmCommands;
 
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.ArmSubsystem;
-import frc.robot.utils.Utility;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class SetAngleToPOI extends Command {
-  ArmSubsystem m_arm;
-  String poi;
-  double targetAngle;
+public class IntakeOutake extends Command {
+  /** Creates a new IntakeOutake. */
+  ArmSubsystem m_ArmSubsystem;
+  String direction;
+  double speed;
+  Timer elapsed;
 
-  /** Creates a new SetAngleToPOI. */
-  public SetAngleToPOI(ArmSubsystem sub1, String POI) {
-    this.m_arm = sub1;
-    this.poi = POI;
-    addRequirements(m_arm);
+  public IntakeOutake(ArmSubsystem arm, String inOutStop) {
+    this.m_ArmSubsystem = arm;
+    this.direction = inOutStop;
+    addRequirements(m_ArmSubsystem);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    switch (poi.toLowerCase()) {
+    elapsed.reset();
+    elapsed.start();
+
+    switch (direction.toLowerCase()) {
       default:
-        targetAngle = m_arm.getEncoderPose();
+        speed = 0;
         break;
 
-      case "l2":
-        targetAngle = 0;
+      case "in":
+        speed = 1;
         break;
 
-      case "l3":
-        targetAngle = 0;
+      case "out":
+        speed = -1;
         break;
 
-      case "l4":
-        targetAngle = 0;
+      case "stop":
+        speed = 0;
         break;
-
-      case "b":
-        targetAngle = 0;
-        break;
-
-      case "coral":
-        targetAngle = 0;
     }
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_arm.turnPitchMotor(targetAngle);
+    m_ArmSubsystem.turnOpenMotor(speed);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    m_ArmSubsystem.stopOpen();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Utility.withinTolerance(m_arm.getEncoderPose(), targetAngle, 1);
+    return elapsed.hasElapsed(1.5); // idk guess a better value or use lasercan data to stop
   }
 }

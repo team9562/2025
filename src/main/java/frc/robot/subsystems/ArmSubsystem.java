@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -22,11 +23,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.NeoMotorConstants;
+import frc.robot.utils.Utility;
 
 public class ArmSubsystem extends SubsystemBase {
 
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
+  private final AbsoluteEncoder absoluteZeroPitch = pitchSpark.getAbsoluteEncoder();
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
   private final RelativeEncoder openEncoder = openSpark.getEncoder();
@@ -69,6 +72,10 @@ public class ArmSubsystem extends SubsystemBase {
             ArmConstants.kF_PITCH,
             slot0);
 
+    pitchConfig.absoluteEncoder
+    .positionConversionFactor(ArmConstants.pConversionFactor)
+    .zeroOffset(0); //change to actual value
+
     openConfig
         .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .inverted(false);
@@ -82,8 +89,12 @@ public class ArmSubsystem extends SubsystemBase {
             slot0);
   }
 
-  public double getEncoderPose(RelativeEncoder encoder) {
-    return encoder.getPosition();
+  public void resetPitch(){
+    pitchEncoder.setPosition(0);
+  }
+
+  public double getEncoderPose() {
+    return pitchEncoder.getPosition() % 360;
   }
 
   public void burnFlash() {
@@ -94,12 +105,28 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public double getError(double targetAngle){
-    return targetAngle - getEncoderPose(pitchEncoder);
+  public void stopPitch(){
+    pitchSpark.stopMotor();
   }
 
+  public void stopOpen(){
+    openSpark.stopMotor();
+  }
+
+  public static double getShortestRotation(double currentAngle, double targetAngle) {
+    double difference = (targetAngle - currentAngle) % 360;
+
+    if (difference > 180) {
+        difference -= 360;
+    } else if (difference < -180) {
+        difference += 360;
+    }
+
+    return difference;
+}
+
   public void turnPitchMotor(double degrees) {
-    pidPitch.setReference(getError(degrees), ControlType.kMAXMotionPositionControl, slot0);
+    pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0);
   }
 
   public Command turnOpenMotor(double intake) {
@@ -109,6 +136,9 @@ public class ArmSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose(pitchEncoder));
+    SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose());
+    if(Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)){
+      resetPitch();
+    }
   }
 }

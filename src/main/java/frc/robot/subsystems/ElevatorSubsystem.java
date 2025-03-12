@@ -42,6 +42,10 @@ public class ElevatorSubsystem extends SubsystemBase {
   private double tolerance = ElevatorConstants.E_TOLERANCE;
   private double target;
 
+  //debug info
+  double inputVolts = 0;
+  boolean isReacting = false;
+
   public ElevatorSubsystem() {
 
     rightConfig
@@ -109,6 +113,12 @@ public class ElevatorSubsystem extends SubsystemBase {
     return targetHeight - getEncoderPose();
   }
 
+  public void moveElevator(double volts){
+    this.isReacting = true;
+    this.inputVolts = volts;
+    pid.setReference(volts * 2, ControlType.kVoltage, slot0);
+  }
+
   public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
     pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0); // resolve error
@@ -130,9 +140,14 @@ public class ElevatorSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Elevator Height: ", getEncoderPose());
+
     SmartDashboard.putNumber("Elevator Current: ", elevatorRight.getOutputCurrent());
     SmartDashboard.putNumber("Elevator Voltage: ", elevatorRight.getBusVoltage());
+
     SmartDashboard.putBoolean("Target Reached: ", isAtTarget());
     SmartDashboard.putNumber("Target Height: ", target);
+
+    SmartDashboard.putBoolean("Manual Move: ", isReacting);
+    SmartDashboard.putNumber("Input Volts", inputVolts); //should be between one or negative one
   }
 }

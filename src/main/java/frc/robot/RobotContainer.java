@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.followGuzPath;
+import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
 import frc.robot.commands.LEDCommands.SetLedCommand;
 import frc.robot.commands.SwerveCommands.TurnAroundCommand;
 import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
@@ -65,6 +66,8 @@ public class RobotContainer {
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, drive, MaxAngularRate);
+
+    private Command elevatorSetPOI;
     
     public static final Command follow = new followGuzPath(drivetrain, eggYoke);
 
@@ -95,7 +98,19 @@ public class RobotContainer {
                         .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
 
+        //try to get this to work properly, might need to convert into a command in the subsystem itself
+        m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getLeftY())));
+
+        //old boring code - yuck
         XController.a().onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(67)));
+
+        //new awesome code - yay
+        //might work better like instead of intializing four at the top: control via d-pad
+        XController.povUp().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l4"));
+        XController.povLeft().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l3"));
+        XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2"));
+        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));
+
         XController.y().onTrue(turnToBestTargetCommand);
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 

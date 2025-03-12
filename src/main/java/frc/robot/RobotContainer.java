@@ -89,7 +89,7 @@ public class RobotContainer {
                         .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
 
-        XController.a().onTrue(m_elevatorSubsystem.setElevatorHeight(67));
+        XController.a().onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(67)));
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 
         eggYoke.button(7).onTrue(turnAroundCommand);

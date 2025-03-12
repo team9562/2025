@@ -45,7 +45,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public ElevatorSubsystem() {
 
     rightConfig
-        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
+        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, 10000)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .idleMode(IdleMode.kBrake)
         .disableFollowerMode()
@@ -65,7 +65,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         .positionConversionFactor(ElevatorConstants.kConversionFactor); // mm / 25.4 = in
 
     leftConfig
-        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
+        .smartCurrentLimit(ElevatorConstants.E_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT, 10000)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .idleMode(IdleMode.kBrake)
         .inverted(false)
@@ -109,9 +109,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     return targetHeight - getEncoderPose();
   }
 
-  public Command setElevatorHeight(double targetHeight) {
+  public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    return this.run(() -> pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0));
+    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0);
   }
 
   public Command runCurrentZeroing() {
@@ -134,11 +134,5 @@ public class ElevatorSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Elevator Voltage: ", elevatorRight.getBusVoltage());
     SmartDashboard.putBoolean("Target Reached: ", isAtTarget());
     SmartDashboard.putNumber("Target Height: ", target);
-
-    /*if (!(Utility.betweenRange(getEncoderPose(), 2, ElevatorConstants.E_MAXHEIGHT - 10))) {
-      stopElevator();
-      run(() -> elevatorRight.setVoltage(-2))
-          .until(() -> Utility.betweenRange(getEncoderPose(), 0, ElevatorConstants.E_MAXHEIGHT - 10));
-    }*/
   }
 }

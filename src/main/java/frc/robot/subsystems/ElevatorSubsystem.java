@@ -112,7 +112,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
     return this.run(() -> pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0));
-  }
+  } // could this be the error
 
   public Command runCurrentZeroing() {
     return this

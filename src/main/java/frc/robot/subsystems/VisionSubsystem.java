@@ -14,6 +14,8 @@ import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import com.revrobotics.spark.SparkBase.ControlType;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -22,7 +24,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
+import frc.robot.constants.ElevatorConstants;
 import frc.robot.constants.VisionConstants;
 
 public class VisionSubsystem extends SubsystemBase {
@@ -106,6 +111,11 @@ public class VisionSubsystem extends SubsystemBase {
     }
   }
 
+
+  public double getBestYaw(){
+    return closestTarget.getYaw();
+  }
+
   public void findBestCameraToPOI(String tagType) {
 
     if (tagType.toLowerCase().equals("coral")) {
@@ -182,6 +192,27 @@ public class VisionSubsystem extends SubsystemBase {
 
   }
 
+/* 
+public Command turnToBestTarget(int camNum) { 
+  // double targetID = getBestTarget(camNum).getFiducialId(); // i dont think i need this idk
+    return this
+        .run(() -> RobotContainer.drivetrain.setControl(RobotContainer.drive.withRotationalRate(-1 * MaxAngularRate)));
+  }
+*/
+
+/* 
+public void turnToBestTarget(int camNum){ // int camNum ex: 2, target = 1
+  double targetID = getBestTarget(camNum).getFiducialId();
+  double offYaw = closestTarget.getYaw(); // distance from closest target to cam center
+  //RobotContainer.drivetrain.setControl(RobotContainer.drive.withRotationalRate(-1 * MaxAngularRate));
+}
+*/
+/* 
+public Command setElevatorHeight(double targetHeight) {
+    this.target = targetHeight;
+    return this.run(() -> pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0));
+  } // could this be the error
+*/
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

@@ -20,12 +20,15 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.followGuzPath;
 import frc.robot.commands.LEDCommands.SetLedCommand;
 import frc.robot.commands.SwerveCommands.TurnAroundCommand;
+import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
+
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LaserCanSubsystem;
 import frc.robot.subsystems.LedSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.LedSubsystem.RobotState;
 
 public class RobotContainer {
@@ -56,11 +59,13 @@ public class RobotContainer {
     public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+    //public final VisionSubsystem m_visionSubsystem = new VisionSubsystem(); // for A.T follow command
     public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
     // public final LedSubsystem ledSubsystem = new LedSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
-
+    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, drive, MaxAngularRate);
+    
     public static final Command follow = new followGuzPath(drivetrain, eggYoke);
 
     public RobotContainer() {
@@ -71,6 +76,7 @@ public class RobotContainer {
 
     private void registerCommands() {
         NamedCommands.registerCommand("turnAround", turnAroundCommand);
+        NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
     }
 
     private void burnAllFlash() {
@@ -88,8 +94,8 @@ public class RobotContainer {
                         .withVelocityX(eggYoke.getY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
-
-        XController.a().onTrue(m_elevatorSubsystem.setElevatorHeight(67));
+XController.y().onTrue(turnToBestTargetCommand);
+        XController.a().onTrue(m_elevatorSubsystem.setElevatorHeight(20)); // elevator set height for PID tuning
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 
         eggYoke.button(7).onTrue(turnAroundCommand);
@@ -115,8 +121,8 @@ public class RobotContainer {
 
         // eggYoke.button(10).toggleOnTrue(follow);
 
-        XController.b().whileTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1)));
-        XController.b().whileFalse(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(0)));
+        XController.b().onTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1)));
+        XController.b().onFalse(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(0)));
 
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan

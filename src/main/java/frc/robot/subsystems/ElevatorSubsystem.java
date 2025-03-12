@@ -111,7 +111,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0);
+    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0); // resolve error
   }
 
   public Command runCurrentZeroing() {

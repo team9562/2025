@@ -65,6 +65,7 @@ public class RobotContainer {
     public final static VisionSubsystem m_visionSubsystem = new VisionSubsystem();
     public final static ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
     public final static GroundIntakeSubsystem m_groundIntakeSubsystem = new GroundIntakeSubsystem();
+    public final LedSubsystem ledSubsystem = new LedSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
@@ -129,6 +130,7 @@ public class RobotContainer {
 
         // Binding the GroundIntakeCommand
         XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
+        XController.rightBumper().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
 
         // eggYoke examples for led
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,

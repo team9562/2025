@@ -111,7 +111,8 @@ public class VisionSubsystem extends SubsystemBase {
     }
   }
 
-  public double getBestYaw() {
+
+  public double getBestYaw(){
     return closestTarget.getYaw();
   }
 
@@ -167,42 +168,46 @@ public class VisionSubsystem extends SubsystemBase {
   public PhotonTrackedTarget getBestTarget(int cameraNum) {
     // Check if the cameraNum is valid
     if (cameraNum < 0 || cameraNum >= cameras.length) {
-      System.out.println("[ERROR] Invalid camera index: " + cameraNum);
-      return null;
+        System.out.println("[ERROR] Invalid camera index: " + cameraNum);
+        return null;
     }
 
     results[cameraNum] = cameras[cameraNum].getLatestResult();
 
     if (results[cameraNum] == null) {
-      System.out.println("[WARN] Camera " + cameraNum + " returned NULL result.");
-      return null;
+        System.out.println("[WARN] Camera " + cameraNum + " returned NULL result.");
+        return null;
     }
 
     if (!results[cameraNum].hasTargets()) {
-      System.out.println("[INFO] Camera " + cameraNum + " found no AprilTags.");
-      return null;
+        // System.out.println("[INFO] Camera " + cameraNum + " found no AprilTags."); // 
+        return null;
     }
 
     PhotonTrackedTarget bestTarget = results[cameraNum].getBestTarget();
 
     if (bestTarget == null) {
-      System.out.println("[ERROR] Camera " + cameraNum + " hasTargets() was TRUE but getBestTarget() is NULL.");
-      return null;
+        System.out.println("[ERROR] Camera " + cameraNum + " hasTargets() was TRUE but getBestTarget() is NULL.");
+        return null;
     }
 
-    System.out.println("[INFO] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw());
+     System.out.println("[INFO] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
     return bestTarget;
-  }
+}
+
 
   public Pose2d estimatePose(int i, Pose2d oldPose) {
-    if (getBestTarget(i) != null) {
-      if (aprilTagFieldLayout.getTagPose(getBestTarget(i).getFiducialId()).isPresent()) {
+    PhotonTrackedTarget bababoey = getBestTarget(i);
+    if (bababoey != null) {
+      
+      if (aprilTagFieldLayout.getTagPose(bababoey.getFiducialId()).isPresent()) {
         robotPose = PhotonUtils.estimateFieldToRobotAprilTag(
-            getBestTarget(i).getBestCameraToTarget(),
-            aprilTagFieldLayout.getTagPose(getBestTarget(i).getFiducialId()).get(),
+            bababoey.getBestCameraToTarget(),
+            aprilTagFieldLayout.getTagPose(bababoey.getFiducialId()).get(),
             cameraPositions[i]);
         return robotPose.toPose2d();
-      } else
+      }
+      else
         return oldPose;
     }
 
@@ -210,46 +215,39 @@ public class VisionSubsystem extends SubsystemBase {
       return oldPose;
 
   }
-
-  /*
-   * public Command turnToBestTarget(int camNum) {
-   * // double targetID = getBestTarget(camNum).getFiducialId(); // i dont think i
-   * need this idk
-   * return this
-   * .run(() ->
-   * RobotContainer.drivetrain.setControl(RobotContainer.drive.withRotationalRate(
-   * -1 * MaxAngularRate)));
-   * }
-   */
-
-  /*
-   * public void turnToBestTarget(int camNum){ // int camNum ex: 2, target = 1
-   * double targetID = getBestTarget(camNum).getFiducialId();
-   * double offYaw = closestTarget.getYaw(); // distance from closest target to
-   * cam center
-   * //RobotContainer.drivetrain.setControl(RobotContainer.drive.
-   * withRotationalRate(-1 * MaxAngularRate));
-   * }
-   */
-  /*
-   * public Command setElevatorHeight(double targetHeight) {
-   * this.target = targetHeight;
-   * return this.run(() -> pid.setReference(getError(targetHeight * 2),
-   * ControlType.kMAXMotionPositionControl, slot0));
-   * } // could this be the error
-   */
-  @Override
-  public void periodic() {
-    if (closestTarget != null && bestCamera != null) {
-      System.out.println("SOMETHING IS FOUND!!!!!!!!!");
-      SmartDashboard.putString("Using Camera: ", bestCamera.getName());
-      SmartDashboard.putNumber("Best Yaw: ", closestTarget.getYaw());
-      SmartDashboard.putNumber("Best Pitch: ", closestTarget.getPitch());
-      SmartDashboard.putNumber("Best Area: ", closestTarget.getArea());
-      SmartDashboard.putNumber("Exact Distance (meters): ", newDist);
-    } else {
-      SmartDashboard.putString("Using Camera: ", "No Target Found");
-    }
+/* 
+public Command turnToBestTarget(int camNum) { 
+  // double targetID = getBestTarget(camNum).getFiducialId(); // i dont think i need this idk
+    return this
+        .run(() -> RobotContainer.drivetrain.setControl(RobotContainer.drive.withRotationalRate(-1 * MaxAngularRate)));
   }
+*/
+
+/* 
+public void turnToBestTarget(int camNum){ // int camNum ex: 2, target = 1
+  double targetID = getBestTarget(camNum).getFiducialId();
+  double offYaw = closestTarget.getYaw(); // distance from closest target to cam center
+  //RobotContainer.drivetrain.setControl(RobotContainer.drive.withRotationalRate(-1 * MaxAngularRate));
+}
+*/
+/* 
+public Command setElevatorHeight(double targetHeight) {
+    this.target = targetHeight;
+    return this.run(() -> pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0));
+  } // could this be the error
+*/
+@Override
+public void periodic() {
+    if (closestTarget != null && bestCamera != null) {
+        System.out.println("SOMETHING IS FOUND!!!!!!!!!");
+        SmartDashboard.putString("Using Camera: ", bestCamera.getName());
+        SmartDashboard.putNumber("Best Yaw: ", closestTarget.getYaw());
+        SmartDashboard.putNumber("Best Pitch: ", closestTarget.getPitch());
+        SmartDashboard.putNumber("Best Area: ", closestTarget.getArea());
+        SmartDashboard.putNumber("Exact Distance (meters): ", newDist);
+    } else {
+        SmartDashboard.putString("Using Camera: ", "No Target Found");
+    }
+}
 
 }

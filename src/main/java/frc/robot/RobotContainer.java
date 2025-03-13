@@ -68,7 +68,7 @@ public class RobotContainer {
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
-    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 1);
+    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
 
     public RobotContainer() {
         registerCommands();
@@ -108,7 +108,7 @@ public class RobotContainer {
         XController.povUp().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l4"));    // 67.17 in
         XController.povLeft().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l3"));  // 43.86 in
         XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2")); // 26.85 in
-        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));   // 77.1 in
+        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));   // 77.1 in 
 
         XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());

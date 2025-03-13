@@ -67,10 +67,10 @@ public class TurnToBestTargetCommand extends Command {
 
     double yawDirection;
     double decreasingFactor = Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target
-
-    if (currentYaw > 0.1) { // If target is to the right of midpoint
+double accuracyYaw = 0.1; // 
+    if (currentYaw > accuracyYaw) { // If target is to the right of midpoint
       yawDirection = -1; // Turn left
-    } else if (currentYaw < -0.1) { // If target is to the left of midpoint
+    } else if (currentYaw < -accuracyYaw) { // If target is to the left of midpoint
       yawDirection = 1; // Turn right
     } else { // The target yaw is between -0.1 and 0.1 (-0.1 < yaw < 0.1)
       yawDirection = 0; // Stop rotating when aligned
@@ -78,7 +78,7 @@ public class TurnToBestTargetCommand extends Command {
 
     System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
 
-    this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * MaxAngularRate) * (1 - decreasingFactor)));
+    this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * MaxAngularRate/4) * (1 - decreasingFactor)));
   }
 
   // Called once the command ends or is interrupted.

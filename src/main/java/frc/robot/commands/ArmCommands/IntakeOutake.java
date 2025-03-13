@@ -14,7 +14,7 @@ public class IntakeOutake extends Command {
   ArmSubsystem m_ArmSubsystem;
   String direction;
   double speed;
-  Timer elapsed;
+  Timer elapsed = new Timer();
 
   public IntakeOutake(ArmSubsystem arm, String inOutStop) {
     this.m_ArmSubsystem = arm;
@@ -63,6 +63,6 @@ public class IntakeOutake extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return elapsed.hasElapsed(1.5); // idk guess a better value or use lasercan data to stop
+    return elapsed.hasElapsed(1); // idk guess a better value or use lasercan data to stop
   }
 }

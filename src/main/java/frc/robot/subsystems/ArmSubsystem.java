@@ -12,6 +12,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -123,12 +124,11 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void turnPitchMotor(double degrees) {
-    pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0);
+    pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0, 0.001);
   }
 
-  public Command turnOpenMotor(double intake) { // ex 1 or 0
-    return this
-        .run(() -> pidOpen.setReference(intake, ControlType.kDutyCycle, slot0));
+  public void turnOpenMotor(double intake) { // ex 1 or 0
+    pidOpen.setReference(intake, ControlType.kDutyCycle, slot0);
   }
 
   @Override

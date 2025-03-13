@@ -66,13 +66,13 @@ public class TurnToBestTargetCommand extends Command {
     }
 
     double yawDirection;
-    double decreasingFactor = Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target
-double accuracyYaw = 0.1; // 
+    double decreasingFactor = 0; // Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target -> fix later
+double accuracyYaw = 1; // how far off the yaw can be from perfect center
     if (currentYaw > accuracyYaw) { // If target is to the right of midpoint
       yawDirection = -1; // Turn left
     } else if (currentYaw < -accuracyYaw) { // If target is to the left of midpoint
       yawDirection = 1; // Turn right
-    } else { // The target yaw is between -0.1 and 0.1 (-0.1 < yaw < 0.1)
+    } else { // The target yaw is between +/- accuracyYaw
       yawDirection = 0; // Stop rotating when aligned
     }
 

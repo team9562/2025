@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.GroundIntakeCommand;
 import frc.robot.commands.followGuzPath;
 import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
 import frc.robot.commands.LEDCommands.SetLedCommand;
@@ -27,6 +28,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.GroundIntakeSubsystem;
 import frc.robot.subsystems.LaserCanSubsystem;
 import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
@@ -63,6 +65,9 @@ public class RobotContainer {
     public final VisionSubsystem m_visionSubsystem = new VisionSubsystem(); // for A.T follow command
     public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
     // public final LedSubsystem ledSubsystem = new LedSubsystem();
+
+    // Ground Intake Subsystem
+    public final GroundIntakeSubsystem m_groundIntakeSubsystem = new GroundIntakeSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,1);
@@ -143,6 +148,10 @@ public class RobotContainer {
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan
         eggYoke.button(12).onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
+
+
+        // Binding the GroundIntakeCommand to button 3 on eggYoke
+        eggYoke.button(11).onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
 
         // eggYoke examples for led
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,

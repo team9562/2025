@@ -17,6 +17,7 @@ public class SetHeightAngleToPOI extends ParallelCommandGroup {
   ElevatorSubsystem m_ElevatorSubsystem;
   ArmSubsystem m_ArmSubsystem;
   String poi;
+
   /** Creates a new SetHeightAngleToPOI. */
   public SetHeightAngleToPOI(ElevatorSubsystem sub1, ArmSubsystem sub2, String POI) {
     this.m_ElevatorSubsystem = sub1;

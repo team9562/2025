@@ -5,8 +5,8 @@ import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LedSubsystem extends SubsystemBase {
-    
-    private static final int LED_PORT_1 = 9;  
+
+    private static final int LED_PORT_1 = 9;
     private static final int LED_PORT_2 = 10;
     private static final int LED_PORT_3 = 11;
     private static final int LED_LENGTH_1 = 27;
@@ -37,13 +37,13 @@ public class LedSubsystem extends SubsystemBase {
         m_led1.setLength(m_ledBuffer1.getLength());
         m_led1.setData(m_ledBuffer1);
         m_led1.start();
-        
+
         m_led2 = new AddressableLED(LED_PORT_2);
         m_ledBuffer2 = new AddressableLEDBuffer(LED_LENGTH_2);
         m_led2.setLength(m_ledBuffer2.getLength());
         m_led2.setData(m_ledBuffer2);
         m_led2.start();
-        
+
         m_led3 = new AddressableLED(LED_PORT_3);
         m_ledBuffer3 = new AddressableLEDBuffer(LED_LENGTH_3);
         m_led3.setLength(m_ledBuffer3.getLength());
@@ -89,7 +89,7 @@ public class LedSubsystem extends SubsystemBase {
         for (int i = 0; i < m_ledBuffer3.getLength(); i++) {
             m_ledBuffer3.setRGB(i, r, g, b);
         }
-        
+
         m_led1.setData(m_ledBuffer1);
         m_led2.setData(m_ledBuffer2);
         m_led3.setData(m_ledBuffer3);

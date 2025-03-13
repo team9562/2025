@@ -12,6 +12,7 @@ import frc.robot.utils.Utility;
 public class HomeElevator extends Command {
   ElevatorSubsystem m_ElevatorSubsystem;
   boolean zeroOrHome;
+
   /** Creates a new HomeToCoralStation. */
   public HomeElevator(ElevatorSubsystem sub1) {
     m_ElevatorSubsystem = sub1;
@@ -28,11 +29,11 @@ public class HomeElevator extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(zeroOrHome){
+    if (zeroOrHome) {
       m_ElevatorSubsystem.runCurrentZeroing();
     }
 
-    if(!zeroOrHome){
+    if (!zeroOrHome) {
       m_ElevatorSubsystem.setElevatorHeight(0);
     }
   }

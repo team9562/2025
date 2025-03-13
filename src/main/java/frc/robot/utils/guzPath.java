@@ -10,9 +10,10 @@ import frc.robot.commands.followGuzPath;
 public class guzPath extends Thread {
 
     String name = "test";
-    int startX = (int)Robot.currentPosX; // Tile index values NOT units actual
-    int startY = (int)Robot.currentPosY;
-int destX = 0, destY = 0;
+    int startX = (int) Robot.currentPosX; // Tile index values NOT units actual
+    int startY = (int) Robot.currentPosY;
+    int destX = 0, destY = 0;
+
     public guzPath() {
     }
 
@@ -44,25 +45,25 @@ int destX = 0, destY = 0;
                 } else {
                     destX = -1;
                     // Other if statement for macros, id number whatever
-                    if(isNumeric(userInput)){
+                    if (isNumeric(userInput)) {
 
-                    
-                    if(Integer.parseInt(userInput) > 0 && Integer.parseInt(userInput) <= followGuzPath.poi.length){
-                        destX = (int) Math.round(followGuzPath.poi[Integer.parseInt(userInput) - 1].x);
-                        destY = (int) Math.round(followGuzPath.poi[Integer.parseInt(userInput) - 1].y);
-                    }    
-                }
+                        if (Integer.parseInt(userInput) > 0
+                                && Integer.parseInt(userInput) <= followGuzPath.poi.length) {
+                            destX = (int) Math.round(followGuzPath.poi[Integer.parseInt(userInput) - 1].x);
+                            destY = (int) Math.round(followGuzPath.poi[Integer.parseInt(userInput) - 1].y);
+                        }
+                    }
 
                     if (Main.botPath.size() == 0) {
                         // startX = currentPosX / # to get tile coordinate
-                        startX = 0; //(int) currentX
-                        startY = 0;    
+                        startX = 0; // (int) currentX
+                        startY = 0;
 
                     } else {// get to end of path and append
                         startX = (int) Main.botPath.get(Main.botPath.size() - 1).x;
                         startY = (int) Main.botPath.get(Main.botPath.size() - 1).y;
                     }
-                    if(destX != -1){
+                    if (destX != -1) {
                         PVector[] newMap = followGuzPath.findPath(startX, startY, destX, destY);
 
                         for (int i = 0; i < newMap.length; i++) {
@@ -77,7 +78,7 @@ int destX = 0, destY = 0;
         System.out.println("Listen Thread Concludes.");
     }
 
-    private boolean isNumeric(String str){
+    private boolean isNumeric(String str) {
         return str != null && str.matches("{-=}?\\d*\\.?\\d+");
     }
 }

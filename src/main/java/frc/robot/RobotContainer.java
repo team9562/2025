@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -17,9 +18,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.GroundIntakeCommand;
 import frc.robot.commands.followGuzPath;
+import frc.robot.commands.ArmCommands.IntakeOutake;
 import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
+import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
 import frc.robot.commands.LEDCommands.SetLedCommand;
 import frc.robot.commands.SwerveCommands.TurnAroundCommand;
 import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
@@ -56,25 +58,17 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    private static CommandJoystick eggYoke = new CommandJoystick(0);
-    static CommandXboxController XController = new CommandXboxController(1);
+    static CommandXboxController XController = new CommandXboxController(0);
 
     public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-
-    public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-    public final VisionSubsystem m_visionSubsystem = new VisionSubsystem(); // for A.T follow command
-    public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
-    // public final LedSubsystem ledSubsystem = new LedSubsystem();
-
-    // Ground Intake Subsystem
-    public final GroundIntakeSubsystem m_groundIntakeSubsystem = new GroundIntakeSubsystem();
+    public final static ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+    public final static VisionSubsystem m_visionSubsystem = new VisionSubsystem();
+    public final static ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
+    public final static GroundIntakeSubsystem m_groundIntakeSubsystem = new GroundIntakeSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
-    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,1);
 
-    private Command elevatorSetPOI;
-    
-    public static final Command follow = new followGuzPath(drivetrain, eggYoke);
+    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 1);
 
     public RobotContainer() {
         registerCommands();
@@ -90,7 +84,7 @@ public class RobotContainer {
     private void burnAllFlash() {
         m_elevatorSubsystem.burnFlash();
         m_ArmSubsystem.burnFlash();
-        // intake
+        m_groundIntakeSubsystem.burnFlash();
     }
 
     private void configureBindings() {
@@ -99,32 +93,48 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
                 drivetrain.applyRequest(() -> drive
-                        .withVelocityX(eggYoke.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(eggYoke.getX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(-eggYoke.getZ() * MaxAngularRate)));
+                        .withVelocityX(XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                        .withVelocityY(XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(XController.getRightY() * MaxAngularRate)));
 
-        //try to get this to work properly, might need to convert into a command in the subsystem itself
-        m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getLeftY())));
+        // try to get this to work properly, might need to convert into a command in the
+        // subsystem itself
+        m_elevatorSubsystem.setDefaultCommand(
+                m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getRightY())));
 
-        //old boring code - yuck
-        XController.a().onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(1)));
-
-        //new awesome code - yay
-        //might work better like instead of intializing four at the top: control via d-pad
-        XController.povUp().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l4")); // 77.1 in
-        XController.povLeft().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l3")); // 43.86 in
+        // new awesome code - yay
+        // might work better like instead of intializing four at the top: control via
+        // d-pad
+        XController.povUp().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l4"));    // 67.17 in
+        XController.povLeft().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l3"));  // 43.86 in
         XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2")); // 26.85 in
-        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b")); // 67.17 in
+        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));   // 77.1 in
 
         XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 
-        eggYoke.button(7).onTrue(turnAroundCommand); // test this in conjunction with the turn to tag command to contrast
+        XController.leftTrigger().whileTrue(drivetrain.applyRequest(() -> brake));
 
-        eggYoke.button(6).whileTrue(drivetrain.applyRequest(() -> brake));
+        // reset the field-centric heading on left bumper press
+        XController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        eggYoke.button(4).whileTrue(drivetrain
-                .applyRequest(() -> point.withModuleDirection(new Rotation2d(-eggYoke.getY(), -eggYoke.getX()))));
+        // eggYoke.button(10).toggleOnTrue(follow);
+
+        XController.rightBumper().onTrue(new IntakeOutake(m_ArmSubsystem, "in"));
+        XController.rightTrigger().onTrue(new IntakeOutake(m_ArmSubsystem, "out"));
+
+        // Don't create a new command everytime it needs to be run, init at the top
+        // laserCan
+        XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
+
+        // Binding the GroundIntakeCommand
+        XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
+
+        // eggYoke examples for led
+        // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,
+        // RobotState.READY_TO_SHOOT));
+
+        drivetrain.registerTelemetry(logger::telemeterize);
 
         // Run SysId routines when holding 11 or 12
         // Note that each routine should be run exactly once in a single log.
@@ -136,28 +146,6 @@ public class RobotContainer {
          * eggYoke.button(11).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse))
          * ;
          */
-
-        // reset the field-centric heading on left bumper press
-        eggYoke.button(2).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-
-        // eggYoke.button(10).toggleOnTrue(follow);
-
-        XController.b().onTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1))); 
-        XController.b().onFalse(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(0)));
-
-        // Don't create a new command everytime it needs to be run, init at the top
-        // laserCan
-        eggYoke.button(12).onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
-
-
-        // Binding the GroundIntakeCommand to button 3 on eggYoke
-        eggYoke.button(11).onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
-
-        // eggYoke examples for led
-        // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,
-        // RobotState.READY_TO_SHOOT));
-
-        drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {

@@ -19,8 +19,9 @@ public class TurnToBestTargetCommand extends Command {
   private final CommandSwerveDrivetrain m_drivetrain;
   private final SwerveRequest.FieldCentric m_drive;
   private PhotonTrackedTarget closestTarget;
-  //private Pigeon2 imu;
-  //private double target; // to track a specific tag number in the future (not yet implemented)
+  // private Pigeon2 imu;
+  // private double target; // to track a specific tag number in the future (not
+  // yet implemented)
   private int myCamNum;
   private double currentYaw;
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
@@ -31,12 +32,13 @@ public class TurnToBestTargetCommand extends Command {
     this.m_visionSubsystem = sub2;
     this.m_drive = request;
     this.myCamNum = camNum;
-    //imu = m_drivetrain.getPigeon2();
+    // imu = m_drivetrain.getPigeon2();
 
     addRequirements(m_drivetrain);
     addRequirements(m_visionSubsystem);
-    //addRequirements(m_drive); // mb not a subsystem
+    // addRequirements(m_drive); // mb not a subsystem
   }
+
   // add the private methods here
   // Called when the command is initially scheduled.
   @Override
@@ -46,46 +48,42 @@ public class TurnToBestTargetCommand extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() { 
-      closestTarget = m_visionSubsystem.getBestTarget(myCamNum); // Get the closest AprilTag target from the camera
-  
-      if (closestTarget == null) {
-          System.out.println("[WARN] No valid target detected. Stopping rotation.");
-          this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
-          return; // Exit early to prevent null pointer issues
-      }
-  
-      try {
-          currentYaw = closestTarget.getYaw(); // Attempt to get yaw
-      } catch (Exception e) {
-          System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
-          this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
-          return;
-      }
-  
-      double yawDirection;
-      double decreasingFactor = Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target
-  
-      if (currentYaw > 0.1) { // If target is to the right of midpoint
-          yawDirection = -1; // Turn left
-      } else if (currentYaw < -0.1) { // If target is to the left of midpoint
-          yawDirection = 1;  // Turn right
-      } else { // The target yaw is between -0.1 and 0.1 (-0.1 < yaw < 0.1)
-          yawDirection = 0;  // Stop rotating when aligned
-      }
-  
-      System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
-  
-      this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * MaxAngularRate) * (1 - decreasingFactor))); 
+  public void execute() {
+    closestTarget = m_visionSubsystem.getBestTarget(myCamNum); // Get the closest AprilTag target from the camera
+
+    if (closestTarget == null) {
+      System.out.println("[WARN] No valid target detected. Stopping rotation.");
+      this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
+      return; // Exit early to prevent null pointer issues
+    }
+
+    try {
+      currentYaw = closestTarget.getYaw(); // Attempt to get yaw
+    } catch (Exception e) {
+      System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
+      this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
+      return;
+    }
+
+    double yawDirection;
+    double decreasingFactor = Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target
+
+    if (currentYaw > 0.1) { // If target is to the right of midpoint
+      yawDirection = -1; // Turn left
+    } else if (currentYaw < -0.1) { // If target is to the left of midpoint
+      yawDirection = 1; // Turn right
+    } else { // The target yaw is between -0.1 and 0.1 (-0.1 < yaw < 0.1)
+      yawDirection = 0; // Stop rotating when aligned
+    }
+
+    System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
+
+    this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * MaxAngularRate) * (1 - decreasingFactor)));
   }
-  
-
-
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-
 
   }
 

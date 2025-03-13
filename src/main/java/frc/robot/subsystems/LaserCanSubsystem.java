@@ -33,8 +33,8 @@ public class LaserCanSubsystem extends SubsystemBase {
         if (measurement != null) {
             distance = measurement.distance_mm;
             if (measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT &&
-                measurement.distance_mm > 0 &&
-                measurement.distance_mm < MAX_VALID_DIST) {
+                    measurement.distance_mm > 0 &&
+                    measurement.distance_mm < MAX_VALID_DIST) {
                 detectedObj = "Object detected";
             } else {
                 detectedObj = "No valid object";

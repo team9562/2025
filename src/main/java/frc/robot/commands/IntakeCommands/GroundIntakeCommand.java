@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.IntakeCommands;
 
 import frc.robot.subsystems.GroundIntakeSubsystem;
 import edu.wpi.first.wpilibj.Timer;
@@ -29,7 +29,8 @@ public class GroundIntakeCommand extends Command {
         timer.reset();
         timer.start();
 
-        // Stage 0: Set the intake to the open (pickup) position and run the intake motor to pick up the ball.
+        // Stage 0: Set the intake to the open (pickup) position and run the intake
+        // motor to pick up the ball.
         intakeSubsystem.setIntakePosition(openAngle);
         intakeSubsystem.runIntake(0.5); // Adjust speed as necessary for pickup
     }
@@ -53,6 +54,7 @@ public class GroundIntakeCommand extends Command {
                     // Once at target, run the intake motor in reverse to throw the ball
                     intakeSubsystem.runIntake(-0.5); // Reverse speed to throw the ball out
                     timer.reset();
+                    //do you need to restart the timer here? with timer.start()?
                     stage = 2;
                 }
                 break;
@@ -76,14 +78,17 @@ public class GroundIntakeCommand extends Command {
     }
 
     @Override
-    public boolean isFinished() {
-        // Command is finished when the intake is retracted (stage 3) and the target (closed position) is reached
-        return stage == 3 && intakeSubsystem.isAtTarget();
+    public void end(boolean interrupted) {
+        // Stop the intake motor and reset the position in case the command is
+        // interrupted
+        intakeSubsystem.stopIntake();
     }
 
     @Override
-    public void end(boolean interrupted) {
-        // Stop the intake motor and reset the position in case the command is interrupted
-        intakeSubsystem.stopIntake();
+    public boolean isFinished() {
+        // Command is finished when the intake is retracted (stage 3) and the target
+        // (closed position) is reached
+        return stage == 3 && intakeSubsystem.isAtTarget();
     }
+
 }

@@ -11,6 +11,7 @@ import frc.robot.utils.Utility;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class HomeArm extends Command {
   ArmSubsystem m_ArmSubsystem;
+
   /** Creates a new HomeElevator. */
   public HomeArm(ArmSubsystem arm) {
     this.m_ArmSubsystem = arm;
@@ -20,7 +21,8 @@ public class HomeArm extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override

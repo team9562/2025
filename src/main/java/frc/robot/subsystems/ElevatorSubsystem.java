@@ -42,7 +42,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   private double tolerance = ElevatorConstants.E_TOLERANCE;
   private double target;
 
-  //debug info
+  // debug info
   double inputVolts = 0;
   boolean isReacting = false;
 
@@ -113,7 +113,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     return targetHeight - getEncoderPose();
   }
 
-  public void moveElevator(double volts){
+  public void moveElevator(double volts) {
     this.isReacting = true;
     this.inputVolts = volts;
     pid.setReference(volts * 2, ControlType.kVoltage, slot0);
@@ -148,6 +148,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Target Height: ", target);
 
     SmartDashboard.putBoolean("Manual Move: ", isReacting);
-    SmartDashboard.putNumber("Input Volts", inputVolts); //should be between one or negative one
+    SmartDashboard.putNumber("Input Volts", inputVolts); // should be between one or negative one
   }
 }

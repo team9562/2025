@@ -52,7 +52,7 @@ public class ArmSubsystem extends SubsystemBase {
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 
-    .maxMotion
+            .maxMotion
         .allowedClosedLoopError(ArmConstants.A_TOLERANCE, slot0)
         .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC)
         .maxVelocity(NeoMotorConstants.NEO_MAX_VEL)
@@ -60,8 +60,7 @@ public class ArmSubsystem extends SubsystemBase {
 
     pitchConfig
         .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
-        .inverted(false)
-    .encoder
+        .inverted(false).encoder
         .positionConversionFactor(ArmConstants.pConversionFactor);
 
     pitchConfig.closedLoop
@@ -73,8 +72,8 @@ public class ArmSubsystem extends SubsystemBase {
             slot0);
 
     pitchConfig.absoluteEncoder
-    .positionConversionFactor(ArmConstants.pConversionFactor)
-    .zeroOffset(0); //change to actual value
+        .positionConversionFactor(ArmConstants.pConversionFactor)
+        .zeroOffset(0); // change to actual value
 
     openConfig
         .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
@@ -89,7 +88,7 @@ public class ArmSubsystem extends SubsystemBase {
             slot0);
   }
 
-  public void resetPitch(){
+  public void resetPitch() {
     pitchEncoder.setPosition(0);
   }
 
@@ -105,11 +104,11 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public void stopPitch(){
+  public void stopPitch() {
     pitchSpark.stopMotor();
   }
 
-  public void stopOpen(){
+  public void stopOpen() {
     openSpark.stopMotor();
   }
 
@@ -117,13 +116,13 @@ public class ArmSubsystem extends SubsystemBase {
     double difference = (targetAngle - currentAngle) % 360;
 
     if (difference > 180) {
-        difference -= 360;
+      difference -= 360;
     } else if (difference < -180) {
-        difference += 360;
+      difference += 360;
     }
 
     return difference;
-}
+  }
 
   public void turnPitchMotor(double degrees) {
     pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0);
@@ -137,7 +136,7 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose());
-    if(Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)){
+    if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
       resetPitch();
     }
   }

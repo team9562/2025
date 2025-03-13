@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
 
   private final RobotContainer m_robotContainer;
 
-  public void addCameraReadings(){
+  public void addCameraReadings() {
     poseEstimator.addVisionMeasurement(m_vision.estimatePose(0, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
     poseEstimator.addVisionMeasurement(m_vision.estimatePose(1, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
     poseEstimator.addVisionMeasurement(m_vision.estimatePose(2, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
@@ -78,16 +78,16 @@ public class Robot extends TimedRobot {
     CanBridge.runTCP();
 
     poseEstimator = new SwerveDrivePoseEstimator(
-      m_drivetrain.getKinematics(),
-      gyro.getRotation2d(),
-      new SwerveModulePosition[] {
-          m_frontLeft.getPosition(true),
-          m_frontRight.getPosition(true),
-          m_backLeft.getPosition(true),
-          m_backRight.getPosition(true),
-      }, new Pose2d(0, 0, new Rotation2d(0)));
+        m_drivetrain.getKinematics(),
+        gyro.getRotation2d(),
+        new SwerveModulePosition[] {
+            m_frontLeft.getPosition(true),
+            m_frontRight.getPosition(true),
+            m_backLeft.getPosition(true),
+            m_backRight.getPosition(true),
+        }, new Pose2d(0, 0, new Rotation2d(0)));
 
-      addCameraReadings();
+    addCameraReadings();
 
     m_robotContainer = new RobotContainer();
   }
@@ -115,8 +115,8 @@ public class Robot extends TimedRobot {
 
     CommandScheduler.getInstance().run();
 
-    //System.out.println("X: " + currentPosX);
-    //System.out.println("Y: " + currentPosY);
+    // System.out.println("X: " + currentPosX);
+    // System.out.println("Y: " + currentPosY);
   }
 
   @Override

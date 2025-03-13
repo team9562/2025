@@ -25,14 +25,16 @@ public class AutoScoringCycle extends SequentialCommandGroup {
     this.m_ElevatorSubsystem = elevator;
     this.m_ArmSubsystem = arm;
     this.poi = POI;
-    //Creates a sequence that goes as such
-    //1. Sets the Elevator and Arm positions to the desired height
-    //2. Shoots out the coral
-    //3. Sets the arm to neutral position
-    //4. Homes Elevator
-    //5. Primes arm for next coral
-    //cannot add the coral intake command as the time between the priming and the time between reaching station is different
-    addCommands(new SetHeightAngleToPOI(m_ElevatorSubsystem, m_ArmSubsystem, poi), new IntakeOutake(m_ArmSubsystem, "out"), new HomeArm(m_ArmSubsystem),
+    // Creates a sequence that goes as such
+    // 1. Sets the Elevator and Arm positions to the desired height
+    // 2. Shoots out the coral
+    // 3. Sets the arm to neutral position
+    // 4. Homes Elevator
+    // 5. Primes arm for next coral
+    // cannot add the coral intake command as the time between the priming and the
+    // time between reaching station is different
+    addCommands(new SetHeightAngleToPOI(m_ElevatorSubsystem, m_ArmSubsystem, poi),
+        new IntakeOutake(m_ArmSubsystem, "out"), new HomeArm(m_ArmSubsystem),
         new HomeElevator(m_ElevatorSubsystem), new SetAngleToPOI(m_ArmSubsystem, "coral"));
   }
 }

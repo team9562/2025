@@ -11,16 +11,25 @@ public class Utility {
         return value >= min && value <= max;
     }
 
-    public static String getLatestXInput(CommandXboxController xbox){
-        //IDK HOW ELSE TO DO THIS, FIX IF YOU'RE SMART PLEASE
-        if(xbox.a().getAsBoolean()) return "a";
-        if(xbox.b().getAsBoolean()) return "b";
-        if(xbox.x().getAsBoolean()) return "x";
-        if(xbox.y().getAsBoolean()) return "y";
-        if(xbox.leftBumper().getAsBoolean()) return "lb";
-        if(xbox.rightBumper().getAsBoolean()) return "rb";
-        if(xbox.leftTrigger().getAsBoolean()) return "lt";
-        if(xbox.rightTrigger().getAsBoolean()) return "rt";
-        else return "no input";
+    public static String getLatestXInput(CommandXboxController xbox) {
+        // IDK HOW ELSE TO DO THIS, FIX IF YOU'RE SMART PLEASE
+        if (xbox.a().getAsBoolean())
+            return "a";
+        if (xbox.b().getAsBoolean())
+            return "b";
+        if (xbox.x().getAsBoolean())
+            return "x";
+        if (xbox.y().getAsBoolean())
+            return "y";
+        if (xbox.leftBumper().getAsBoolean())
+            return "lb";
+        if (xbox.rightBumper().getAsBoolean())
+            return "rb";
+        if (xbox.leftTrigger().getAsBoolean())
+            return "lt";
+        if (xbox.rightTrigger().getAsBoolean())
+            return "rt";
+        else
+            return "no input";
     }
 }

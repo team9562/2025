@@ -29,91 +29,90 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   // --------- ROTATION MOTORS (for rotating the intake arm) ---------
   // One master and two followers for a total of 3 motors
   private final SparkMax rotateMaster = new SparkMax(GroundIntakeConstants.ROTATE_MASTER_ID, MotorType.kBrushless);
-  private final SparkMax rotateFollower1 = new SparkMax(GroundIntakeConstants.ROTATE_FOLLOWER1_ID, MotorType.kBrushless);
-  private final SparkMax rotateFollower2 = new SparkMax(GroundIntakeConstants.ROTATE_FOLLOWER2_ID, MotorType.kBrushless);
-  
+  private final SparkMax rotateFollower1 = new SparkMax(GroundIntakeConstants.ROTATE_FOLLOWER1_ID,
+      MotorType.kBrushless);
+  private final SparkMax rotateFollower2 = new SparkMax(GroundIntakeConstants.ROTATE_FOLLOWER2_ID,
+      MotorType.kBrushless);
+
   private final SparkMaxConfig rotateMasterConfig = new SparkMaxConfig();
   private final SparkMaxConfig rotateFollower1Config = new SparkMaxConfig();
   private final SparkMaxConfig rotateFollower2Config = new SparkMaxConfig();
-  
+
   // PID Controller and encoder for the rotation (using master)
   private final SparkClosedLoopController rotationPID = rotateMaster.getClosedLoopController();
   private final RelativeEncoder rotationEncoder = rotateMaster.getEncoder();
 
   // Tolerance and target for the rotation (using PID)
-  private final double rotationTolerance = GroundIntakeConstants.ROTATION_TOLERANCE; 
+  private final double rotationTolerance = GroundIntakeConstants.ROTATION_TOLERANCE;
   private double rotationTarget = 0.0;
   public static final ClosedLoopSlot ROTATION_SLOT = ClosedLoopSlot.kSlot0;
 
+  //Take some time to clean this up and simplify it lol; also don't flash the motors everytime these are created, could break things
   public GroundIntakeSubsystem() {
     // ---------- Configure Pickup Motor ----------
     pickupConfig
-      .smartCurrentLimit(
-        GroundIntakeConstants.PICKUP_MOTOR_STALL_LIMIT, 
-        GroundIntakeConstants.PICKUP_MOTOR_FREE_LIMIT, 
-        GroundIntakeConstants.PICKUP_MOTOR_MAX_RPM
-      )
-      .voltageCompensation(GroundIntakeConstants.PICKUP_MOTOR_NOMINAL_VOLTAGE)
-      .idleMode(IdleMode.kBrake)
-      .inverted(false);
-    pickupMotor.configure(pickupConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        .smartCurrentLimit(
+            GroundIntakeConstants.PICKUP_MOTOR_STALL_LIMIT,
+            GroundIntakeConstants.PICKUP_MOTOR_FREE_LIMIT)
+        .voltageCompensation(GroundIntakeConstants.PICKUP_MOTOR_NOMINAL_VOLTAGE)
+        .idleMode(IdleMode.kBrake)
+        .inverted(false);
+    
 
     // ---------- Configure Rotation Master Motor ----------
     rotateMasterConfig
-      .smartCurrentLimit(
-        GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT, 
-        GroundIntakeConstants.ROTATION_MOTOR_FREE_LIMIT, 
-        GroundIntakeConstants.ROTATION_MOTOR_MAX_RPM
-      )
-      .voltageCompensation(GroundIntakeConstants.ROTATION_MOTOR_NOMINAL_VOLTAGE)
-      .idleMode(IdleMode.kBrake)
-      .inverted(false);
+        .smartCurrentLimit(
+            GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT,
+            GroundIntakeConstants.ROTATION_MOTOR_FREE_LIMIT)
+        .voltageCompensation(GroundIntakeConstants.ROTATION_MOTOR_NOMINAL_VOLTAGE)
+        .idleMode(IdleMode.kBrake)
+        .inverted(false);
+
     rotateMasterConfig.closedLoop
-      .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-      .pidf(
-        GroundIntakeConstants.ROTATION_kP, 
-        GroundIntakeConstants.ROTATION_kI, 
-        GroundIntakeConstants.ROTATION_kD, 
-        GroundIntakeConstants.ROTATION_kFF, 
-        GroundIntakeConstants.ROTATION_SLOT
-      )
-      .maxMotion
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .pidf(
+            GroundIntakeConstants.ROTATION_kP,
+            GroundIntakeConstants.ROTATION_kI,
+            GroundIntakeConstants.ROTATION_kD,
+            GroundIntakeConstants.ROTATION_kFF,
+            GroundIntakeConstants.ROTATION_SLOT).maxMotion
         .allowedClosedLoopError(rotationTolerance, GroundIntakeConstants.ROTATION_SLOT)
         .maxAcceleration(NeoMotorConstants.NEO_MAX_VEL, GroundIntakeConstants.ROTATION_SLOT)
         .maxVelocity(NeoMotorConstants.NEO_MAX_VEL, GroundIntakeConstants.ROTATION_SLOT)
         .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, GroundIntakeConstants.ROTATION_SLOT);
     rotateMasterConfig.encoder
-      .positionConversionFactor(GroundIntakeConstants.ROTATION_POSITION_CONVERSION)
-      .velocityConversionFactor(GroundIntakeConstants.ROTATION_VELOCITY_CONVERSION);
-    rotateMaster.configure(rotateMasterConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        .positionConversionFactor(GroundIntakeConstants.ROTATION_POSITION_CONVERSION);
+
 
     // ---------- Configure Rotation Follower Motors ----------
     // Follower 1 (non-inverted follower)
     rotateFollower1Config
-      .smartCurrentLimit(
-        GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT, 
-        GroundIntakeConstants.ROTATION_MOTOR_FREE_LIMIT, 
-        GroundIntakeConstants.ROTATION_MOTOR_MAX_RPM
-      )
-      .voltageCompensation(GroundIntakeConstants.ROTATION_MOTOR_NOMINAL_VOLTAGE)
-      .idleMode(IdleMode.kBrake)
-      .inverted(false);
+        .smartCurrentLimit(
+            GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT,
+            GroundIntakeConstants.ROTATION_MOTOR_FREE_LIMIT)
+        .voltageCompensation(GroundIntakeConstants.ROTATION_MOTOR_NOMINAL_VOLTAGE)
+        .idleMode(IdleMode.kBrake)
+        .inverted(false);
     // Set follower to follow master (non-inverted)
     rotateFollower1Config.follow(GroundIntakeConstants.ROTATE_MASTER_ID, false);
-    rotateFollower1.configure(rotateFollower1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     
+
     // Follower 2 (inverted follower)
     rotateFollower2Config
-      .smartCurrentLimit(
-        GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT, 
-        GroundIntakeConstants.ROTATION_MOTOR_FREE_LIMIT, 
-        GroundIntakeConstants.ROTATION_MOTOR_MAX_RPM
-      )
-      .voltageCompensation(GroundIntakeConstants.ROTATION_MOTOR_NOMINAL_VOLTAGE)
-      .idleMode(IdleMode.kBrake)
-      .inverted(false);
+        .smartCurrentLimit(
+            GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT,
+            GroundIntakeConstants.ROTATION_MOTOR_FREE_LIMIT)
+        .voltageCompensation(GroundIntakeConstants.ROTATION_MOTOR_NOMINAL_VOLTAGE)
+        .idleMode(IdleMode.kBrake)
+        .inverted(false);
     // Set follower to follow master, but inverted relative to master output
     rotateFollower2Config.follow(GroundIntakeConstants.ROTATE_MASTER_ID, true);
+  }
+
+  public void burnFlash(){
+    pickupMotor.configure(pickupConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    rotateMaster.configure(rotateMasterConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    rotateFollower1.configure(rotateFollower1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     rotateFollower2.configure(rotateFollower2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
@@ -121,19 +120,20 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   public void runIntake(double speed) {
     pickupMotor.set(speed);
   }
-  
+
   public void stopIntake() {
     pickupMotor.stopMotor();
   }
 
   // --------------- ROTATION METHODS ---------------
 
-  // target position in encoder units (or degrees, if conversion has been set already).
+  // target position in encoder units (or degrees, if conversion has been set
+  // already).
   public void setIntakePosition(double position) {
     this.rotationTarget = position;
     rotationPID.setReference(position, ControlType.kMAXMotionPositionControl, GroundIntakeConstants.ROTATION_SLOT);
   }
-  
+
   public double getIntakePosition() {
     return rotationEncoder.getPosition();
   }
@@ -141,17 +141,22 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   public boolean isAtTarget() {
     return Utility.withinTolerance(getIntakePosition(), rotationTarget, rotationTolerance);
   }
-  
-  // returns true if the summed current exceeds the threshold. --> meaning it is jammed
+
+  // returns true if the summed current exceeds the threshold. --> meaning it is
+  // jammed
   public boolean isRotationJammed() {
-    double totalCurrent = rotateMaster.getOutputCurrent() 
-                          + rotateFollower1.getOutputCurrent() 
-                          + rotateFollower2.getOutputCurrent();
+    double totalCurrent = rotateMaster.getOutputCurrent()
+        + rotateFollower1.getOutputCurrent()
+        + rotateFollower2.getOutputCurrent();
     return totalCurrent > GroundIntakeConstants.ROTATION_JAM_CURRENT_THRESHOLD;
   }
 
   public void resetIntakeEncoder() {
     rotationEncoder.setPosition(0);
+  }
+
+  public void stopRotation() {
+
   }
 
   // For testing and debugging.
@@ -167,5 +172,9 @@ public class GroundIntakeSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Arm Position", getIntakePosition());
     SmartDashboard.putBoolean("Arm At Target", isAtTarget());
     SmartDashboard.putBoolean("Rotation Jammed", isRotationJammed());
+
+    if (isRotationJammed()) {
+
+    }
   }
 }

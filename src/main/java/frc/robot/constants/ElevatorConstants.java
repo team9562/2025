@@ -14,8 +14,8 @@ public class ElevatorConstants {
 
     public static final double kP = 0.05;
     public static final double kI = 0;
-    public static final double kD = 0.0;
-    public static final double kFF = 0.0;
+    public static final double kD = 1;
+    public static final double kFF = 0.00001; // test feed forward to counteract gravity
     public static final ClosedLoopSlot E_SLOT = ClosedLoopSlot.kSlot0;
 
     // in

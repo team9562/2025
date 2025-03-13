@@ -60,12 +60,12 @@ public class RobotContainer {
     public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     public final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-    //public final VisionSubsystem m_visionSubsystem = new VisionSubsystem(); // for A.T follow command
+    public final VisionSubsystem m_visionSubsystem = new VisionSubsystem(); // for A.T follow command
     public final ArmSubsystem m_ArmSubsystem = new ArmSubsystem();
     // public final LedSubsystem ledSubsystem = new LedSubsystem();
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
-    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, drive, MaxAngularRate);
+    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,1);
 
     private Command elevatorSetPOI;
     
@@ -102,19 +102,19 @@ public class RobotContainer {
         m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getLeftY())));
 
         //old boring code - yuck
-        XController.a().onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(67)));
+        XController.a().onTrue(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(1)));
 
         //new awesome code - yay
         //might work better like instead of intializing four at the top: control via d-pad
-        XController.povUp().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l4"));
-        XController.povLeft().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l3"));
-        XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2"));
-        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));
+        XController.povUp().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l4")); // 77.1 in
+        XController.povLeft().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l3")); // 43.86 in
+        XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2")); // 26.85 in
+        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b")); // 67.17 in
 
-        XController.y().onTrue(turnToBestTargetCommand);
+        XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 
-        eggYoke.button(7).onTrue(turnAroundCommand);
+        eggYoke.button(7).onTrue(turnAroundCommand); // test this in conjunction with the turn to tag command to contrast
 
         eggYoke.button(6).whileTrue(drivetrain.applyRequest(() -> brake));
 
@@ -137,7 +137,7 @@ public class RobotContainer {
 
         // eggYoke.button(10).toggleOnTrue(follow);
 
-        XController.b().onTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1)));
+        XController.b().onTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(1))); 
         XController.b().onFalse(m_ArmSubsystem.run(() -> m_ArmSubsystem.turnOpenMotor(0)));
 
         // Don't create a new command everytime it needs to be run, init at the top

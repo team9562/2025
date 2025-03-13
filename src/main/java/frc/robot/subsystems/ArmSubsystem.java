@@ -129,7 +129,7 @@ public class ArmSubsystem extends SubsystemBase {
     pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0);
   }
 
-  public Command turnOpenMotor(double intake) {
+  public Command turnOpenMotor(double intake) { // ex 1 or 0
     return this
         .run(() -> pidOpen.setReference(intake, ControlType.kDutyCycle, slot0));
   }

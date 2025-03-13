@@ -10,53 +10,77 @@ import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
+import static edu.wpi.first.units.Units.*;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class TurnToBestTargetCommand extends Command {
 
   private final CommandSwerveDrivetrain m_drivetrain;
   private final SwerveRequest.FieldCentric m_drive;
-  private Pigeon2 imu;
-  private double target;
+  private PhotonTrackedTarget closestTarget;
+  //private Pigeon2 imu;
+  //private double target; // to track a specific tag number in the future (not yet implemented)
+  private int myCamNum;
   private double currentYaw;
-  private double m_angularRate;
-  private final VisionSubsystem m_visionSubsystem = new VisionSubsystem(); // for A.T follow command
+  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
+  private final VisionSubsystem m_visionSubsystem; // for A.T follow command
 
-  public TurnToBestTargetCommand(CommandSwerveDrivetrain subsystem, FieldCentric request, double angularRate) {
-    this.m_drivetrain = subsystem;
+  public TurnToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request, int camNum) {
+    this.m_drivetrain = sub1;
+    this.m_visionSubsystem = sub2;
     this.m_drive = request;
-    this.m_angularRate = angularRate;
-    imu = m_drivetrain.getPigeon2();
+    this.myCamNum = camNum;
+    //imu = m_drivetrain.getPigeon2();
 
     addRequirements(m_drivetrain);
-
+    addRequirements(m_visionSubsystem);
+    //addRequirements(m_drive); // mb not a subsystem
   }
-
   // add the private methods here
-
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    // whadda skibidi do i do here brah (black magic ahh)
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() { // !!!!!!!!!!!!!!!! if the camera is inverted (180) we might have to switch the +/- values for the logic to work
-
-    currentYaw = m_visionSubsystem.getBestYaw(); // get the yaw of the closest target
-    double yawDirection;
-    double decreasingFactor = 0; //add some sort of decreasing factor for the angular rate to gradually decrease once it approaches yaw = 0
-    if(currentYaw>0.1){
-      yawDirection = -1;
-    }
-    else if(currentYaw < -0.1){
-      yawDirection = 1;
-    } else {
-      yawDirection = 0;
-    }
-    this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * m_angularRate)-decreasingFactor)); 
-
-
+  public void execute() { 
+      closestTarget = m_visionSubsystem.getBestTarget(myCamNum); // Get the closest AprilTag target from the camera
+  
+      if (closestTarget == null) {
+          System.out.println("[WARN] No valid target detected. Stopping rotation.");
+          this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
+          return; // Exit early to prevent null pointer issues
+      }
+  
+      try {
+          currentYaw = closestTarget.getYaw(); // Attempt to get yaw
+      } catch (Exception e) {
+          System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
+          this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
+          return;
+      }
+  
+      double yawDirection;
+      double decreasingFactor = Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target
+  
+      if (currentYaw > 0.1) { // If target is to the right of midpoint
+          yawDirection = -1; // Turn left
+      } else if (currentYaw < -0.1) { // If target is to the left of midpoint
+          yawDirection = 1;  // Turn right
+      } else { // The target yaw is between -0.1 and 0.1 (-0.1 < yaw < 0.1)
+          yawDirection = 0;  // Stop rotating when aligned
+      }
+  
+      System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
+  
+      this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * MaxAngularRate) * (1 - decreasingFactor))); 
   }
+  
+
+
 
   // Called once the command ends or is interrupted.
   @Override

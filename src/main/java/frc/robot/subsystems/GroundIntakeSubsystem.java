@@ -162,13 +162,10 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   // For testing and debugging.
   @Override
   public void periodic() {
-    // Pickup motor status
     SmartDashboard.putNumber("Pickup Motor Current", pickupMotor.getOutputCurrent());
-    // Rotation motors status
     SmartDashboard.putNumber("Rotate Master Current", rotateMaster.getOutputCurrent());
     SmartDashboard.putNumber("Rotate Follower1 Current", rotateFollower1.getOutputCurrent());
     SmartDashboard.putNumber("Rotate Follower2 Current", rotateFollower2.getOutputCurrent());
-    // Arm (rotation) position and status
     SmartDashboard.putNumber("Arm Position", getIntakePosition());
     SmartDashboard.putBoolean("Arm At Target", isAtTarget());
     SmartDashboard.putBoolean("Rotation Jammed", isRotationJammed());

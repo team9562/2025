@@ -29,10 +29,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
-  private final AbsoluteEncoder absoluteZeroPitch = pitchSpark.getAbsoluteEncoder();
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
-  private final RelativeEncoder openEncoder = openSpark.getEncoder();
 
   private final SparkMaxConfig basicConfig = new SparkMaxConfig();
   private final SparkMaxConfig pitchConfig = new SparkMaxConfig();
@@ -71,9 +69,9 @@ public class ArmSubsystem extends SubsystemBase {
             ArmConstants.kF_PITCH,
             slot0);
 
-    pitchConfig.absoluteEncoder
-        .positionConversionFactor(ArmConstants.pConversionFactor)
-        .zeroOffset(0); // change to actual value
+    //pitchConfig.absoluteEncoder
+        //.positionConversionFactor(ArmConstants.pConversionFactor)
+        //.zeroOffset(0); // change to actual value
 
     openConfig
         .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
@@ -93,7 +91,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getEncoderPose() {
-    return pitchEncoder.getPosition() % 360;
+    return pitchEncoder.getPosition();
   }
 
   public void burnFlash() {
@@ -136,8 +134,9 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose());
-    if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
+    SmartDashboard.putNumber("Absolute Encoder: ", pitchSpark.getAbsoluteEncoder().getPosition());
+    /*if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
       resetPitch();
-    }
+    }*/
   }
 }

@@ -17,7 +17,7 @@ public class LaserCanSubsystem extends SubsystemBase {
         try {
             // Configure LaserCan settings
             lc.setRangingMode(LaserCan.RangingMode.SHORT);
-            lc.setRegionOfInterest(new LaserCan.RegionOfInterest(16, 16, 16, 16));
+            lc.setRegionOfInterest(new LaserCan.RegionOfInterest(0, 0, 16, 16));
             lc.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
         } catch (ConfigurationFailedException e) {
             detectedObj = "[ERROR] LaserCan configuration failed: " + e.getMessage();
@@ -44,8 +44,8 @@ public class LaserCanSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putString("Game Piece: ", detectedObj);
-        SmartDashboard.putString("Distance (Lazercan) : ", String.valueOf(distance));
+        SmartDashboard.putString("LaserCAN/Game Piece: ", detectedObj);
+        SmartDashboard.putString("LaserCAN/Distance: ", String.valueOf(distance));
         processMeasurement();
     }
 }

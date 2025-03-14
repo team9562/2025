@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -53,14 +52,10 @@ public class LedSubsystem extends SubsystemBase {
         m_led1.setLength(m_ledBuffer1.getLength());
         m_led1.setData(m_ledBuffer1);
         m_led1.start();
-
-        // Debugging: Check if the LED strip is initialized properly
-        SmartDashboard.putString("LED STATUS", "LED Initialized on port: " + LED_PORT_1);
     }
 
     // Method to start the rainbow effect
     public void applyRainbowEffect() {
-        SmartDashboard.putString("LED STATUS:", "Rainbow Effect Started");
         lastRainbowUpdateTime = Timer.getFPGATimestamp(); // Start the timer for periodic color change
         rainbowIndex = 0; // Reset rainbow color index
     }
@@ -87,7 +82,6 @@ public class LedSubsystem extends SubsystemBase {
 
     // Method to start the block effect
     public void applyBlockEffect() {
-        SmartDashboard.putString("LED STATUS:", "Moving Red Block Started");
         lastBlockUpdateTime = Timer.getFPGATimestamp(); // Start the timer for block movement
         blockPosition = 0; // Reset block position to start at the bottom
     }

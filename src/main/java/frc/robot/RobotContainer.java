@@ -32,6 +32,7 @@ import frc.robot.commands.ElevatorCommands.HomeElevator;
 import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
 import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
 import frc.robot.commands.LEDCommands.SetLedCommand;
+import frc.robot.commands.SwerveCommands.GoToBestTargetCommand;
 import frc.robot.commands.SwerveCommands.TurnAroundCommand;
 import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
 
@@ -84,6 +85,7 @@ public class RobotContainer {
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
 
+    private final Command goToBestTargetCommand = new GoToBestTargetCommand(drivetrain, m_visionSubsystem, drive);
     public RobotContainer() {
         registerCommands();
         burnAllFlash();
@@ -98,6 +100,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
         NamedCommands.registerCommand("ScoreCoral", AutoScoringCycle);
         NamedCommands.registerCommand("Intake", new IntakeOutake(m_ArmSubsystem, "in"));
+        NamedCommands.registerCommand("goToBestTargetCommand", goToBestTargetCommand);
     }
 
     private void burnAllFlash() {

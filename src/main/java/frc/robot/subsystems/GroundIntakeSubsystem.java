@@ -156,13 +156,13 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   // For testing and debugging.
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Pickup Motor Current", pickupMotor.getOutputCurrent());
-    SmartDashboard.putNumber("Rotate Master Current", rotateMaster.getOutputCurrent());
-    SmartDashboard.putNumber("Rotate Follower1 Current", rotateFollower1.getOutputCurrent());
-    SmartDashboard.putNumber("Rotate Follower2 Current", rotateFollower2.getOutputCurrent());
-    SmartDashboard.putNumber("Arm Position", getIntakePosition());
-    SmartDashboard.putBoolean("Arm At Target", isAtTarget());
-    SmartDashboard.putBoolean("Rotation Jammed", isRotationJammed());
+    SmartDashboard.putNumber("Intake/Pickup Motor Current", pickupMotor.getOutputCurrent());
+    SmartDashboard.putNumber("Intake/Rotate Master Current", rotateMaster.getOutputCurrent());
+    SmartDashboard.putNumber("Intake/Rotate Follower1 Current", rotateFollower1.getOutputCurrent());
+    SmartDashboard.putNumber("Intake/Rotate Follower2 Current", rotateFollower2.getOutputCurrent());
+    SmartDashboard.putNumber("Intake/Arm Position", getIntakePosition());
+    SmartDashboard.putBoolean("Intake/Arm At Target", isAtTarget());
+    SmartDashboard.putBoolean("Intake/Rotation Jammed", isRotationJammed());
 
     if (isRotationJammed()) {
       // Handle the jam if needed, perhaps stop the rotation motor or take other actions

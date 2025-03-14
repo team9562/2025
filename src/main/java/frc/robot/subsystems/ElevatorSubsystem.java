@@ -129,15 +129,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Elevator Height: ", getEncoderPose());
+    SmartDashboard.putNumber("Elevator/Height: ", getEncoderPose());
 
-    SmartDashboard.putNumber("Elevator Current: ", elevatorRight.getOutputCurrent());
-    SmartDashboard.putNumber("Elevator Voltage: ", elevatorRight.getBusVoltage());
+    SmartDashboard.putNumber("Elevator/Current: ", elevatorRight.getOutputCurrent());
+    SmartDashboard.putNumber("Elevator/Voltage: ", elevatorRight.getBusVoltage());
 
-    SmartDashboard.putBoolean("Target Reached: ", isAtTarget());
-    SmartDashboard.putNumber("Target Height: ", target);
+    SmartDashboard.putBoolean("Elevator/Target Reached: ", isAtTarget());
+    SmartDashboard.putNumber("Elevator/Target Height: ", target);
 
-    SmartDashboard.putBoolean("Manual Move: ", isReacting);
-    SmartDashboard.putNumber("Input Volts", inputVolts); // should be between one or negative one
+    SmartDashboard.putBoolean("Elevator/Manual Move: ", isReacting);
+    SmartDashboard.putNumber("Elevator/Input Volts", inputVolts); // should be between one or negative one
   }
 }

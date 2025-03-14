@@ -129,7 +129,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose());
+    SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
+    SmartDashboard.putNumber("Arm/Absolute Encoder: ", pitchSpark.getAbsoluteEncoder().getPosition());
     /*if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
       resetPitch();
     }*/

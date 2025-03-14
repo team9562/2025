@@ -111,7 +111,7 @@ public class RobotContainer {
         XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2")); // 26.85 in
         XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));   // 77.1 in 
 
-        XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
+        //XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 
         XController.leftTrigger().whileTrue(drivetrain.applyRequest(() -> brake));
@@ -126,11 +126,15 @@ public class RobotContainer {
 
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan
-        XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
+        // XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 
         // Binding the GroundIntakeCommand
-        XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
-        XController.rightBumper().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
+        XController.y().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 10));
+        XController.a().onTrue(ledSubsystem.run(() -> ledSubsystem.applyBlockEffect()));
+
+        // XController.a().onTrue(m_groundIntakeSubsystem.run(() -> m_groundIntakeSubsystem.runIntake(1)));
+        XController.x().onTrue(m_groundIntakeSubsystem.run(() -> m_groundIntakeSubsystem.runIntake(1)));
+        XController.b().onTrue(m_groundIntakeSubsystem.run(()-> m_groundIntakeSubsystem.stopIntake()));
 
         // eggYoke examples for led
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,

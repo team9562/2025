@@ -33,15 +33,15 @@ public class SetAngleToPOI extends Command {
         break;
 
       case "l2":
-        targetAngle = 0;
+        targetAngle = -109.45;
         break;
 
       case "l3":
-        targetAngle = 0;
+        targetAngle = -109.45;
         break;
 
       case "l4":
-        targetAngle = 0;
+        targetAngle = -131.45;
         break;
 
       case "b":
@@ -49,7 +49,7 @@ public class SetAngleToPOI extends Command {
         break;
 
       case "coral":
-        targetAngle = 0;
+        targetAngle = 42.94;
     }
   }
 

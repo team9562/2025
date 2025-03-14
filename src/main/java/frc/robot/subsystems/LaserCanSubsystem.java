@@ -44,8 +44,8 @@ public class LaserCanSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putString("Game Piece: ", detectedObj);
-        SmartDashboard.putString("Distance (Lazercan) : ", String.valueOf(distance));
+        SmartDashboard.putString("LaserCAN/Game Piece: ", detectedObj);
+        SmartDashboard.putString("LaserCAN/Distance: ", String.valueOf(distance));
         processMeasurement();
     }
 }

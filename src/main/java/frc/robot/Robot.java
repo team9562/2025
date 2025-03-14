@@ -4,17 +4,15 @@
 
 package frc.robot;
 
-import java.util.Scanner;
-
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveModule;
 
 import au.grapplerobotics.CanBridge;
-import edu.wpi.first.math.estimator.PoseEstimator;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
 //import static edu.wpi.first.units.Units.Meter;
@@ -33,16 +31,13 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 //import edu.wpi.first.networktables.NetworkTableInstance;
 //import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.followGuzPath;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
-import frc.robot.utils.Utility;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -54,12 +49,14 @@ public class Robot extends TimedRobot {
 
   CommandXboxController xController = RobotContainer.XController;
 
-  SwerveModule m_frontLeft = m_drivetrain.getModule(0);
-  SwerveModule m_frontRight = m_drivetrain.getModule(1);
-  SwerveModule m_backLeft = m_drivetrain.getModule(2);
-  SwerveModule m_backRight = m_drivetrain.getModule(3);
+  SwerveModule<TalonFX, TalonFX, CANcoder> m_frontLeft = m_drivetrain.getModule(0);
+  SwerveModule<TalonFX, TalonFX, CANcoder> m_frontRight = m_drivetrain.getModule(1);
+  SwerveModule<TalonFX, TalonFX, CANcoder> m_backLeft = m_drivetrain.getModule(2);
+  SwerveModule<TalonFX, TalonFX, CANcoder> m_backRight = m_drivetrain.getModule(3);
 
   SwerveDrivePoseEstimator poseEstimator;
+
+  Field2d mField = new Field2d();
 
   public static double currentPosX = 0;
   public static double currentPosY = 0;
@@ -105,13 +102,8 @@ public class Robot extends TimedRobot {
 
     addCameraReadings();
 
-    currentPosX = poseEstimator.getEstimatedPosition().getX();
-    currentPosY = poseEstimator.getEstimatedPosition().getY();
-
-    SmartDashboard.putNumber("Current X: ", currentPosX);
-    SmartDashboard.putNumber("Current Y: ", currentPosY);
-
-    SmartDashboard.putString("XInput: ", Utility.getLatestXInput(xController));
+    mField.setRobotPose(poseEstimator.getEstimatedPosition());
+    SmartDashboard.putData("Field", mField);
 
     CommandScheduler.getInstance().run();
 

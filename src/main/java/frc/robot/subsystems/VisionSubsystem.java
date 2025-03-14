@@ -4,9 +4,12 @@
 
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.photonvision.PhotonCamera;
@@ -55,6 +58,9 @@ public class VisionSubsystem extends SubsystemBase {
 
   Pose3d robotPose;
 
+  long iteration = 0;
+  String oldIdsString = "";
+
   private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
       .loadField(AprilTagFields.k2025Reefscape);
 
@@ -87,7 +93,8 @@ public class VisionSubsystem extends SubsystemBase {
     CAMERA_PITCHES.put(camera4, VisionConstants.camera4pitch);
   }
 
-  public void findBestCameraToTarget() {
+  public void findBestCameraToTarget() { // find closest apriltag
+    newDist = Double.MAX_VALUE;
     for (PhotonCamera camera : cameras) {
       PhotonPipelineResult result = camera.getLatestResult();
 
@@ -129,11 +136,12 @@ public class VisionSubsystem extends SubsystemBase {
   }
   
 
-  public double getBestYaw(){
+  public double getBestYaw(){ // get yaw of closest apriltag
     return closestTarget.getYaw();
   }
 
-  public void findBestCameraToPOI(String tagType) {
+  public void findBestCameraToPOI(String tagType) { // find closest apriltag of type
+    newDist = Double.MAX_VALUE;
 
     if (tagType.toLowerCase().equals("coral")) {
       targetHeight = VisionConstants.CORAL_STATION_TAG;
@@ -182,7 +190,7 @@ public class VisionSubsystem extends SubsystemBase {
     }
   }
 
-  public PhotonTrackedTarget getBestTarget(int cameraNum) {
+  public PhotonTrackedTarget getBestTarget(int cameraNum) { // find closest apriltag to specific camera
     // Check if the cameraNum is valid
     if (cameraNum < 0 || cameraNum >= cameras.length) {
         System.out.println("[ERROR] Invalid camera index: " + cameraNum);
@@ -210,10 +218,60 @@ public class VisionSubsystem extends SubsystemBase {
 
      System.out.println("[INFO VISION-SUB] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
     return bestTarget;
-}
+  }
+
+  public Optional<Integer[]> getIdsDetectedByCamera(int cameraNum) {
+    if (cameraNum < 0 || cameraNum >= cameras.length) {
+      System.out.println("[ERROR] Invalid camera index: " + cameraNum);
+      return Optional.empty();
+    }
+
+    PhotonPipelineResult results = cameras[cameraNum].getLatestResult();
+    if (results == null) {return Optional.empty();}
+    List<PhotonTrackedTarget> targets = results.getTargets();
+    if (targets == null) {return Optional.empty();}
+
+    ArrayList<Integer> ids = new ArrayList<Integer>();
+
+    for (PhotonTrackedTarget target : targets) {
+      if (target.getFiducialId() != -1) {
+        ids.add(target.getFiducialId());
+      }
+    }
+
+    Integer[] output = new Integer[ids.size()];
+    output = ids.toArray(output);
+
+    return Optional.of(output);
+  }
+
+  public Optional<Integer[]> getIdsDetectedByAllCameras() {
+    ArrayList<Integer> ids = new ArrayList<Integer>();
+    for (int cameraId=0; cameraId<4; cameraId++) {
+      Optional<Integer[]> idsOfCamera = getIdsDetectedByCamera(cameraId);
+      if (idsOfCamera.isPresent()) {
+        for (Integer id : idsOfCamera.get()) {
+          if (!ids.contains(id)) {
+            ids.add(id);
+          }
+        }
+      }
+    }
+    Integer[] output = new Integer[ids.size()];
+    output = ids.toArray(output);
+    return Optional.of(output);
+  }
+
+  public HashMap<Integer, Optional<Integer[]>> getIdsDetectedByAllCamerasByCamera() {
+    HashMap<Integer, Optional<Integer[]>> map = new HashMap<Integer, Optional<Integer[]>>();
+    for (int cameraId=0; cameraId<4; cameraId++) {
+      map.put(cameraId, getIdsDetectedByCamera(cameraId));
+    }
+    return map;
+  }
 
 
-  public Pose2d estimatePose(int i, Pose2d oldPose) {
+  public Pose2d estimatePose(int i, Pose2d oldPose) { // estimate robot pose based on camera
     PhotonTrackedTarget bababoey = getBestTarget(i);
     if (bababoey != null) {
       
@@ -255,16 +313,21 @@ public Command setElevatorHeight(double targetHeight) {
 */
 @Override
 public void periodic() {
-    if (closestTarget != null && bestCamera != null) {
-        System.out.println("SOMETHING IS FOUND!!!!!!!!!");
-        SmartDashboard.putString("Using Camera: ", bestCamera.getName());
-        SmartDashboard.putNumber("Best Yaw: ", closestTarget.getYaw());
-        SmartDashboard.putNumber("Best Pitch: ", closestTarget.getPitch());
-        SmartDashboard.putNumber("Best Area: ", closestTarget.getArea());
-        SmartDashboard.putNumber("Exact Distance (meters): ", newDist);
-    } else {
-        SmartDashboard.putString("Using Camera: ", "No Target Found");
-    }
+  iteration += 1;
+  if (iteration % 50 == 0) {
+    oldIdsString = Arrays.toString(getIdsDetectedByAllCameras().get()).replace("[", "").replace("]", "");
+  }
+  SmartDashboard.putString("Vision/Detected IDs: ", oldIdsString);
+  if (closestTarget != null && bestCamera != null) {
+      System.out.println("SOMETHING IS FOUND!!!!!!!!!");
+      SmartDashboard.putString("Vision/Using Camera: ", bestCamera.getName());
+      SmartDashboard.putNumber("Vision/Best Yaw: ", closestTarget.getYaw());
+      SmartDashboard.putNumber("Vision/Best Pitch: ", closestTarget.getPitch());
+      SmartDashboard.putNumber("Vision/Best Area: ", closestTarget.getArea());
+      SmartDashboard.putNumber("Vision/Exact Distance (meters): ", newDist);
+  } else {
+      SmartDashboard.putString("Vision/Using Camera: ", "No Target Found");
+  }
 }
 
 }

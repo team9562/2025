@@ -8,18 +8,24 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.followGuzPath;
+import frc.robot.commands.ArmCommands.HomeArm;
 import frc.robot.commands.ArmCommands.IntakeOutake;
+import frc.robot.commands.ArmCommands.SetAngleToPOI;
+import frc.robot.commands.ElevatorCommands.HomeElevator;
 import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
 import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
 import frc.robot.commands.LEDCommands.SetLedCommand;
@@ -57,7 +63,7 @@ public class RobotContainer {
     // LazerCan
     public final LaserCanSubsystem m_laserCanSubsystem = new LaserCanSubsystem();
 
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+    //private final Telemetry logger = new Telemetry(MaxSpeed);
 
     static CommandXboxController XController = new CommandXboxController(0);
 
@@ -68,6 +74,8 @@ public class RobotContainer {
     public final static GroundIntakeSubsystem m_groundIntakeSubsystem = new GroundIntakeSubsystem();
     public final LedSubsystem ledSubsystem = new LedSubsystem();
 
+    private final SendableChooser<Command> autoChooser;
+
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
@@ -77,6 +85,9 @@ public class RobotContainer {
         registerCommands();
         burnAllFlash();
         configureBindings();
+
+        autoChooser = AutoBuilder.buildAutoChooser("New New Auto");
+        SmartDashboard.putData("Auto chooser", autoChooser);
     }
 
     private void registerCommands() {
@@ -99,12 +110,12 @@ public class RobotContainer {
                 drivetrain.applyRequest(() -> drive
                         .withVelocityX(XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(XController.getRightY() * MaxAngularRate)));
+                        .withRotationalRate(XController.getRightX() * MaxAngularRate)));
 
         // try to get this to work properly, might need to convert into a command in the
         // subsystem itself
-        m_elevatorSubsystem.setDefaultCommand(
-                m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getRightY())));
+        m_ArmSubsystem.setDefaultCommand(
+                m_ArmSubsystem.run(() -> m_ArmSubsystem.manualPitchMotor(XController.getRightY())));
 
         // new awesome code - yay
         // might work better like instead of intializing four at the top: control via
@@ -116,8 +127,12 @@ public class RobotContainer {
 
         XController.y().onTrue(goToBestTargetCommand); // no exit command rn -> fix later
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
+        XController.leftStick().onTrue(new SetAngleToPOI(m_ArmSubsystem, "l2"));
 
-        XController.leftTrigger().whileTrue(drivetrain.applyRequest(() -> brake));
+        XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
+        XController.rightStick().onTrue(m_elevatorSubsystem.runCurrentZeroing());
+
+        XController.leftTrigger().whileTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.resetPitch()));
 
         // reset the field-centric heading on left bumper press
         XController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -129,17 +144,17 @@ public class RobotContainer {
 
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan
-        XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
+        // XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 
         // Binding the GroundIntakeCommand
         XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
-        XController.rightBumper().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
+        XController.b().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
 
         // eggYoke examples for led
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,
         // RobotState.READY_TO_SHOOT));
 
-        drivetrain.registerTelemetry(logger::telemeterize);
+        //drivetrain.registerTelemetry(logger::telemeterize);
 
         // Run SysId routines when holding 11 or 12
         // Note that each routine should be run exactly once in a single log.
@@ -154,7 +169,8 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        // return Commands.print("No autonomous command configured");
-        return new PathPlannerAuto("New Auto");
+        //return Commands.print("No autonomous command configured");
+        //return new PathPlannerAuto("New Auto");
+        return autoChooser.getSelected();
     }
 }

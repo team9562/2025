@@ -25,10 +25,10 @@ public class ElevatorConstants {
     public static final double E_MAX_VEL = 5556.79;
     public static final double E_MAX_ACC = 41150.94;
 
-    public static final double B = 77.10; // barge
+    public static final double B = 67.17; // barge
     public static final double L2 = 26.85;
     public static final double L3 = 43.86;
-    public static final double L4 = 67.17;
+    public static final double L4 = 77.10;
 
     public static final double E_MAXSPEED = 0.25;
 }

@@ -122,15 +122,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0, kFF); // resolve error
+    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0); // resolve error
   }
 
   public Command runCurrentZeroing() {
     return this
-        .run(() -> elevatorRight.setVoltage(-2)) // decrease??
-        .until(() -> elevatorRight.getOutputCurrent() >= ElevatorConstants.E_STALL_LIMIT)
-        .finallyDo(() -> resetEncoderPose())
-        .finallyDo(() -> elevatorRight.setVoltage(0));
+        .run(() -> pid.setReference(-2, ControlType.kVoltage, slot0)) // decrease??
+        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
+        .andThen(() -> resetEncoderPose())
+        .finallyDo(() -> pid.setReference(0, ControlType.kVoltage, slot0));
   }
 
   public Boolean isAtTarget() {
@@ -140,15 +140,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Elevator Height: ", getEncoderPose());
+    SmartDashboard.putNumber("Elevator/Height: ", getEncoderPose());
 
-    SmartDashboard.putNumber("Elevator Current: ", elevatorRight.getOutputCurrent());
-    SmartDashboard.putNumber("Elevator Voltage: ", elevatorRight.getBusVoltage());
+    SmartDashboard.putNumber("Elevator/Current: ", elevatorRight.getOutputCurrent());
+    SmartDashboard.putNumber("Elevator/Voltage: ", elevatorRight.getBusVoltage());
 
-    SmartDashboard.putBoolean("Target Reached: ", isAtTarget());
-    SmartDashboard.putNumber("Target Height: ", target);
+    SmartDashboard.putBoolean("Elevator/Target Reached: ", isAtTarget());
+    SmartDashboard.putNumber("Elevator/Target Height: ", target);
 
-    SmartDashboard.putBoolean("Manual Move: ", isReacting);
-    SmartDashboard.putNumber("Input Volts", inputVolts); // should be between one or negative one
+    SmartDashboard.putBoolean("Elevator/Manual Move: ", isReacting);
+    SmartDashboard.putNumber("Elevator/Input Volts", inputVolts); // should be between one or negative one
   }
 }

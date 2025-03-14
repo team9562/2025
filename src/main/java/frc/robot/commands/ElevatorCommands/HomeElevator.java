@@ -29,24 +29,18 @@ public class HomeElevator extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (zeroOrHome) {
-      m_ElevatorSubsystem.runCurrentZeroing();
-    }
-
-    if (!zeroOrHome) {
-      m_ElevatorSubsystem.setElevatorHeight(0);
-    }
+    m_ElevatorSubsystem.setElevatorHeight(0);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_ElevatorSubsystem.stopElevator();
+    m_ElevatorSubsystem.runCurrentZeroing();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return m_ElevatorSubsystem.isAtTarget() || Math.floor(m_ElevatorSubsystem.getEncoderPose()) == 0;
+    return m_ElevatorSubsystem.isAtTarget();
   }
 }

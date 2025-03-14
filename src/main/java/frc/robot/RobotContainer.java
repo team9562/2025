@@ -23,6 +23,7 @@ import frc.robot.commands.ArmCommands.IntakeOutake;
 import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
 import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
 import frc.robot.commands.LEDCommands.SetLedCommand;
+import frc.robot.commands.SwerveCommands.GoToBestTargetCommand;
 import frc.robot.commands.SwerveCommands.TurnAroundCommand;
 import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
 
@@ -71,6 +72,7 @@ public class RobotContainer {
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
 
+    private final Command goToBestTargetCommand = new GoToBestTargetCommand(drivetrain, m_visionSubsystem, drive);
     public RobotContainer() {
         registerCommands();
         burnAllFlash();
@@ -80,6 +82,7 @@ public class RobotContainer {
     private void registerCommands() {
         NamedCommands.registerCommand("turnAround", turnAroundCommand);
         NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
+        NamedCommands.registerCommand("goToBestTargetCommand", goToBestTargetCommand);
     }
 
     private void burnAllFlash() {
@@ -111,7 +114,7 @@ public class RobotContainer {
         XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2")); // 26.85 in
         XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));   // 77.1 in 
 
-        XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
+        XController.y().onTrue(goToBestTargetCommand); // no exit command rn -> fix later
         XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
 
         XController.leftTrigger().whileTrue(drivetrain.applyRequest(() -> brake));

@@ -17,7 +17,7 @@ public class LaserCanSubsystem extends SubsystemBase {
         try {
             // Configure LaserCan settings
             lc.setRangingMode(LaserCan.RangingMode.SHORT);
-            lc.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            lc.setRegionOfInterest(new LaserCan.RegionOfInterest(0, 0, 16, 16));
             lc.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
         } catch (ConfigurationFailedException e) {
             detectedObj = "[ERROR] LaserCan configuration failed: " + e.getMessage();

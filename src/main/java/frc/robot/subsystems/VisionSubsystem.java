@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
+import org.photonvision.proto.Photon;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
@@ -97,7 +98,7 @@ public class VisionSubsystem extends SubsystemBase {
         double CamPitch = CAMERA_PITCHES.get(camera);
 
         for (PhotonTrackedTarget target : targets) {
-
+// distance also used for gotobesttarget
           distance = PhotonUtils.calculateDistanceToTargetMeters(CamHeight,
               aprilTagFieldLayout.getTagPose(target.getFiducialId()).get().getZ(), CamPitch, target.getPitch());
 
@@ -111,6 +112,22 @@ public class VisionSubsystem extends SubsystemBase {
     }
   }
 
+  public int compareCameras(PhotonCamera compCamera){
+    for (PhotonCamera camera : cameras) {
+      if (compCamera.equals(camera)){
+        return camera.getPipelineIndex();
+      }
+    }
+    return -1;
+  }
+  public PhotonCamera getBestCamera(){
+    return bestCamera;
+  }
+
+  public PhotonTrackedTarget getClosestTarget(){ // from all cameras (not just one)
+    return closestTarget;
+  }
+  
 
   public double getBestYaw(){
     return closestTarget.getYaw();
@@ -191,7 +208,7 @@ public class VisionSubsystem extends SubsystemBase {
         return null;
     }
 
-     System.out.println("[INFO] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
+     System.out.println("[INFO VISION-SUB] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
     return bestTarget;
 }
 

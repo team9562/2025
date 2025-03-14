@@ -8,12 +8,15 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -59,7 +62,7 @@ public class RobotContainer {
     // LazerCan
     public final LaserCanSubsystem m_laserCanSubsystem = new LaserCanSubsystem();
 
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+    //private final Telemetry logger = new Telemetry(MaxSpeed);
 
     static CommandXboxController XController = new CommandXboxController(0);
 
@@ -70,6 +73,8 @@ public class RobotContainer {
     public final static GroundIntakeSubsystem m_groundIntakeSubsystem = new GroundIntakeSubsystem();
     public final LedSubsystem ledSubsystem = new LedSubsystem();
 
+    private final SendableChooser<Command> autoChooser;
+
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
@@ -78,6 +83,9 @@ public class RobotContainer {
         registerCommands();
         burnAllFlash();
         configureBindings();
+
+        autoChooser = AutoBuilder.buildAutoChooser("New New Auto");
+        SmartDashboard.putData("Auto chooser", autoChooser);
     }
 
     private void registerCommands() {
@@ -131,7 +139,7 @@ public class RobotContainer {
 
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan
-        XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
+        // XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 
         // Binding the GroundIntakeCommand
         XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
@@ -141,7 +149,7 @@ public class RobotContainer {
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,
         // RobotState.READY_TO_SHOOT));
 
-        drivetrain.registerTelemetry(logger::telemeterize);
+        //drivetrain.registerTelemetry(logger::telemeterize);
 
         // Run SysId routines when holding 11 or 12
         // Note that each routine should be run exactly once in a single log.
@@ -156,7 +164,8 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        // return Commands.print("No autonomous command configured");
-        return new PathPlannerAuto("New Auto");
+        //return Commands.print("No autonomous command configured");
+        //return new PathPlannerAuto("New Auto");
+        return autoChooser.getSelected();
     }
 }

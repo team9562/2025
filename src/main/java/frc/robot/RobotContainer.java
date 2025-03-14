@@ -59,7 +59,7 @@ public class RobotContainer {
     // LazerCan
     public final LaserCanSubsystem m_laserCanSubsystem = new LaserCanSubsystem();
 
-    private final Telemetry logger = new Telemetry(MaxSpeed);
+    //private final Telemetry logger = new Telemetry(MaxSpeed);
 
     static CommandXboxController XController = new CommandXboxController(0);
 
@@ -148,7 +148,7 @@ public class RobotContainer {
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,
         // RobotState.READY_TO_SHOOT));
 
-        drivetrain.registerTelemetry(logger::telemeterize);
+        //drivetrain.registerTelemetry(logger::telemeterize);
 
         // Run SysId routines when holding 11 or 12
         // Note that each routine should be run exactly once in a single log.

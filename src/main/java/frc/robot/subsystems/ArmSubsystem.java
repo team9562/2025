@@ -116,7 +116,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void turnPitchMotor(double degrees) {
-    pidPitch.setReference(degrees, ControlType.kPosition, slot0);
+    pidPitch.setReference(degrees, ControlType.kPosition, slot0, 0.2, ArbFFUnits.kVoltage);
   }
 
   public void manualPitchMotor(double volts){

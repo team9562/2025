@@ -11,10 +11,10 @@ public class ArmConstants {
 
     public static final double pConversionFactor = 3.6; // 42 / 360 * (100/1 gear ratio)
 
-    public static final double kP_PITCH = 0.01;
+    public static final double kP_PITCH = 0.05;
     public static final double kI_PITCH = 0;
     public static final double kD_PITCH = 0;
-    public static final double kF_PITCH = 0.01;
+    public static final double kF_PITCH = 0.0;
 
     public static final double kP_OPEN = 5.0;
     public static final double kI_OPEN = 0;

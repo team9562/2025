@@ -16,6 +16,7 @@ import com.revrobotics.spark.*;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -58,13 +59,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     rightConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pidf(kP, kI, kD, 0, slot0)
-
-            .maxMotion
-        .allowedClosedLoopError(ElevatorConstants.E_TOLERANCE, slot0)
-        .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC, slot0)
-        .maxVelocity(NeoMotorConstants.NEO_MAX_VEL, slot0)
-        .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
+        .pidf(kP, kI, kD, 0, slot0);
 
     rightConfig.encoder
         .positionConversionFactor(ElevatorConstants.kConversionFactor); // mm / 25.4 = in
@@ -78,13 +73,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     leftConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pidf(kP, kI, kD, 0, slot0)
-
-            .maxMotion
-        .allowedClosedLoopError(ElevatorConstants.E_TOLERANCE, slot0)
-        .maxAcceleration(NeoMotorConstants.NEO_MAX_ACC, slot0)
-        .maxVelocity(NeoMotorConstants.NEO_MAX_VEL, slot0)
-        .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, slot0);
+        .pidf(kP, kI, kD, 0, slot0);
 
     leftConfig.encoder
         .positionConversionFactor(ElevatorConstants.kConversionFactor);
@@ -122,12 +111,12 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0); // resolve error
+    pid.setReference(targetHeight, ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage); // resolve error
   }
 
   public Command runCurrentZeroing() {
     return this
-        .run(() -> pid.setReference(-2, ControlType.kVoltage, slot0)) // decrease??
+        .run(() -> pid.setReference(-2.5, ControlType.kVoltage, slot0)) // decrease??
         .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
         .andThen(() -> resetEncoderPose())
         .finallyDo(() -> pid.setReference(0, ControlType.kVoltage, slot0));

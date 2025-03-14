@@ -25,6 +25,9 @@ import frc.robot.commands.followGuzPath;
 import frc.robot.commands.ArmCommands.HomeArm;
 import frc.robot.commands.ArmCommands.IntakeOutake;
 import frc.robot.commands.ArmCommands.SetAngleToPOI;
+import frc.robot.commands.CommandGroups.AutoScoringCycle;
+import frc.robot.commands.CommandGroups.HomeThenSetToPOI;
+import frc.robot.commands.CommandGroups.SetHeightAngleToPOI;
 import frc.robot.commands.ElevatorCommands.HomeElevator;
 import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
 import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
@@ -77,6 +80,8 @@ public class RobotContainer {
 
     private final Command turnAroundCommand = new TurnAroundCommand(drivetrain, drive, MaxAngularRate);
 
+    private final Command AutoScoringCycle = new AutoScoringCycle(m_elevatorSubsystem, m_ArmSubsystem, "l4");
+
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
 
     public RobotContainer() {
@@ -84,13 +89,15 @@ public class RobotContainer {
         burnAllFlash();
         configureBindings();
 
-        autoChooser = AutoBuilder.buildAutoChooser("New New Auto");
+        autoChooser = AutoBuilder.buildAutoChooser("None");
         SmartDashboard.putData("Auto chooser", autoChooser);
     }
 
     private void registerCommands() {
         NamedCommands.registerCommand("turnAround", turnAroundCommand);
         NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
+        NamedCommands.registerCommand("ScoreCoral", AutoScoringCycle);
+        NamedCommands.registerCommand("Intake", new IntakeOutake(m_ArmSubsystem, "in"));
     }
 
     private void burnAllFlash() {
@@ -117,12 +124,10 @@ public class RobotContainer {
         // new awesome code - yay
         // might work better like instead of intializing four at the top: control via
         // d-pad
-        XController.povUp().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l4"));    // 67.17 in
-        XController.povLeft().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l3"));  // 43.86 in
-        XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2")); // 26.85 in
-        XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));   // 77.1 in 
-
-        XController.leftStick().onTrue(new SetAngleToPOI(m_ArmSubsystem, "l2"));
+        XController.povUp().onTrue(new HomeThenSetToPOI(m_ArmSubsystem, m_elevatorSubsystem, "l4"));    // 67.17 in
+        XController.povLeft().onTrue(new HomeThenSetToPOI(m_ArmSubsystem, m_elevatorSubsystem, "l3"));  // 43.86 in
+        XController.povRight().onTrue(new HomeThenSetToPOI(m_ArmSubsystem, m_elevatorSubsystem, "l2")); // 26.85 in
+        XController.povDown().onTrue(new HomeThenSetToPOI(m_ArmSubsystem, m_elevatorSubsystem, "b"));   // 77.1 in 
 
         XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
         XController.rightStick().onTrue(m_elevatorSubsystem.runCurrentZeroing());
@@ -142,7 +147,7 @@ public class RobotContainer {
         // XController.x().onTrue(new InstantCommand(() -> m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
 
         // Binding the GroundIntakeCommand
-        XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
+        //XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
         XController.b().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
 
         // eggYoke examples for led

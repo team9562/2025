@@ -37,6 +37,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   private static final double kP = ElevatorConstants.kP;
   private static final double kI = ElevatorConstants.kI;
   private static final double kD = ElevatorConstants.kD;
+  private static final double kFF = ElevatorConstants.kFF;
   private static final ClosedLoopSlot slot0 = ElevatorConstants.E_SLOT;
 
   private double tolerance = ElevatorConstants.E_TOLERANCE;
@@ -121,7 +122,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0); // resolve error
+    pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0, kFF); // resolve error
   }
 
   public Command runCurrentZeroing() {

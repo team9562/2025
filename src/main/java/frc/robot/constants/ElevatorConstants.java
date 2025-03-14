@@ -22,6 +22,9 @@ public class ElevatorConstants {
     public static final int E_MAXHEIGHT = 70;
     public static final double E_TOLERANCE = 0.5;
 
+    public static final double E_MAX_VEL = 5556.79;
+    public static final double E_MAX_ACC = 41150.94;
+
     public static final double B = 77.10; // barge
     public static final double L2 = 26.85;
     public static final double L3 = 43.86;

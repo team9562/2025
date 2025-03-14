@@ -12,6 +12,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -29,10 +30,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
-  private final AbsoluteEncoder absoluteZeroPitch = pitchSpark.getAbsoluteEncoder();
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
-  private final RelativeEncoder openEncoder = openSpark.getEncoder();
 
   private final SparkMaxConfig basicConfig = new SparkMaxConfig();
   private final SparkMaxConfig pitchConfig = new SparkMaxConfig();
@@ -71,9 +70,9 @@ public class ArmSubsystem extends SubsystemBase {
             ArmConstants.kF_PITCH,
             slot0);
 
-    pitchConfig.absoluteEncoder
-        .positionConversionFactor(ArmConstants.pConversionFactor)
-        .zeroOffset(0); // change to actual value
+    //pitchConfig.absoluteEncoder
+        //.positionConversionFactor(ArmConstants.pConversionFactor)
+        //.zeroOffset(0); // change to actual value
 
     openConfig
         .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
@@ -93,7 +92,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getEncoderPose() {
-    return pitchEncoder.getPosition() % 360;
+    return pitchEncoder.getPosition();
   }
 
   public void burnFlash() {
@@ -125,19 +124,19 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public void turnPitchMotor(double degrees) {
-    pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0);
+    pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0, 0.001);
   }
 
-  public Command turnOpenMotor(double intake) { // ex 1 or 0
-    return this
-        .run(() -> pidOpen.setReference(intake, ControlType.kDutyCycle, slot0));
+  public void turnOpenMotor(double intake) { // ex 1 or 0
+    pidOpen.setReference(intake, ControlType.kDutyCycle, slot0);
   }
 
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose());
-    if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
+    SmartDashboard.putNumber("Absolute Encoder: ", pitchSpark.getAbsoluteEncoder().getPosition());
+    /*if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
       resetPitch();
-    }
+    }*/
   }
 }

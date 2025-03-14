@@ -19,7 +19,10 @@ import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.followGuzPath;
+import frc.robot.commands.ArmCommands.HomeArm;
 import frc.robot.commands.ArmCommands.IntakeOutake;
+import frc.robot.commands.ArmCommands.SetAngleToPOI;
+import frc.robot.commands.ElevatorCommands.HomeElevator;
 import frc.robot.commands.ElevatorCommands.SetHeightToPOI;
 import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
 import frc.robot.commands.LEDCommands.SetLedCommand;
@@ -96,12 +99,12 @@ public class RobotContainer {
                 drivetrain.applyRequest(() -> drive
                         .withVelocityX(XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(XController.getRightY() * MaxAngularRate)));
+                        .withRotationalRate(XController.getRightX() * MaxAngularRate)));
 
         // try to get this to work properly, might need to convert into a command in the
         // subsystem itself
-        m_elevatorSubsystem.setDefaultCommand(
-                m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getRightY())));
+        m_ArmSubsystem.setDefaultCommand(
+                m_ArmSubsystem.run(() -> m_ArmSubsystem.manualPitchMotor(XController.getRightY())));
 
         // new awesome code - yay
         // might work better like instead of intializing four at the top: control via
@@ -111,10 +114,12 @@ public class RobotContainer {
         XController.povRight().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "l2")); // 26.85 in
         XController.povDown().onTrue(new SetHeightToPOI(m_elevatorSubsystem, "b"));   // 77.1 in 
 
-        XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
-        XController.rightBumper().onTrue(m_elevatorSubsystem.runCurrentZeroing());
+        XController.leftStick().onTrue(new SetAngleToPOI(m_ArmSubsystem, "l2"));
 
-        XController.leftTrigger().whileTrue(drivetrain.applyRequest(() -> brake));
+        XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
+        XController.rightStick().onTrue(m_elevatorSubsystem.runCurrentZeroing());
+
+        XController.leftTrigger().whileTrue(m_ArmSubsystem.run(() -> m_ArmSubsystem.resetPitch()));
 
         // reset the field-centric heading on left bumper press
         XController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -130,7 +135,7 @@ public class RobotContainer {
 
         // Binding the GroundIntakeCommand
         XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0, 90.0));
-        XController.rightBumper().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
+        XController.b().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
 
         // eggYoke examples for led
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,

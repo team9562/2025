@@ -122,15 +122,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public void setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0, kFF); // resolve error
+    pid.setReference(getError(targetHeight), ControlType.kMAXMotionPositionControl, slot0); // resolve error
   }
 
   public Command runCurrentZeroing() {
     return this
-        .run(() -> elevatorRight.setVoltage(-2)) // decrease??
-        .until(() -> elevatorRight.getOutputCurrent() >= ElevatorConstants.E_STALL_LIMIT)
-        .finallyDo(() -> resetEncoderPose())
-        .finallyDo(() -> elevatorRight.setVoltage(0));
+        .run(() -> pid.setReference(-2, ControlType.kVoltage, slot0)) // decrease??
+        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
+        .andThen(() -> resetEncoderPose())
+        .finallyDo(() -> pid.setReference(0, ControlType.kVoltage, slot0));
   }
 
   public Boolean isAtTarget() {

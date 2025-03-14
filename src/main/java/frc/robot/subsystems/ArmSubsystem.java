@@ -46,7 +46,7 @@ public class ArmSubsystem extends SubsystemBase {
     basicConfig
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .disableFollowerMode()
-        .idleMode(IdleMode.kBrake);
+        .idleMode(IdleMode.kCoast);
 
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -111,20 +111,16 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.stopMotor();
   }
 
-  public static double getShortestRotation(double currentAngle, double targetAngle) {
-    double difference = (targetAngle - currentAngle) % 360;
-
-    if (difference > 180) {
-      difference -= 360;
-    } else if (difference < -180) {
-      difference += 360;
-    }
-
-    return difference;
+  public double getError(double degrees){
+    return degrees - getEncoderPose();
   }
 
   public void turnPitchMotor(double degrees) {
-    pidPitch.setReference(getShortestRotation(getEncoderPose(), degrees), ControlType.kMAXMotionPositionControl, slot0, 0.001);
+    pidPitch.setReference(degrees, ControlType.kPosition, slot0);
+  }
+
+  public void manualPitchMotor(double volts){
+    pidPitch.setReference(volts * 1.5, ControlType.kVoltage, slot0);
   }
 
   public void turnOpenMotor(double intake) { // ex 1 or 0
@@ -134,7 +130,6 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm Encoder: ", getEncoderPose());
-    SmartDashboard.putNumber("Absolute Encoder: ", pitchSpark.getAbsoluteEncoder().getPosition());
     /*if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
       resetPitch();
     }*/

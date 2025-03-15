@@ -71,34 +71,39 @@ public class RobotContainer {
 
     private final SendableChooser<Command> autoChooser;
 
-    private final Command intakeCoralAlgae(){
+    private final Command intakeCoralAlgae() {
 
-        if(m_laserCan.processMeasurement()){
+        if (m_laserCan.processMeasurement()) {
             return m_armSubsystem.intakeOuttake(IntakeDirection.IN)
-            .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
-            .andThen(m_armSubsystem.intakeOuttake(0.4)); //find a good percent to hold the algae in
+                    .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
+                    .andThen(m_armSubsystem.intakeOuttake(0.4)); // find a good percent to hold the algae in
         }
 
-        else if(!m_laserCan.processMeasurement()){
+        else if (!m_laserCan.processMeasurement()) {
             return m_armSubsystem.intakeOuttake(IntakeDirection.IN)
-            .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
-            .finallyDo(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
+                    .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
+                    .finallyDo(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
         }
 
         return m_armSubsystem.intakeOuttake(IntakeDirection.STOP);
     }
 
-    private final Command homeElevatorArm = new ParallelCommandGroup(
-            m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO), (m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)));
+    private final Command homeElevatorArm() {
+        return new ParallelCommandGroup(
+                m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO).until(m_elevatorSubsystem::isAtTarget).withTimeout(1),
+                m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(1.5))
+                .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL));
+    }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
-        .andThen(m_elevatorSubsystem.setElevatorHeight(height)
-        .alongWith(m_armSubsystem.turnPitchMotor(angle)));
+        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(1.3)
+                .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
+                        .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle())));
     }
 
     private final Command autoScore = new SequentialCommandGroup(
-            m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)).andThen(homeElevatorArm));
+            m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4))
+                    .andThen(homeElevatorArm()));
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,
             0);
@@ -137,17 +142,19 @@ public class RobotContainer {
                 drivetrain.applyRequest(() -> drive
                         .withVelocityX(XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(XController.getRightX() * MaxAngularRate)));
+                        .withRotationalRate(XController.getRightX() * 0)));
 
-        //Change Around Please
-        //XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));
+        m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+
+        // Change Around Please
+        // XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));
         XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B)); // 67.17 in
         XController.povLeft().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
         XController.povRight().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
         XController.povDown().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
 
         XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
-        XController.rightStick().onTrue(homeElevatorArm);
+        XController.rightStick().onTrue(homeElevatorArm());
 
         XController.leftTrigger().whileTrue(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
 
@@ -157,7 +164,8 @@ public class RobotContainer {
         // eggYoke.button(10).toggleOnTrue(follow);
 
         XController.rightBumper().onTrue(intakeCoralAlgae());
-        XController.rightTrigger().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.IN));
+        XController.rightTrigger().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT));
+        XController.rightTrigger().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
 
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan

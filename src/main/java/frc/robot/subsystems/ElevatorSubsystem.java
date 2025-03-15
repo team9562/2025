@@ -99,11 +99,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     elevatorLeft.stopMotor();
   }
 
-  public double getError(double targetHeight) {
-    this.target = targetHeight;
-    return targetHeight - getEncoderPose();
-  }
-
   public void moveElevator(double volts) {
     this.isReacting = true;
     this.inputVolts = volts;
@@ -116,6 +111,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command setElevatorHeight(ElevatorHeights height) {
+    this.target = height.getHeight();
     return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage))
     .unless(() -> Utility.withinTolerance(getEncoderPose(), 0, 1))
     .andThen(runCurrentZeroing());

@@ -114,6 +114,11 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
   }
 
+  public Command turnPitchMotor(double angle) {
+    this.target = angle;
+    return run(() -> pidPitch.setReference(angle, ControlType.kPosition, slot0, 0.0, ArbFFUnits.kVoltage));
+  }
+
   public Command turnPitchMotor(ArmAngles angle) {
     this.target = angle.getAngle();
     return run(() -> pidPitch.setReference(angle.getAngle(), ControlType.kPosition, slot0, 0.0, ArbFFUnits.kVoltage));

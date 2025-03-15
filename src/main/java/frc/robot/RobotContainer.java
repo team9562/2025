@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.followGuzPath;
 
 import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
-import frc.robot.commands.LEDCommands.SetLedCommand;
+import frc.robot.commands.LEDCommands.SetLedStateCommand;
 import frc.robot.commands.SwerveCommands.GoToBestTargetCommand;
 import frc.robot.commands.SwerveCommands.TurnAroundCommand;
 import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
@@ -167,7 +167,7 @@ public class RobotContainer {
         // Binding the GroundIntakeCommand
         // XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0,
         // 90.0));
-        XController.b().onTrue(new InstantCommand(() -> ledSubsystem.applyBlockEffect()));
+        XController.b().onTrue(new SetLedStateCommand(ledSubsystem, RobotState.RAINBOW));
 
         // eggYoke examples for led
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,

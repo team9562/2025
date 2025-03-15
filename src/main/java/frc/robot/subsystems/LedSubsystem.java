@@ -2,45 +2,38 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LedSubsystem extends SubsystemBase {
 
-    private static final int LED_PORT_1 = 9; // Using only one LED strip on port 7
-    private static final int LED_LENGTH_1 = 53; // Length of the LED strip
-    private static final int BLOCK_SIZE = 6;  // Size of the red block (6 LEDs)
+    private static final int LED_PORT_1 = 9;
+    private static final int LED_LENGTH_1 = 53;
 
     private final AddressableLED m_led1;
     private final AddressableLEDBuffer m_ledBuffer1;
-
-    // Rainbow effect variables
+    
     private int rainbowIndex = 0;
     private double lastRainbowUpdateTime = 0;
-    private static final double RAINBOW_COLOR_CHANGE_INTERVAL = 0.5;
+    private static final double RAINBOW_INTERVAL = 0.5;
     private final int[][] rainbowColors = {
-            {255, 0, 0},    // Red
-            {255, 127, 0},  // Orange
-            {255, 255, 0},  // Yellow
-            {0, 255, 0},    // Green
-            {0, 0, 255},    // Blue
-            {75, 0, 130},   // Indigo
-            {148, 0, 211}   // Violet
+            {255, 0, 0}, {255, 127, 0}, {255, 255, 0},
+            {0, 255, 0}, {0, 0, 255}, {75, 0, 130}, {148, 0, 211}
     };
 
-    // Block effect variables
+    private boolean flashOn = false;
+    private double lastFlashTime = 0;
+    private static final double FLASH_INTERVAL = 0.5; // seconds between toggles
+
     private int blockPosition = 0;
+    private static final int BLOCK_SIZE = 6;
     private double lastBlockUpdateTime = 0;
     private static final double BLOCK_MOVE_INTERVAL = 0.02;
 
-    // Robot state enum
     public enum RobotState {
-        IDLE,
-        INTAKE_CORAL,
-        INTAKE_BALL,
-        SHOOTING_REEF,
-        SHOOTING_BARGE,
-        READY_TO_SHOOT
+        IDLE, RAINBOW, MOVING_BLOCK, SOLID_RED, SOLID_BLUE, INTAKE_CORAL, INTAKE_BALL,
+        SHOOTING_REEF, SHOOTING_BARGE, READY_TO_SHOOT
     }
 
     private RobotState currentState = RobotState.IDLE;
@@ -54,80 +47,98 @@ public class LedSubsystem extends SubsystemBase {
         m_led1.start();
     }
 
-    // Method to start the rainbow effect
-    public void applyRainbowEffect() {
-        lastRainbowUpdateTime = Timer.getFPGATimestamp(); // Start the timer for periodic color change
-        rainbowIndex = 0; // Reset rainbow color index
+    public void setState(RobotState state) {
+        this.currentState = state;
+        SmartDashboard.putString("LED STATE", state.name());
+        resetEffects();
+    }
+
+    private void resetEffects() {
+        lastRainbowUpdateTime = Timer.getFPGATimestamp();
+        rainbowIndex = 0;
+        blockPosition = 0;
+        resetFlashing();
     }
 
     private void runRainbowEffect() {
-        // This function will be periodically called to update the LED colors
-        if (Timer.getFPGATimestamp() - lastRainbowUpdateTime >= RAINBOW_COLOR_CHANGE_INTERVAL) {
-            // Cycle through rainbow colors
-            int[] currentColor = rainbowColors[rainbowIndex];
-
-            // Set the color for the LED strip
-            setColor(m_ledBuffer1, currentColor[0], currentColor[1], currentColor[2]);
-
-            // Increment index to show next color, wrap around at the end
+        if (Timer.getFPGATimestamp() - lastRainbowUpdateTime >= RAINBOW_INTERVAL) {
+            int[] color = rainbowColors[rainbowIndex];
+            setColor(color[0], color[1], color[2]);
             rainbowIndex = (rainbowIndex + 1) % rainbowColors.length;
-
-            // Update the LED strip with the new color data
-            m_led1.setData(m_ledBuffer1);
-
-            // Reset the timer for the next update
             lastRainbowUpdateTime = Timer.getFPGATimestamp();
         }
     }
 
-    // Method to start the block effect
-    public void applyBlockEffect() {
-        lastBlockUpdateTime = Timer.getFPGATimestamp(); // Start the timer for block movement
-        blockPosition = 0; // Reset block position to start at the bottom
-    }
-
     private void runBlockEffect() {
-        // This function will be periodically called to update the LED colors
         if (Timer.getFPGATimestamp() - lastBlockUpdateTime >= BLOCK_MOVE_INTERVAL) {
-            // Clear all LEDs (turn off the strip)
             for (int i = 0; i < m_ledBuffer1.getLength(); i++) {
-                m_ledBuffer1.setRGB(i, 0, 0, 0);  // Set all LEDs to off
+                m_ledBuffer1.setRGB(i, 0, 0, 0);
             }
-
-            // Turn on the block of LEDs in red
             for (int i = blockPosition; i < blockPosition + BLOCK_SIZE && i < m_ledBuffer1.getLength(); i++) {
-                m_ledBuffer1.setRGB(i, 0, 0, 255);  // Set LEDs to red
+                m_ledBuffer1.setRGB(i, 255, 0, 0);
             }
-            // Update the LED strip with the new color data
             m_led1.setData(m_ledBuffer1);
-
-            // Update the block's position: move it up or down
             blockPosition = (blockPosition + 1) % (m_ledBuffer1.getLength() - BLOCK_SIZE);
-
-            // Reset the timer for the next update
             lastBlockUpdateTime = Timer.getFPGATimestamp();
         }
     }
 
-    // Utility method to set color for a given buffer
-    private void setColor(AddressableLEDBuffer buffer, int r, int g, int b) {
-        for (int i = 0; i < buffer.getLength(); i++) {
-            buffer.setRGB(i, r, g, b);
+    private void setColor(int r, int g, int b) {
+        for (int i = 0; i < m_ledBuffer1.getLength(); i++) {
+            m_ledBuffer1.setRGB(i, r, g, b);
         }
+        m_led1.setData(m_ledBuffer1);
     }
 
-    // Override the periodic method to ensure periodic LED updates
+    private void resetFlashing() {
+        flashOn = false;
+        lastFlashTime = Timer.getFPGATimestamp();
+    }    
+
+    private void setFlashingColor(int r, int g, int b) {
+        double currentTime = Timer.getFPGATimestamp();
+        if (currentTime - lastFlashTime >= FLASH_INTERVAL) {
+            flashOn = !flashOn;
+            lastFlashTime = currentTime;
+        }
+        
+        int displayR = flashOn ? r : 0;
+        int displayG = flashOn ? g : 0;
+        int displayB = flashOn ? b : 0;
+        
+        for (int i = 0; i < m_ledBuffer1.getLength(); i++) {
+            m_ledBuffer1.setRGB(i, displayR, displayG, displayB);
+        }
+        m_led1.setData(m_ledBuffer1);
+    }
+
     @Override
     public void periodic() {
-        // Call the rainbow effect function periodically
-        // runRainbowEffect();
-
-        // Call the block effect function periodically
-        runBlockEffect();
-    }
-
-    // Method to set the robot's state (which will update the LEDs based on the state)
-    public void setState(RobotState state) {
-        this.currentState = state;
+        switch (currentState) {
+            case RAINBOW:
+                runRainbowEffect();
+                break;
+            case MOVING_BLOCK:
+                runBlockEffect();
+                break;
+            case INTAKE_CORAL:
+                setFlashingColor(255, 0, 0);
+                break;
+            case INTAKE_BALL:
+                setFlashingColor(0, 0, 255);
+                break;
+            case SHOOTING_REEF:
+                setFlashingColor(0, 0, 255);
+                break;
+            case SHOOTING_BARGE:
+                setFlashingColor(0, 0, 255);
+                break;
+            case READY_TO_SHOOT:
+                setFlashingColor(0, 0, 255);
+                break;
+            case IDLE:
+                setColor(100, 100, 100);
+                break;
+        }
     }
 }

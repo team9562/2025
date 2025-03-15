@@ -25,10 +25,24 @@ public class ElevatorConstants {
     public static final double E_MAX_VEL = 5556.79;
     public static final double E_MAX_ACC = 41150.94;
 
-    public static final double B = 67.17; // barge
-    public static final double L2 = 26.85;
-    public static final double L3 = 43.86;
-    public static final double L4 = 77.10;
-
     public static final double E_MAXSPEED = 0.25;
+
+    // inches
+    public enum ElevatorHeights {
+        L2(26.85),
+        L3(43.86),
+        L4(77.10),
+        B(67.17),
+        ZERO(0);
+
+        private final double height;
+
+        ElevatorHeights(double height) {
+            this.height = height;
+        }
+
+        public double getHeight() {
+            return height;
+        }
+    }
 }

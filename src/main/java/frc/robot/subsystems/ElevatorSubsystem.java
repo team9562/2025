@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.constants.NeoMotorConstants;
+import frc.robot.constants.ElevatorConstants.ElevatorHeights;
 import frc.robot.utils.Utility;
 
 import com.revrobotics.RelativeEncoder;
@@ -109,10 +110,18 @@ public class ElevatorSubsystem extends SubsystemBase {
     pid.setReference(volts * 2, ControlType.kVoltage, slot0);
   }
 
-  public void setElevatorHeight(double targetHeight) {
+  public Command setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    pid.setReference(targetHeight, ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage); // resolve error
+    return run(() -> pid.setReference(targetHeight, ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage)); // resolve error
   }
+
+  public Command setElevatorHeight(ElevatorHeights height) {
+    return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage))
+    .unless(() -> Utility.withinTolerance(getEncoderPose(), 0, 1))
+    .andThen(runCurrentZeroing());
+  }
+
+
 
   public Command runCurrentZeroing() {
     return this

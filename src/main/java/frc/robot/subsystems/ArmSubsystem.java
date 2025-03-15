@@ -19,11 +19,14 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.NeoMotorConstants;
+import frc.robot.constants.ArmConstants.ArmAngles;
+import frc.robot.constants.ArmConstants.IntakeDirection;
 import frc.robot.utils.Utility;
 
 public class ArmSubsystem extends SubsystemBase {
@@ -70,9 +73,9 @@ public class ArmSubsystem extends SubsystemBase {
             ArmConstants.kF_PITCH,
             slot0);
 
-    //pitchConfig.absoluteEncoder
-        //.positionConversionFactor(ArmConstants.pConversionFactor)
-        //.zeroOffset(0); // change to actual value
+    // pitchConfig.absoluteEncoder
+    // .positionConversionFactor(ArmConstants.pConversionFactor)
+    // .zeroOffset(0); // change to actual value
 
     openConfig
         .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
@@ -95,6 +98,10 @@ public class ArmSubsystem extends SubsystemBase {
     return pitchEncoder.getPosition();
   }
 
+  public double getOpenCurrent(){
+    return openSpark.getOutputCurrent();
+  }
+
   public void burnFlash() {
     pitchSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     openSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -111,28 +118,35 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.stopMotor();
   }
 
-  public double getError(double degrees){
-    return degrees - getEncoderPose();
+  public Command turnPitchMotor(double degrees) {
+    return run(() -> pidPitch.setReference(degrees, ControlType.kPosition, slot0, 0.35, ArbFFUnits.kVoltage));
   }
 
-  public void turnPitchMotor(double degrees) {
-    pidPitch.setReference(degrees, ControlType.kPosition, slot0, 0.2, ArbFFUnits.kVoltage);
+  public Command turnPitchMotor(ArmAngles angle) {
+    return run(() -> pidPitch.setReference(angle.getAngle(), ControlType.kPosition, slot0, 0.35, ArbFFUnits.kVoltage));
   }
 
-  public void manualPitchMotor(double volts){
-    pidPitch.setReference(volts * 1.5, ControlType.kVoltage, slot0);
+  public Command manualPitchMotor(double volts) {
+    return run(() -> pidPitch.setReference(volts, ControlType.kVoltage, slot0, 0.35, ArbFFUnits.kVoltage));
   }
 
-  public void turnOpenMotor(double intake) { // ex 1 or 0
-    pidOpen.setReference(intake, ControlType.kDutyCycle, slot0);
+  public Command intakeOuttake(double intake){
+    return run(() -> pidOpen.setReference(intake, ControlType.kDutyCycle, slot0));
+  }
+
+  public Command intakeOuttake(IntakeDirection direction) { // ex 1 or 0
+    return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0));
   }
 
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
     SmartDashboard.putNumber("Arm/Absolute Encoder: ", pitchSpark.getAbsoluteEncoder().getPosition());
-    /*if (Utility.withinTolerance(getEncoderPose(), absoluteZeroPitch.getPosition(), target)) {
-      resetPitch();
-    }*/
+    /*
+     * if (Utility.withinTolerance(getEncoderPose(),
+     * absoluteZeroPitch.getPosition(), target)) {
+     * resetPitch();
+     * }
+     */
   }
 }

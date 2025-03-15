@@ -24,11 +24,7 @@ public class LaserCanSubsystem extends SubsystemBase {
         }
     }
 
-    public void detectObject() {
-        processMeasurement();
-    }
-
-    private void processMeasurement() {
+    public boolean processMeasurement() {
         LaserCan.Measurement measurement = lc.getMeasurement();
         if (measurement != null) {
             distance = measurement.distance_mm;
@@ -36,10 +32,13 @@ public class LaserCanSubsystem extends SubsystemBase {
                     measurement.distance_mm > 0 &&
                     measurement.distance_mm < MAX_VALID_DIST) {
                 detectedObj = "Object detected";
+                return true;
             } else {
                 detectedObj = "No valid object";
+                return false;
             }
         }
+        return false;
     }
 
     @Override

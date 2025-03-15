@@ -9,7 +9,7 @@ public class ArmConstants {
     public static final int PITCH_STALL_LIMIT = 40;
     public static final int OPEN_STALL_LIMIT = 20;
 
-    public static final double pConversionFactor = 3.6; // 42 / 360 * (100/1 gear ratio)
+    public static final double pConversionFactor = 3.6;
 
     public static final double kP_PITCH = 0.01;
     public static final double kI_PITCH = 0;

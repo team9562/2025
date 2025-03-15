@@ -82,21 +82,19 @@ public class RobotContainer {
         else if(!m_laserCan.processMeasurement()){
             return m_armSubsystem.intakeOuttake(IntakeDirection.IN)
             .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
-            .finallyDo(() -> m_armSubsystem.stopOpen());
+            .finallyDo(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
         }
 
         return m_armSubsystem.intakeOuttake(IntakeDirection.STOP);
     }
 
     private final Command homeElevatorArm = new ParallelCommandGroup(
-            m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO)
-            .alongWith(m_armSubsystem.turnPitchMotor(ArmAngles.ZERO))
-            .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL)));
+            m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO), (m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)));
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
         return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
-        .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
-        .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle())));
+        .andThen(m_elevatorSubsystem.setElevatorHeight(height)
+        .alongWith(m_armSubsystem.turnPitchMotor(angle)));
     }
 
     private final Command autoScore = new SequentialCommandGroup(
@@ -140,8 +138,6 @@ public class RobotContainer {
                         .withVelocityX(XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
                         .withVelocityY(XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(XController.getRightX() * MaxAngularRate)));
-
-        m_armSubsystem.setDefaultCommand(m_armSubsystem.manualPitchMotor(XController.getRightY()));
 
         //Change Around Please
         //XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));

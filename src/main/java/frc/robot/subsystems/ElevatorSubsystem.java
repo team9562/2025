@@ -121,8 +121,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     .andThen(runCurrentZeroing());
   }
 
-
-
   public Command runCurrentZeroing() {
     return this
         .run(() -> pid.setReference(-2.5, ControlType.kVoltage, slot0)) // decrease??

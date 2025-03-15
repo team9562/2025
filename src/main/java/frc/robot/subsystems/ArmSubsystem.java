@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import org.opencv.ml.ANN_MLP;
+
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -62,7 +64,9 @@ public class ArmSubsystem extends SubsystemBase {
 
     pitchConfig
         .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
-        .inverted(false).encoder
+        .inverted(false)
+        
+    .encoder
         .positionConversionFactor(ArmConstants.pConversionFactor);
 
     pitchConfig.closedLoop
@@ -110,24 +114,13 @@ public class ArmSubsystem extends SubsystemBase {
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public void stopPitch() {
-    pitchSpark.stopMotor();
-  }
-
-  public void stopOpen() {
-    openSpark.stopMotor();
-  }
-
-  public Command turnPitchMotor(double degrees) {
-    return run(() -> pidPitch.setReference(degrees, ControlType.kPosition, slot0, 0.35, ArbFFUnits.kVoltage));
-  }
-
   public Command turnPitchMotor(ArmAngles angle) {
-    return run(() -> pidPitch.setReference(angle.getAngle(), ControlType.kPosition, slot0, 0.35, ArbFFUnits.kVoltage));
+    this.target = angle.getAngle();
+    return run(() -> pidPitch.setReference(angle.getAngle(), ControlType.kPosition, slot0, 0.0, ArbFFUnits.kVoltage));
   }
 
-  public Command manualPitchMotor(double volts) {
-    return run(() -> pidPitch.setReference(volts, ControlType.kVoltage, slot0, 0.35, ArbFFUnits.kVoltage));
+  public void manualPitchMotor(double volts) {
+    pidPitch.setReference(volts * 2, ControlType.kVoltage, slot0, 0.0, ArbFFUnits.kVoltage);
   }
 
   public Command intakeOuttake(double intake){
@@ -138,10 +131,15 @@ public class ArmSubsystem extends SubsystemBase {
     return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0));
   }
 
+  public boolean isAtTarget(){
+    return Utility.withinTolerance(getEncoderPose(), target, ArmConstants.A_TOLERANCE);
+  }
+
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
-    SmartDashboard.putNumber("Arm/Absolute Encoder: ", pitchSpark.getAbsoluteEncoder().getPosition());
+    SmartDashboard.putNumber("Arm/Arm Target: ", target);
+    SmartDashboard.putBoolean("Arm/At Target", isAtTarget());
     /*
      * if (Utility.withinTolerance(getEncoderPose(),
      * absoluteZeroPitch.getPosition(), target)) {

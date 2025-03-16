@@ -113,7 +113,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command setElevatorHeight(ElevatorHeights height) {
     this.target = height.getHeight();
     return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage))
-    .unless(() -> Utility.withinTolerance(getEncoderPose(), 0, 1))
+    .unless(() -> Utility.withinTolerance(getEncoderPose(), 0, 3))
     .andThen(runCurrentZeroing());
   }
 

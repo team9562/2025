@@ -32,7 +32,8 @@ public class ElevatorConstants {
         L2(26.85),
         L3(43.86),
         L4(77.10),
-        B(67.17),
+        B(67.17), // barge
+        OBIWAN(20), // higher than the ground intake's height to avoid crash
         ZERO(0);
 
         private final double height;

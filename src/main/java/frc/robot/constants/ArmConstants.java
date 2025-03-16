@@ -23,7 +23,7 @@ public class ArmConstants {
 
     public static final ClosedLoopSlot ARM_SLOT = ClosedLoopSlot.kSlot0;
 
-    public static final double A_TOLERANCE = 0.25;
+    public static final double A_TOLERANCE = 1.25;
 
     //In dutycycle percent
     public enum IntakeDirection {

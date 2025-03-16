@@ -33,6 +33,7 @@ import frc.robot.constants.ArmConstants;
 import frc.robot.constants.ArmConstants.ArmAngles;
 import frc.robot.constants.ArmConstants.IntakeDirection;
 import frc.robot.constants.ElevatorConstants.ElevatorHeights;
+import frc.robot.constants.GroundIntakeConstants.GroundIntakeSetpoint;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -42,6 +43,7 @@ import frc.robot.subsystems.LaserCanSubsystem;
 import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.LedSubsystem.RobotState;
+import frc.robot.utils.Utility;
 
 public class RobotContainer {
 
@@ -91,12 +93,12 @@ public class RobotContainer {
     private final Command homeElevatorArm() {
         return new ParallelCommandGroup(
                 m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO).until(m_elevatorSubsystem::isAtTarget).withTimeout(1),
-                m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(1.5))
+                m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(0.7))
                 .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL));
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(1.3)
+        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(0.7)
                 .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
                         .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle())));
     }
@@ -104,6 +106,18 @@ public class RobotContainer {
     private final Command autoScore = new SequentialCommandGroup(
             m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4))
                     .andThen(homeElevatorArm()));
+
+    private final Command groundSafe(){
+        return m_groundIntakeSubsystem.setIntakePosition(GroundIntakeSetpoint.IN)
+        .onlyWhile(() -> m_elevatorSubsystem.getEncoderPose() > ElevatorHeights.OBIWAN.getHeight() && 
+        Utility.betweenRange(m_armSubsystem.getEncoderPose(), -2, 2))
+        .finallyDo(() -> m_groundIntakeSubsystem.stopRotation());
+    }
+
+    private final Command elevatorUpThenIntake(GroundIntakeSetpoint setpoint){
+        return new SequentialCommandGroup(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.OBIWAN)
+        .until(()-> m_elevatorSubsystem.isAtTarget()), m_groundIntakeSubsystem.setIntakePosition(setpoint));
+    }
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,
             0);

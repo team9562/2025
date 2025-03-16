@@ -1,8 +1,10 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.GroundIntakeConstants;
 import frc.robot.constants.NeoMotorConstants;
+import frc.robot.constants.GroundIntakeConstants.GroundIntakeSetpoint;
 import frc.robot.utils.Utility;
 
 import com.revrobotics.RelativeEncoder;
@@ -28,13 +30,11 @@ public class GroundIntakeSubsystem extends SubsystemBase {
 
   // --------- ROTATION MOTORS (for rotating the intake arm) ---------
   // One master and two followers for a total of 3 motors
-  private final SparkMax rotateMaster = new SparkMax(GroundIntakeConstants.ROTATE_MASTER_ID, MotorType.kBrushless);
-  private final SparkMax rotateFollower1 = new SparkMax(GroundIntakeConstants.ROTATE_FOLLOWER1_ID, MotorType.kBrushless);
-  private final SparkMax rotateFollower2 = new SparkMax(GroundIntakeConstants.ROTATE_FOLLOWER2_ID, MotorType.kBrushless);
+  private final SparkMax rotateMaster = new SparkMax(GroundIntakeConstants.ROTATE_MASTER_ID, MotorType.kBrushless); // 32
+  private final SparkMax rotateFollower = new SparkMax(GroundIntakeConstants.ROTATE_FOLLOWER1_ID, MotorType.kBrushless); // 27
 
   private final SparkMaxConfig rotateMasterConfig = new SparkMaxConfig();
-  private final SparkMaxConfig rotateFollower1Config = new SparkMaxConfig();
-  private final SparkMaxConfig rotateFollower2Config = new SparkMaxConfig();
+  private final SparkMaxConfig rotateFollowerConfig = new SparkMaxConfig();
 
   // PID Controller and encoder for the rotation (using master)
   private final SparkClosedLoopController rotationPID = rotateMaster.getClosedLoopController();
@@ -46,7 +46,7 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   public static final ClosedLoopSlot ROTATION_SLOT = ClosedLoopSlot.kSlot0;
 
   public GroundIntakeSubsystem() {
-    // ---------- Configure Pickup Motor ----------
+
     pickupConfig
         .smartCurrentLimit(
             GroundIntakeConstants.PICKUP_MOTOR_STALL_LIMIT,
@@ -55,7 +55,6 @@ public class GroundIntakeSubsystem extends SubsystemBase {
         .idleMode(IdleMode.kBrake)
         .inverted(false);
 
-    // ---------- Configure Rotation Master Motor ----------
     rotateMasterConfig
         .smartCurrentLimit(
             GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT,
@@ -71,44 +70,27 @@ public class GroundIntakeSubsystem extends SubsystemBase {
             GroundIntakeConstants.ROTATION_kI,
             GroundIntakeConstants.ROTATION_kD,
             GroundIntakeConstants.ROTATION_kFF,
-            GroundIntakeConstants.ROTATION_SLOT)
-        .maxMotion
-        .allowedClosedLoopError(rotationTolerance, GroundIntakeConstants.ROTATION_SLOT)
-        .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal, GroundIntakeConstants.ROTATION_SLOT);
+            ROTATION_SLOT);
 
     rotateMasterConfig.encoder
         .positionConversionFactor(GroundIntakeConstants.ROTATION_POSITION_CONVERSION);
 
-    // ---------- Configure Rotation Follower Motors ----------
-    // Follower 1 (non-inverted follower)
-    rotateFollower1Config
+    rotateFollowerConfig
         .smartCurrentLimit(
             GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT,
             NeoMotorConstants.NEO_FREE_LIMIT)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .idleMode(IdleMode.kBrake)
         .inverted(false);
-    rotateFollower1Config.follow(GroundIntakeConstants.ROTATE_MASTER_ID, false);
-
-    // Follower 2 (inverted follower)
-    rotateFollower2Config
-        .smartCurrentLimit(
-            GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT,
-            NeoMotorConstants.NEO_FREE_LIMIT)
-        .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-        .idleMode(IdleMode.kBrake)
-        .inverted(false);
-    rotateFollower2Config.follow(GroundIntakeConstants.ROTATE_MASTER_ID, true);
+    rotateFollowerConfig.follow(GroundIntakeConstants.ROTATE_MASTER_ID, false);
   }
 
   public void burnFlash() {
     pickupMotor.configure(pickupConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     rotateMaster.configure(rotateMasterConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    rotateFollower1.configure(rotateFollower1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    rotateFollower2.configure(rotateFollower2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    rotateFollower.configure(rotateFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  // --------------- PICKUP METHODS ---------------
   public void runIntake(double speed) {
     pickupMotor.set(speed);
   }
@@ -117,12 +99,17 @@ public class GroundIntakeSubsystem extends SubsystemBase {
     pickupMotor.stopMotor();
   }
 
-  // --------------- ROTATION METHODS ---------------
 
-  // Move the intake to a specified target angle
-  public void setIntakePosition(double position) {
+  public Command setIntakePosition(double position) {
     this.rotationTarget = position;
-    rotationPID.setReference(position, ControlType.kPosition, GroundIntakeConstants.ROTATION_SLOT);
+    return run(() -> rotationPID.setReference(position, ControlType.kPosition, ROTATION_SLOT));
+    // 0 is upright, 90 in robot parallel, -90 out robot parallel
+  }
+
+  public Command setIntakePosition(GroundIntakeSetpoint position) {
+    this.rotationTarget = position.getPosition();
+    return run(() -> rotationPID.setReference(position.getPosition(), ControlType.kPosition, ROTATION_SLOT));
+    // 0 is upright, 90 in robot parallel, -90 out robot parallel
   }
 
   // Get the current intake position (angle)
@@ -135,12 +122,16 @@ public class GroundIntakeSubsystem extends SubsystemBase {
     return Utility.withinTolerance(getIntakePosition(), rotationTarget, rotationTolerance);
   }
 
+  public Command runCurrentZeroing() {
+    return run(() -> rotationPID.setReference(-2.5, ControlType.kVoltage, ROTATION_SLOT))
+        .until(() -> isRotationJammed())
+        .andThen(() -> rotationEncoder.setPosition(90))
+        .finallyDo(() -> rotationPID.setReference(0, ControlType.kVoltage, ROTATION_SLOT));
+  }
+
   // Check if the rotation is jammed
   public boolean isRotationJammed() {
-    double totalCurrent = rotateMaster.getOutputCurrent()
-        + rotateFollower1.getOutputCurrent()
-        + rotateFollower2.getOutputCurrent();
-    return totalCurrent > GroundIntakeConstants.ROTATION_JAM_CURRENT_THRESHOLD;
+    return rotateMaster.getOutputCurrent() > GroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT;
   }
 
   // Reset the intake encoder (set position to 0)
@@ -157,15 +148,9 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Intake/Pickup Motor Current", pickupMotor.getOutputCurrent());
-    SmartDashboard.putNumber("Intake/Rotate Master Current", rotateMaster.getOutputCurrent());
-    SmartDashboard.putNumber("Intake/Rotate Follower1 Current", rotateFollower1.getOutputCurrent());
-    SmartDashboard.putNumber("Intake/Rotate Follower2 Current", rotateFollower2.getOutputCurrent());
+    SmartDashboard.putNumber("Intake/Rotate Current", rotateMaster.getOutputCurrent());
     SmartDashboard.putNumber("Intake/Arm Position", getIntakePosition());
     SmartDashboard.putBoolean("Intake/Arm At Target", isAtTarget());
     SmartDashboard.putBoolean("Intake/Rotation Jammed", isRotationJammed());
-
-    if (isRotationJammed()) {
-      // Handle the jam if needed, perhaps stop the rotation motor or take other actions
-    }
   }
 }

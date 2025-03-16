@@ -270,7 +270,6 @@ public class VisionSubsystem extends SubsystemBase {
     return map;
   }
 
-
   public Pose2d estimatePose(int i, Pose2d oldPose) { // estimate robot pose based on camera
     PhotonTrackedTarget bababoey = getBestTarget(i);
     if (bababoey != null) {

@@ -145,6 +145,7 @@ public class RobotContainer {
                         .withRotationalRate(XController.getRightX() * 0)));
 
         m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
 
         // Change Around Please
         // XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));

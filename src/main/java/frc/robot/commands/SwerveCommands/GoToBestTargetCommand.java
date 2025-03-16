@@ -52,85 +52,54 @@ public class GoToBestTargetCommand extends Command {
   public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
+
+
   @Override
-  public void execute() {
+public void execute() {
 
-    //double distance;
+    // Update vision data
+    m_visionSubsystem.findBestCameraToTarget();
+    myBestCamera = m_visionSubsystem.getBestCamera();
+    myClosestTarget = m_visionSubsystem.getClosestTarget();
 
-    //distance = PhotonUtils.calculateDistanceToTargetMeters(CamHeight, aprilTagFieldLayout.getTagPose(target.getFiducialId()).get().getZ(), CamPitch, target.getPitch());
-
-              /* 
-    m_drivetrain.setControl(() -> drive // setControl instead
-    .withVelocityX(XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-    .withVelocityY(XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-    .withRotationalRate(XController.getRightY() * MaxAngularRate));
-*/
-
-
-m_visionSubsystem.findBestCameraToTarget(); // Get the closest AprilTag target from the camera
-myBestCamera = m_visionSubsystem.getBestCamera();
-myClosestTarget = m_visionSubsystem.getClosestTarget();
-
-System.out.println("[GOON BOT] GoToBestTarget Command is RUNNING!!!");
-
-if(myClosestTarget != null){
-//System.out.println("[GOON] Closest tag: " + myClosestTarget.getFiducialId());
-}
-
-    if (myClosestTarget == null) {
-      System.out.println("[WARN] No valid target detected. Stopping movement.");
-      this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
-      m_drive.withVelocityX(0); 
-      m_drive.withVelocityY(0); 
-      return; // Exit early to prevent null pointer issues
-    }
-
-    if (myBestCamera == null) {
-      System.out.println("[WARN] No valid camera detected. Stopping movement.");
-      this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
-      m_drive.withVelocityX(0); 
-      m_drive.withVelocityY(0); 
-      return; // Exit early to prevent null pointer issues
+    // If no valid target, STOP IMMEDIATELY
+    if (myClosestTarget == null || myBestCamera == null) {
+        System.out.println("[WARN] No valid target or camera detected. Stopping movement.");
+        
+        this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
+        this.m_drivetrain.setControl(m_drive.withVelocityX(0).withVelocityY(0)); // Stop all movement
+        return; // Exit early
     }
 
     try {
-      currentYaw = myClosestTarget.getYaw(); // Attempt to get yaw
+        currentYaw = myClosestTarget.getYaw();
+        System.out.println("[GO-TO] Got target YAW: " + currentYaw);
     } catch (Exception e) {
-      System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
-      this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
-      m_drive.withVelocityX(0); 
-      m_drive.withVelocityY(0); 
+        System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
 
-      return;
+        // Stop movement if yaw cannot be retrieved
+        this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
+        this.m_drivetrain.setControl(m_drive.withVelocityX(0).withVelocityY(0));
+        return;
     }
 
+    // Determine movement direction
     double yawDirection;
-    double decreasingFactor = 0; // Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target -> fix later
-double accuracyYaw = 5; // how far off the yaw can be from perfect center
-    if (currentYaw > accuracyYaw) { // If target is to the right of midpoint
-      if((m_visionSubsystem.compareCameras(myBestCamera))==0){
-        yawDirection = -1; // Go left
-        } else {
-          yawDirection = 1; // Go left (relative)
-        }
-    } else if (currentYaw < -accuracyYaw) { // If target is to the left of midpoint
-      if((m_visionSubsystem.compareCameras(myBestCamera))==0){
-        yawDirection = 1; // Go right
-        } else {
-          yawDirection = -1; // Go right (relative)
-        }
-      
-    } else { // The target yaw is between +/- accuracyYaw, so target yaw has been reached
-      yawDirection = 0; // Stop rotating when aligned
+    double accuracyYaw = 5; // Acceptable margin of error for yaw
+    if (currentYaw > accuracyYaw) { 
+        yawDirection = (m_visionSubsystem.compareCameras(myBestCamera) == 0) ? -1 : 1; // Adjust left/right based on camera
+    } else if (currentYaw < -accuracyYaw) { 
+        yawDirection = (m_visionSubsystem.compareCameras(myBestCamera) == 0) ? 1 : -1;
+    } else { 
+        yawDirection = 0; // Target reached
     }
 
-    System.out.println("[INFO GO-TO] Tag detected! Yaw: " + currentYaw + " | Moving: " + yawDirection);
+    System.out.println("[GO-TO INFO] Tag detected! Yaw: " + currentYaw + " | Moving: " + yawDirection);
 
-    //this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * MaxAngularRate/2.5) * (1 - decreasingFactor)));
-    
-    m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * MaxSpeed/3)); // idk if this is the correct axis or direction -> need to test
+    // **Move Robot Sideways**  
+    this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * 0.5));
+}
 
-  }
 
   // Called once the command ends or is interrupted.
   @Override
@@ -139,6 +108,6 @@ double accuracyYaw = 5; // how far off the yaw can be from perfect center
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return false; // if(currentYaw < accuracyYaw && distance < minDistance)
   }
 }

@@ -42,8 +42,8 @@ public class GroundIntakeSubsystem extends SubsystemBase {
 
   // Tolerance and target for the rotation (using PID)
   private final double rotationTolerance = GroundIntakeConstants.ROTATION_TOLERANCE;
-  private double rotationTarget = 0.0;
-  public static final ClosedLoopSlot ROTATION_SLOT = ClosedLoopSlot.kSlot0;
+  private double rotationTarget;
+  public static final ClosedLoopSlot slot0 = GroundIntakeConstants.ROTATION_SLOT;
 
   public GroundIntakeSubsystem() {
 
@@ -70,7 +70,7 @@ public class GroundIntakeSubsystem extends SubsystemBase {
             GroundIntakeConstants.ROTATION_kI,
             GroundIntakeConstants.ROTATION_kD,
             GroundIntakeConstants.ROTATION_kFF,
-            ROTATION_SLOT);
+            slot0);
 
     rotateMasterConfig.encoder
         .positionConversionFactor(GroundIntakeConstants.ROTATION_POSITION_CONVERSION);
@@ -102,13 +102,13 @@ public class GroundIntakeSubsystem extends SubsystemBase {
 
   public Command setIntakePosition(double position) {
     this.rotationTarget = position;
-    return run(() -> rotationPID.setReference(position, ControlType.kPosition, ROTATION_SLOT));
+    return run(() -> rotationPID.setReference(position, ControlType.kPosition, slot0));
     // 0 is upright, 90 in robot parallel, -90 out robot parallel
   }
 
   public Command setIntakePosition(GroundIntakeSetpoint position) {
     this.rotationTarget = position.getPosition();
-    return run(() -> rotationPID.setReference(position.getPosition(), ControlType.kPosition, ROTATION_SLOT));
+    return run(() -> rotationPID.setReference(position.getPosition(), ControlType.kPosition, slot0));
     // 0 is upright, 90 in robot parallel, -90 out robot parallel
   }
 
@@ -123,10 +123,10 @@ public class GroundIntakeSubsystem extends SubsystemBase {
   }
 
   public Command runCurrentZeroing() {
-    return run(() -> rotationPID.setReference(-2.5, ControlType.kVoltage, ROTATION_SLOT))
+    return run(() -> rotationPID.setReference(-2.5, ControlType.kVoltage, slot0))
         .until(() -> isRotationJammed())
         .andThen(() -> rotationEncoder.setPosition(90))
-        .finallyDo(() -> rotationPID.setReference(0, ControlType.kVoltage, ROTATION_SLOT));
+        .finallyDo(() -> rotationPID.setReference(0, ControlType.kVoltage, slot0));
   }
 
   // Check if the rotation is jammed

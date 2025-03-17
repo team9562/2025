@@ -73,6 +73,7 @@ public class RobotContainer {
 
     private final SendableChooser<Command> autoChooser;
 
+    // Intake Commands
     private final Command intakeCoralAlgae() {
 
         if (m_laserCan.processMeasurement()) {
@@ -90,11 +91,17 @@ public class RobotContainer {
         return m_armSubsystem.intakeOuttake(IntakeDirection.STOP);
     }
 
+    // Elevator and Arm setting Commands
     private final Command homeElevatorArm() {
         return new ParallelCommandGroup(
-                m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO).until(m_elevatorSubsystem::isAtTarget).withTimeout(1),
-                m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(0.7))
-                .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL));
+                m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO)
+                        .until(m_elevatorSubsystem::isAtTarget),
+                m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
+                        .until(m_armSubsystem::isAtTarget))
+                .withTimeout(3)
+                .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL))
+                        .until(m_armSubsystem::isAtTarget)
+                .withTimeout(2);
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
@@ -103,20 +110,22 @@ public class RobotContainer {
                         .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle())));
     }
 
+    // autoScore
     private final Command autoScore = new SequentialCommandGroup(
             m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4))
                     .andThen(homeElevatorArm()));
 
-    private final Command groundSafe(){
+    // Ground Commands
+    private final Command groundSafe() {
         return m_groundIntakeSubsystem.setIntakePosition(GroundIntakeSetpoint.IN)
-        .onlyWhile(() -> m_elevatorSubsystem.getEncoderPose() > ElevatorHeights.OBIWAN.getHeight() && 
-        Utility.betweenRange(m_armSubsystem.getEncoderPose(), -2, 2))
-        .finallyDo(() -> m_groundIntakeSubsystem.stopRotation());
+                .onlyWhile(() -> m_elevatorSubsystem.getEncoderPose() > ElevatorHeights.OBIWAN.getHeight() &&
+                        Utility.betweenRange(m_armSubsystem.getEncoderPose(), -2, 2))
+                .finallyDo(() -> m_groundIntakeSubsystem.stopRotation());
     }
 
-    private final Command elevatorUpThenIntake(GroundIntakeSetpoint setpoint){
+    private final Command elevatorUpThenIntake(GroundIntakeSetpoint setpoint) {
         return new SequentialCommandGroup(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.OBIWAN)
-        .until(()-> m_elevatorSubsystem.isAtTarget()), m_groundIntakeSubsystem.setIntakePosition(setpoint));
+                .until(() -> m_elevatorSubsystem.isAtTarget()), m_groundIntakeSubsystem.setIntakePosition(setpoint));
     }
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,
@@ -151,15 +160,17 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
+
         drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
                 drivetrain.applyRequest(() -> drive
-                        .withVelocityX(XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                        .withRotationalRate(XController.getRightX() * 0)));
+                        .withVelocityX(-XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                        .withVelocityY(-XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(-XController.getRightX() * MaxAngularRate)));
 
-        m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
-        m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
+        m_armSubsystem
+                .setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        // m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
 
         // Change Around Please
         // XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));
@@ -171,7 +182,7 @@ public class RobotContainer {
         XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
         XController.rightStick().onTrue(homeElevatorArm());
 
-        XController.leftTrigger().whileTrue(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
+        XController.leftBumper().onTrue(m_armSubsystem.run(() -> m_armSubsystem.resetPitch()));
 
         // reset the field-centric heading on left bumper press
         XController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));

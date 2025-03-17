@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.console.RIOConsoleSource;
 import org.opencv.ml.ANN_MLP;
 
 import com.revrobotics.AbsoluteEncoder;
@@ -21,7 +22,8 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.AnalogEncoder;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -35,6 +37,9 @@ public class ArmSubsystem extends SubsystemBase {
 
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
+  private final AnalogInput lampreyInput = new AnalogInput(3);
+  private final AnalogEncoder lamprey = new AnalogEncoder(lampreyInput);
+  //private final AnalogEncoder lamprey = new AnalogEncoder(lampreyInput, 360.0, 0);
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
 
@@ -94,12 +99,22 @@ public class ArmSubsystem extends SubsystemBase {
             slot0);
   }
 
-  public void resetPitch() {
-    pitchEncoder.setPosition(0);
+  public double getLampreyPose(){
+    return lamprey.get();
   }
 
   public double getEncoderPose() {
     return pitchEncoder.getPosition();
+  }
+
+  public void resetPitch(){
+    pitchEncoder.setPosition(0);
+  }
+
+  public void resetRelative(){
+    double absolute = getLampreyPose();
+    if(getEncoderPose() < 0) pitchEncoder.setPosition((360 - absolute) * -1);
+    if(getEncoderPose() > 0) pitchEncoder.setPosition(absolute);
   }
 
   public double getOpenCurrent(){
@@ -140,16 +155,18 @@ public class ArmSubsystem extends SubsystemBase {
     return Utility.withinTolerance(getEncoderPose(), target, ArmConstants.A_TOLERANCE);
   }
 
+
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
+    SmartDashboard.putNumber("Arm/Lamprey Reading", getLampreyPose());
+    SmartDashboard.putNumber("Arm/Lamprey Voltage", lampreyInput.getVoltage());
+    SmartDashboard.putNumber("Arm/Lamprey Ave. Voltage", lampreyInput.getAverageVoltage());
     SmartDashboard.putNumber("Arm/Arm Target: ", target);
     SmartDashboard.putBoolean("Arm/At Target", isAtTarget());
-    /*
-     * if (Utility.withinTolerance(getEncoderPose(),
-     * absoluteZeroPitch.getPosition(), target)) {
-     * resetPitch();
-     * }
-     */
+
+    if(!Utility.withinTolerance(getEncoderPose(), getLampreyPose(), 2)){
+      resetRelative();
+    }
   }
 }

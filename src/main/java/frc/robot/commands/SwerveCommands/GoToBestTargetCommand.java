@@ -29,7 +29,8 @@ public class GoToBestTargetCommand extends Command {
   //private int myidNum;
   private double currentYaw;
   private PhotonTrackedTarget myClosestTarget;
-  private PhotonCamera myBestCamera;
+  private PhotonCamera myCamera;
+  private boolean funnelCamUsed;
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   private final VisionSubsystem m_visionSubsystem; // for A.T follow command
   private final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // check final idk
@@ -43,10 +44,11 @@ public class GoToBestTargetCommand extends Command {
   private boolean pushingIntoWall = false;
   private long pushDuration = 500; // Adjust push duration (in ms) 1 s = 1000 ms
 
-  public GoToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request) {
+  public GoToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request, boolean alfredo) { // alfredo = robot side -> funnel side = true
     this.m_drivetrain = sub1;
     this.m_visionSubsystem = sub2;
     this.m_drive = request;
+    this.funnelCamUsed = alfredo;
 
     //this.myidNum = idNum;
     // imu = m_drivetrain.getPigeon2();
@@ -58,9 +60,9 @@ public class GoToBestTargetCommand extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_visionSubsystem.findBestCameraToTarget();
-    myBestCamera = m_visionSubsystem.getBestCamera();
-    myClosestTarget = m_visionSubsystem.getClosestTarget();
+    m_visionSubsystem.findBestCameraToTarget(); // idk if need this anymore -> see l8r
+    myCamera = m_visionSubsystem.cameraPicker(funnelCamUsed);
+    myClosestTarget = m_visionSubsystem.getBestTarget(m_visionSubsystem.compareCameras(myCamera));
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -70,14 +72,10 @@ public class GoToBestTargetCommand extends Command {
 public void execute() {
 
 
-
-
-
-  
     // Update vision data
 
     // If no valid target, STOP IMMEDIATELY
-    if (myClosestTarget == null || myBestCamera == null) {
+    if (myClosestTarget == null || myCamera == null) {
         System.out.println("[WARN] No valid target or camera detected. Stopping movement.");
         
         this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
@@ -98,9 +96,9 @@ public void execute() {
     // Determine movement direction
     double yawDirection;
     if (currentYaw > accuracyYaw) { 
-        yawDirection = (m_visionSubsystem.compareCameras(myBestCamera) == 0) ? -1 : 1; // Adjust left/right based on camera
+        yawDirection = (m_visionSubsystem.compareCameras(myCamera) == 0) ? -1 : 1; // Adjust left/right based on camera
     } else if (currentYaw < -accuracyYaw) { 
-        yawDirection = (m_visionSubsystem.compareCameras(myBestCamera) == 0) ? 1 : -1;
+        yawDirection = (m_visionSubsystem.compareCameras(myCamera) == 0) ? 1 : -1;
     } else { 
       yawDirection = 0;
       if(accuracyYaw >=1){ // limit the tolerance value to 1 (smallest possible error)
@@ -119,29 +117,30 @@ public void execute() {
     // run velocity command to align to specific id-camera displacement
     // finally we can make the robot go forward until distance fwd/bwd is also aligned
 
-    if(m_visionSubsystem.compareCameras(myBestCamera) == 0 && (myClosestTarget.getFiducialId() == 1 || myClosestTarget.getFiducialId() == 2)){ // coral intake station camera
-      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 1){
+    if(m_visionSubsystem.compareCameras(myCamera) == 0 && (myClosestTarget.getFiducialId() == 1 || myClosestTarget.getFiducialId() == 2)){ // coral intake station camera
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 1){
         // drive towards coral station until distance is less than 2 meters
         this.m_drivetrain.setControl(m_drive.withVelocityX(1)); // direction +/- 1
+        
       }
-      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 0.75){
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 0.75){
         // drive towards coral station until distance is less than 0.75 meters
         this.m_drivetrain.setControl(m_drive.withVelocityX(0.25)); // direction +/- 1
       }
       //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1
       // this last one is incase any extra push into the wall is needed
       isDoneAligning = true;
-    } else if(m_visionSubsystem.compareCameras(myBestCamera) != 0 && (myClosestTarget.getFiducialId() <= 11 || myClosestTarget.getFiducialId() >= 6)){ // reef tags
-      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 1){
+    } else if(m_visionSubsystem.compareCameras(myCamera) != 0 && (myClosestTarget.getFiducialId() <= 11 || myClosestTarget.getFiducialId() >= 6)){ // reef tags
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 1){
         // drive towards coral station until distance is less than 2 meters
         this.m_drivetrain.setControl(m_drive.withVelocityX(1)); // direction +/- 1
       }
-      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 0.75){
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 0.75){
         // drive towards coral station until distance is less than 0.75 meters
         this.m_drivetrain.setControl(m_drive.withVelocityX(0.25)); // direction +/- 1
       }
 
-      startPushingIntoWall(1);
+      startPushingIntoWall(1); 
 
 
       //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1

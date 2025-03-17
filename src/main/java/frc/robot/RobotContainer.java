@@ -122,7 +122,8 @@ public class RobotContainer {
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,
             0);
 
-    private final Command goToBestTargetCommand = new GoToBestTargetCommand(drivetrain, m_visionSubsystem, drive);
+    private final Command goToBestFunnel = new GoToBestTargetCommand(drivetrain, m_visionSubsystem, drive, true);
+    private final Command goToBestNotFunnel = new GoToBestTargetCommand(drivetrain, m_visionSubsystem, drive, false);
 
     public RobotContainer() {
 
@@ -137,7 +138,8 @@ public class RobotContainer {
 
     private void registerCommands() {
         NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
-        NamedCommands.registerCommand("goToBestTargetCommand", goToBestTargetCommand);
+        NamedCommands.registerCommand("goToBestFunnel", goToBestFunnel);
+        NamedCommands.registerCommand("goToBestNotFunnel", goToBestNotFunnel);
         NamedCommands.registerCommand("ScoreCoral", autoScore);
         NamedCommands.registerCommand("Intake", m_armSubsystem.intakeOuttake(IntakeDirection.IN));
     }
@@ -169,9 +171,10 @@ public class RobotContainer {
         XController.povLeft().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
         XController.povRight().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
         XController.povDown().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
-
-        XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
-        XController.b().onTrue(goToBestTargetCommand);
+        
+        XController.y().onTrue(goToBestFunnel);
+        XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
+        
         XController.rightStick().onTrue(homeElevatorArm());
 
         XController.leftTrigger().whileTrue(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));

@@ -93,6 +93,41 @@ public class VisionSubsystem extends SubsystemBase {
     CAMERA_PITCHES.put(camera4, VisionConstants.camera4pitch);
   }
 
+  public PhotonCamera cameraPicker(boolean funnelCamUsed){
+    if(funnelCamUsed){
+      return camera1; // only 1 camera on that side
+    }
+    else{ // pick between 3 other cameras
+      PhotonCamera joe=camera1; // placeholder for best camera in the given array of cameras (2-4)
+
+      newDist = Double.MAX_VALUE;
+    for (PhotonCamera camera : cameras) { // all cameras
+      if(compareCameras(camera) != 0){ // exclude camera index 0 (camera1)
+      PhotonPipelineResult result = camera.getLatestResult();
+
+      if (result.hasTargets()) {
+        List<PhotonTrackedTarget> targets = result.getTargets();
+
+        double CamHeight = CAMERA_HEIGHTS.get(camera);
+        double CamPitch = CAMERA_PITCHES.get(camera);
+        for (PhotonTrackedTarget target : targets) {
+          distance = PhotonUtils.calculateDistanceToTargetMeters(CamHeight,
+              aprilTagFieldLayout.getTagPose(target.getFiducialId()).get().getZ(), CamPitch, target.getPitch());
+
+          if (distance < newDist) {
+            newDist = distance;
+            closestTarget = target;
+            joe = camera;
+          }
+        }
+      }
+    }
+    }
+    // after the for loop, return the best camera found based off target distance
+    return joe;
+    }
+  }
+
   public void findBestCameraToTarget() { // find closest apriltag
     newDist = Double.MAX_VALUE;
     for (PhotonCamera camera : cameras) {

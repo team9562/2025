@@ -140,6 +140,26 @@ public class VisionSubsystem extends SubsystemBase {
     return closestTarget.getYaw();
   }
 
+  public double getTargetDistance(int targetid, int camNumero){ // any error returns -1
+    PhotonCamera cameraBababoey = cameras[camNumero];
+    PhotonPipelineResult result = cameraBababoey.getLatestResult();
+    PhotonTrackedTarget targetBababoey;
+
+    if(result.hasTargets()){
+      List<PhotonTrackedTarget> targets = result.getTargets();
+      for (PhotonTrackedTarget target : targets) {
+        if(target.getFiducialId()==targetid){
+          targetBababoey = target;
+          double CamHeight = CAMERA_HEIGHTS.get(cameraBababoey);
+          double CamPitch = CAMERA_PITCHES.get(cameraBababoey);
+          return PhotonUtils.calculateDistanceToTargetMeters(CamHeight,
+          aprilTagFieldLayout.getTagPose(targetid).get().getZ(), CamPitch, targetBababoey.getPitch());
+        }
+      }
+      return -1;
+    }else return -1;
+  }
+
   public void findBestCameraToPOI(String tagType) { // find closest apriltag of type
     newDist = Double.MAX_VALUE;
 

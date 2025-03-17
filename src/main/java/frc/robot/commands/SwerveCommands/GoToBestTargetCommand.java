@@ -4,7 +4,6 @@
 
 package frc.robot.commands.SwerveCommands;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,13 +17,13 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
-
+import java.util.Timer;
+import java.util.TimerTask;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class GoToBestTargetCommand extends Command {
   private final CommandSwerveDrivetrain m_drivetrain;
   private final SwerveRequest.FieldCentric m_drive;
   //private PhotonTrackedTarget closestTarget;
-  // private Pigeon2 imu;
   // private double target; // to track a specific tag number in the future (not
   // yet implemented)
   //private int myidNum;
@@ -34,6 +33,15 @@ public class GoToBestTargetCommand extends Command {
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   private final VisionSubsystem m_visionSubsystem; // for A.T follow command
   private final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // check final idk
+  private double accuracyYaw = 5; // Acceptable margin of error or tolerance value for yaw -> initial value that shrinks when closing in on target
+  private double speedToTarget = 0.5; // in meters per second -> same as above
+  private boolean alignedToTarget = false; // can use this depending if we want to account for potential error or not 
+  // -> using this would decrease efficiency but increase potential alignment error
+  private boolean isDoneAligning = false; // for the final "isfinished" check
+
+  private Timer wallPushTimer;
+  private boolean pushingIntoWall = false;
+  private long pushDuration = 500; // Adjust push duration (in ms) 1 s = 1000 ms
 
   public GoToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request) {
     this.m_drivetrain = sub1;
@@ -49,7 +57,11 @@ public class GoToBestTargetCommand extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    m_visionSubsystem.findBestCameraToTarget();
+    myBestCamera = m_visionSubsystem.getBestCamera();
+    myClosestTarget = m_visionSubsystem.getClosestTarget();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
 
@@ -57,10 +69,12 @@ public class GoToBestTargetCommand extends Command {
   @Override
 public void execute() {
 
+
+
+
+
+  
     // Update vision data
-    m_visionSubsystem.findBestCameraToTarget();
-    myBestCamera = m_visionSubsystem.getBestCamera();
-    myClosestTarget = m_visionSubsystem.getClosestTarget();
 
     // If no valid target, STOP IMMEDIATELY
     if (myClosestTarget == null || myBestCamera == null) {
@@ -70,7 +84,6 @@ public void execute() {
         this.m_drivetrain.setControl(m_drive.withVelocityX(0).withVelocityY(0)); // Stop all movement
         return; // Exit early
     }
-
     try {
         currentYaw = myClosestTarget.getYaw();
         System.out.println("[GO-TO] Got target YAW: " + currentYaw);
@@ -82,24 +95,92 @@ public void execute() {
         this.m_drivetrain.setControl(m_drive.withVelocityX(0).withVelocityY(0));
         return;
     }
-
     // Determine movement direction
     double yawDirection;
-    double accuracyYaw = 5; // Acceptable margin of error for yaw
     if (currentYaw > accuracyYaw) { 
         yawDirection = (m_visionSubsystem.compareCameras(myBestCamera) == 0) ? -1 : 1; // Adjust left/right based on camera
     } else if (currentYaw < -accuracyYaw) { 
         yawDirection = (m_visionSubsystem.compareCameras(myBestCamera) == 0) ? 1 : -1;
     } else { 
-        yawDirection = 0; // Target reached
+      yawDirection = 0;
+      if(accuracyYaw >=1){ // limit the tolerance value to 1 (smallest possible error)
+        accuracyYaw--; // make the error tolerance value smaller
+        speedToTarget = speedToTarget/2; // divide the speed by 2 to make it easier to approach a smaller tolerance value
+      }
     }
-
     System.out.println("[GO-TO INFO] Tag detected! Yaw: " + currentYaw + " | Moving: " + yawDirection);
 
     // **Move Robot Sideways**  
-    this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * 0.5));
+    this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * speedToTarget)); // -> starts at (+/- 1) * (0.5)
+    // Y-axis is for side-to-side movement
+
+    // add two integer arrays of tag ids here to access values for scoring area displacement (x&y)
+    // then access array values with getFuidicalID() and compare to determine displacement
+    // run velocity command to align to specific id-camera displacement
+    // finally we can make the robot go forward until distance fwd/bwd is also aligned
+
+    if(m_visionSubsystem.compareCameras(myBestCamera) == 0 && (myClosestTarget.getFiducialId() == 1 || myClosestTarget.getFiducialId() == 2)){ // coral intake station camera
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 1){
+        // drive towards coral station until distance is less than 2 meters
+        this.m_drivetrain.setControl(m_drive.withVelocityX(1)); // direction +/- 1
+      }
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 0.75){
+        // drive towards coral station until distance is less than 0.75 meters
+        this.m_drivetrain.setControl(m_drive.withVelocityX(0.25)); // direction +/- 1
+      }
+      //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1
+      // this last one is incase any extra push into the wall is needed
+      isDoneAligning = true;
+    } else if(m_visionSubsystem.compareCameras(myBestCamera) != 0 && (myClosestTarget.getFiducialId() <= 11 || myClosestTarget.getFiducialId() >= 6)){ // reef tags
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 1){
+        // drive towards coral station until distance is less than 2 meters
+        this.m_drivetrain.setControl(m_drive.withVelocityX(1)); // direction +/- 1
+      }
+      while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myBestCamera)) > 0.75){
+        // drive towards coral station until distance is less than 0.75 meters
+        this.m_drivetrain.setControl(m_drive.withVelocityX(0.25)); // direction +/- 1
+      }
+
+      startPushingIntoWall(1);
+
+
+      //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1
+      // this last one is incase any extra push into the wall is needed
+
+
+
+      isDoneAligning = true;
+    } else isDoneAligning = true; // something else happened so exit by assuming that alignment is done
+
+
+
+
 }
 
+
+private void startPushingIntoWall(int directionBobabowa) { // directionBobabowa = +/- 1
+  if (!pushingIntoWall) {
+      pushingIntoWall = true;
+      System.out.println("[ALIGN] Pushing into the wall for " + pushDuration + "ms.");
+      this.m_drivetrain.setControl(m_drive.withVelocityX(directionBobabowa*0.2)); // Small forward force
+
+      // Start a timer to stop pushing after `pushDuration` milliseconds
+      wallPushTimer = new Timer();
+      wallPushTimer.schedule(new TimerTask() {
+          @Override
+          public void run() {
+              stopMovement();
+              isDoneAligning = true; // Mark as finished
+              pushingIntoWall = false;
+          }
+      }, pushDuration);
+  }
+}
+
+/** Stops the robot's movement */
+private void stopMovement() {
+  this.m_drivetrain.setControl(m_drive.withVelocityX(0).withVelocityY(0));
+}
 
   // Called once the command ends or is interrupted.
   @Override
@@ -107,7 +188,7 @@ public void execute() {
 
   // Returns true when the command should end.
   @Override
-  public boolean isFinished() {
-    return false; // if(currentYaw < accuracyYaw && distance < minDistance)
+  public boolean isFinished() {// if(currentYaw < accuracyYaw)
+    return isDoneAligning;
   }
 }

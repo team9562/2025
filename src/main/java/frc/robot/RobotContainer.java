@@ -168,9 +168,9 @@ public class RobotContainer {
                         .withVelocityY(-XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-XController.getRightX() * MaxAngularRate)));
 
-        m_armSubsystem
-                .setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
-        // m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
+        m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        //// m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
+        ledSubsystem.setDefaultCommand(new SetLedStateCommand(ledSubsystem, RobotState.RAINBOW));
 
         // Change Around Please
         // XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));
@@ -180,6 +180,7 @@ public class RobotContainer {
         XController.povDown().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
 
         XController.y().onTrue(turnToBestTargetCommand); // no exit command rn -> fix later
+        XController.b().onTrue(goToBestTargetCommand);
         XController.rightStick().onTrue(homeElevatorArm());
 
         XController.leftBumper().onTrue(m_armSubsystem.run(() -> m_armSubsystem.resetPitch()));
@@ -201,7 +202,7 @@ public class RobotContainer {
         // Binding the GroundIntakeCommand
         // XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0,
         // 90.0));
-        XController.b().onTrue(new SetLedStateCommand(ledSubsystem, RobotState.RAINBOW));
+        
 
         // eggYoke examples for led
         // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,

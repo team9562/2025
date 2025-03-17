@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import java.util.spi.LocaleNameProvider;
+
 import org.littletonrobotics.junction.console.RIOConsoleSource;
 import org.opencv.ml.ANN_MLP;
 
@@ -24,6 +26,10 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DutyCycle;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,8 +43,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
-  private final AnalogInput lampreyInput = new AnalogInput(3);
-  private final AnalogEncoder lamprey = new AnalogEncoder(lampreyInput);
+  private final DigitalInput lampreyIn = new DigitalInput(7);
+  private final DutyCycleEncoder lamprey = new DutyCycleEncoder(lampreyIn);
   //private final AnalogEncoder lamprey = new AnalogEncoder(lampreyInput, 360.0, 0);
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
@@ -56,7 +62,7 @@ public class ArmSubsystem extends SubsystemBase {
     basicConfig
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .disableFollowerMode()
-        .idleMode(IdleMode.kCoast);
+        .idleMode(IdleMode.kBrake);
 
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -100,7 +106,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getLampreyPose(){
-    return lamprey.get();
+    return lamprey.get() * 360;
   }
 
   public double getEncoderPose() {
@@ -117,16 +123,16 @@ public class ArmSubsystem extends SubsystemBase {
     if(getEncoderPose() > 0) pitchEncoder.setPosition(absolute);
   }
 
-  public double getOpenCurrent(){
-    return openSpark.getOutputCurrent();
-  }
-
   public void burnFlash() {
     pitchSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     openSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     pitchSpark.configure(pitchConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     openSpark.configure(openConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+  }
+
+  public double getOpenCurrent(){
+    return openSpark.getOutputCurrent();
   }
 
   public Command turnPitchMotor(double angle) {
@@ -151,6 +157,10 @@ public class ArmSubsystem extends SubsystemBase {
     return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0));
   }
 
+  public Command runCurrentZeroing(){
+    return run(() -> pidPitch.setReference(2, ControlType.kVoltage, slot0));
+  }
+
   public boolean isAtTarget(){
     return Utility.withinTolerance(getEncoderPose(), target, ArmConstants.A_TOLERANCE);
   }
@@ -159,14 +169,15 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
-    SmartDashboard.putNumber("Arm/Lamprey Reading", getLampreyPose());
-    SmartDashboard.putNumber("Arm/Lamprey Voltage", lampreyInput.getVoltage());
-    SmartDashboard.putNumber("Arm/Lamprey Ave. Voltage", lampreyInput.getAverageVoltage());
+    SmartDashboard.putNumber("Arm/Lamprey Reading: ", getLampreyPose());
+    SmartDashboard.putNumber("Arm/Lamprey Frequency: ", lamprey.getFrequency());
+    SmartDashboard.putNumber("Arm/Lamprey FGPA: ", lamprey.getFPGAIndex());
+    SmartDashboard.putBoolean("Arm/Lamprey Connected??: ", lamprey.isConnected());
     SmartDashboard.putNumber("Arm/Arm Target: ", target);
     SmartDashboard.putBoolean("Arm/At Target", isAtTarget());
 
-    if(!Utility.withinTolerance(getEncoderPose(), getLampreyPose(), 2)){
+    /*if(!Utility.withinTolerance(getEncoderPose(), getLampreyPose(), 2)){
       resetRelative();
-    }
+    }*/
   }
 }

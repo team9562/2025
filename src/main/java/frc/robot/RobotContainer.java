@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -91,16 +92,16 @@ public class RobotContainer {
         return m_armSubsystem.intakeOuttake(IntakeDirection.STOP);
     }
 
-    // Elevator and Arm setting Commands
+    // Elevator and Arm setting Commands - Timeouts subject to change
     private final Command homeElevatorArm() {
-        return new ParallelCommandGroup(
+        return new ParallelRaceGroup( // possibly revert back to ParallelCommandGroup if the arm doesn't signal
                 m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO)
                         .until(m_elevatorSubsystem::isAtTarget),
                 m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
-                        .until(m_armSubsystem::isAtTarget))
-                .withTimeout(3)
+                        .until(m_armSubsystem::isAtTarget))  
+                .withTimeout(3) // Might need to add this to each parallel command and 3 is too much
                 .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL))
-                        .until(m_armSubsystem::isAtTarget)
+                        .until(m_armSubsystem::isAtTarget) // possibly unnecessary
                 .withTimeout(2);
     }
 
@@ -111,9 +112,11 @@ public class RobotContainer {
     }
 
     // autoScore
-    private final Command autoScore = new SequentialCommandGroup(
-            m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4))
-                    .andThen(homeElevatorArm()));
+    private final Command autoScore(){
+        return setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4).withTimeout(3) // change timeouts as necessary
+                .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)).withTimeout(3)
+                .andThen(homeElevatorArm()).withTimeout(3);
+        }
 
     // Ground Commands
     private final Command groundSafe() {
@@ -147,7 +150,7 @@ public class RobotContainer {
     private void registerCommands() {
         NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
         NamedCommands.registerCommand("goToBestTargetCommand", goToBestTargetCommand);
-        NamedCommands.registerCommand("ScoreCoral", autoScore);
+        NamedCommands.registerCommand("ScoreCoral", autoScore());
         NamedCommands.registerCommand("Intake", m_armSubsystem.intakeOuttake(IntakeDirection.IN));
     }
 

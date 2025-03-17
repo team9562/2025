@@ -21,7 +21,6 @@ import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
-import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -107,13 +106,13 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command setElevatorHeight(double targetHeight) {
     this.target = targetHeight;
-    return run(() -> pid.setReference(targetHeight, ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage)); // resolve error
+    return run(() -> pid.setReference(targetHeight, ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage)); // resolve error
   }
 
   public Command setElevatorHeight(ElevatorHeights height) {
     this.target = height.getHeight();
-    return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, 0.46, ArbFFUnits.kVoltage))
-    .unless(() -> Utility.withinTolerance(getEncoderPose(), 0, 3))
+    return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage))
+    .until(() -> Utility.withinTolerance(getEncoderPose(), 0, 3))
     .andThen(runCurrentZeroing());
   }
 

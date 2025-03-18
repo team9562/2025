@@ -19,6 +19,8 @@ import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.swing.text.html.HTML.Tag;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class GoToBestTargetCommand extends Command {
   private final CommandSwerveDrivetrain m_drivetrain;
@@ -40,9 +42,11 @@ public class GoToBestTargetCommand extends Command {
   // -> using this would decrease efficiency but increase potential alignment error
   private boolean isDoneAligning = false; // for the final "isfinished" check
 
+  private final double scoringDisplacementA = 0.2511; // A: Cam to middle of arm in meters
+  private final double scoringDisplacementB = 0.1651; // B: Tag to coral branches in meters
+
   private Timer wallPushTimer;
   private boolean pushingIntoWall = false;
-  private long pushDuration = 500; // Adjust push duration (in ms) 1 s = 1000 ms
 
   public GoToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request, boolean alfredo) { // alfredo = robot side -> funnel side = true
     this.m_drivetrain = sub1;
@@ -118,9 +122,12 @@ public void execute() {
     // finally we can make the robot go forward until distance fwd/bwd is also aligned
 
     if(m_visionSubsystem.compareCameras(myCamera) == 0 && (myClosestTarget.getFiducialId() == 1 || myClosestTarget.getFiducialId() == 2)){ // coral intake station camera
+      startPushingIntoWall(1, 0.2511, 0.2); // cam to middle arm displacement A -> middle arm is now aligned to middle tag
+      startPushingIntoWall(1, 0.1651, 0.2); // tag to coral branches displacement B -> arm is now aligned to a coral branch column
       while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 1){
         // drive towards coral station until distance is less than 2 meters
         this.m_drivetrain.setControl(m_drive.withVelocityX(1)); // direction +/- 1
+        
         
       }
       while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 0.75){
@@ -140,28 +147,21 @@ public void execute() {
         this.m_drivetrain.setControl(m_drive.withVelocityX(0.25)); // direction +/- 1
       }
 
-      startPushingIntoWall(1); 
-
+      startPushingIntoWall(1, 0.75, 0.25); // cam to middle arm displacement A -> middle arm is now aligned to middle tag
 
       //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1
       // this last one is incase any extra push into the wall is needed
 
-
-
       isDoneAligning = true;
     } else isDoneAligning = true; // something else happened so exit by assuming that alignment is done
-
-
-
-
 }
 
-
-private void startPushingIntoWall(int directionBobabowa) { // directionBobabowa = +/- 1
+private void startPushingIntoWall(int directionBobabowa, double targetDisplacement, double speedToTarget) { // directionBobabowa = +/- 1 , msPushDuration = # in ms
+  long msPushDuration = Math.round(targetDisplacement/speedToTarget); // time = displacement / velocity
   if (!pushingIntoWall) {
       pushingIntoWall = true;
-      System.out.println("[ALIGN] Pushing into the wall for " + pushDuration + "ms.");
-      this.m_drivetrain.setControl(m_drive.withVelocityX(directionBobabowa*0.2)); // Small forward force
+      System.out.println("[ALIGN] Pushing into the wall for " + msPushDuration + "ms.");
+      this.m_drivetrain.setControl(m_drive.withVelocityX(directionBobabowa*0.2)); // Small forward OR backward force depending on +/-
 
       // Start a timer to stop pushing after `pushDuration` milliseconds
       wallPushTimer = new Timer();
@@ -172,7 +172,7 @@ private void startPushingIntoWall(int directionBobabowa) { // directionBobabowa 
               isDoneAligning = true; // Mark as finished
               pushingIntoWall = false;
           }
-      }, pushDuration);
+      }, msPushDuration);
   }
 }
 

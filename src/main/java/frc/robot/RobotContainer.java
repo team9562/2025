@@ -173,7 +173,8 @@ public class RobotContainer {
                         .withVelocityY(-XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-XController.getRightX() * MaxAngularRate)));
 
-        m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        //m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getRightY())));
         //// m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
         ledSubsystem.setDefaultCommand(new SetLedStateCommand(ledSubsystem, RobotState.RAINBOW));
 

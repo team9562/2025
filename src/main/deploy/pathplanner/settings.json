@@ -3,7 +3,9 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
-    "Blue Auto Pose 3"
+    "Blue Auto Pose 2",
+    "Blue Auto Pose 3",
+    "Blue Auto Pose 1"
   ],
   "autoFolders": [],
   "defaultMaxVel": 4.0,

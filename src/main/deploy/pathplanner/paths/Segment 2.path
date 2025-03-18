@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.7625960272631347,
+        "y": 2.773340599804611
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.102936367129394,
+        "y": 2.2490489323732135
+      },
+      "isLocked": false,
+      "linkedName": "Pose 1: Coral 1"
+    },
+    {
+      "anchor": {
+        "x": 1.563305019591906,
+        "y": 0.8358801908586122
+      },
+      "prevControl": {
+        "x": 2.6335605416292527,
+        "y": 2.4743614907266984
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Pose 1: Coral Intake"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -125.07893507116069
+  },
+  "reversed": false,
+  "folder": "Blue Auto Pose 1",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 57.54525811913252
+  },
+  "useDefaultConstraints": true
+}

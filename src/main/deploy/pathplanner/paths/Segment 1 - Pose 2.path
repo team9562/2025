@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 8.02390188709655,
+        "y": 6.1598947438711384
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.025754837537087,
+        "y": 6.644336431684383
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.812090163934426,
+        "y": 5.241752049180327
+      },
+      "prevControl": {
+        "x": 4.176487488070856,
+        "y": 6.02872712788156
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "EndStartToCoral"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -58.39249775375109
+  },
+  "reversed": false,
+  "folder": "Blue Auto Pose 2",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -58.39249775375109
+  },
+  "useDefaultConstraints": true
+}

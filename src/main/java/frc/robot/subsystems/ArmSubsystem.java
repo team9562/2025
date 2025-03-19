@@ -43,9 +43,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
-  private final DigitalInput lampreyIn = new DigitalInput(7);
-  private final DutyCycleEncoder lamprey = new DutyCycleEncoder(lampreyIn);
-  //private final AnalogEncoder lamprey = new AnalogEncoder(lampreyInput, 360.0, 0);
+  private final AnalogInput lampreyIn = new AnalogInput(2);
+  private final AnalogEncoder lamprey = new AnalogEncoder(lampreyIn);
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
 
@@ -106,7 +105,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getLampreyPose(){
-    return lamprey.get() * 360;
+    return lamprey.get();
   }
 
   public double getEncoderPose() {
@@ -170,9 +169,7 @@ public class ArmSubsystem extends SubsystemBase {
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
     SmartDashboard.putNumber("Arm/Lamprey Reading: ", getLampreyPose());
-    SmartDashboard.putNumber("Arm/Lamprey Frequency: ", lamprey.getFrequency());
-    SmartDashboard.putNumber("Arm/Lamprey FGPA: ", lamprey.getFPGAIndex());
-    SmartDashboard.putBoolean("Arm/Lamprey Connected??: ", lamprey.isConnected());
+    SmartDashboard.putNumber("Arm/Lamprey Voltage: ", lampreyIn.getVoltage());
     SmartDashboard.putNumber("Arm/Arm Target: ", target);
     SmartDashboard.putBoolean("Arm/At Target", isAtTarget());
 

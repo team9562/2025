@@ -96,19 +96,22 @@ public class RobotContainer {
     private final Command homeElevatorArm() {
         return new ParallelRaceGroup( // possibly revert back to ParallelCommandGroup if the arm doesn't signal
                 m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO)
-                        .until(m_elevatorSubsystem::isAtTarget),
+                        .until(m_elevatorSubsystem::isAtTarget)
+                .andThen(m_elevatorSubsystem.runCurrentZeroing())
+                        .until(m_elevatorSubsystem::isAtZero),
                 m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
                         .until(m_armSubsystem::isAtTarget))  
-                .withTimeout(3) // Might need to add this to each parallel command and 3 is too much
+                .withTimeout(5) // Might need to add this to each parallel command and 3 is too much
                 .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL))
                         .until(m_armSubsystem::isAtTarget) // possibly unnecessary
                 .withTimeout(2);
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget).withTimeout(0.7)
+        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
+                .until(m_armSubsystem::isAtTarget).withTimeout(1)
                 .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
-                        .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle())));
+                        .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle()))).withTimeout(2);
     }
 
     // autoScore
@@ -140,7 +143,7 @@ public class RobotContainer {
     public RobotContainer() {
 
         registerCommands();
-        autoChooser = AutoBuilder.buildAutoChooser("None");
+        autoChooser = AutoBuilder.buildAutoChooser("Tests");
         SmartDashboard.putData("Auto chooser", autoChooser);
 
         burnAllFlash();
@@ -173,33 +176,32 @@ public class RobotContainer {
                         .withVelocityY(-XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-XController.getRightX() * MaxAngularRate)));
 
-        //m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
-        m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getRightY())));
+        m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        //m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getRightY())));
         //// m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
         ledSubsystem.setDefaultCommand(new SetLedStateCommand(ledSubsystem, RobotState.RAINBOW));
 
         // Change Around Please
         // XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));
         XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B)); // 67.17 in
-        XController.povLeft().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
-        XController.povRight().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
-        XController.povDown().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
+        XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
+        XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
+        XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
+        XController.x().onChange(homeElevatorArm());
+        //XController.y().onTrue(goToBestFunnel);
+        //XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
         
-        XController.y().onTrue(goToBestFunnel);
-        XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
-        
-        XController.rightStick().onTrue(homeElevatorArm());
-
-        XController.leftBumper().onTrue(m_armSubsystem.run(() -> m_armSubsystem.resetPitch()));
+        //XController.rightStick().onTrue(homeElevatorArm());
 
         // reset the field-centric heading on left bumper press
-        XController.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        XController.povDown().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        XController.povRight().onChange(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
 
         // eggYoke.button(10).toggleOnTrue(follow);
 
-        XController.rightBumper().onTrue(intakeCoralAlgae());
-        XController.rightTrigger().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT));
-        XController.rightTrigger().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
+        XController.rightBumper().onChange(intakeCoralAlgae());
+        XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT));
+        XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
 
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan

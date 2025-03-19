@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class LaserCanSubsystem extends SubsystemBase {
     private final LaserCan lc;
 
-    private static final double MAX_VALID_DIST = 100.0; // e.g., 100 mm (5 cm)
+    private static final double MAX_VALID_DIST = 30.0; // e.g., 100 mm (5 cm)
     private String detectedObj = "nothing";
     private double distance = 0;
 

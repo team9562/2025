@@ -101,7 +101,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public void moveElevator(double volts) {
     this.isReacting = true;
     this.inputVolts = volts;
-    pid.setReference(volts * 2, ControlType.kVoltage, slot0);
+    pid.setReference(volts * 5, ControlType.kVoltage, slot0);
   }
 
   public Command setElevatorHeight(double targetHeight) {
@@ -111,9 +111,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command setElevatorHeight(ElevatorHeights height) {
     this.target = height.getHeight();
-    return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage))
-    .until(() -> Utility.withinTolerance(getEncoderPose(), 0, 3))
-    .andThen(runCurrentZeroing());
+    return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage));
   }
 
   public Command runCurrentZeroing() {
@@ -126,6 +124,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Boolean isAtTarget() {
     return Utility.withinTolerance(getEncoderPose(), target, tolerance);
+  }
+
+  public Boolean isAtZero() {
+    return Utility.withinTolerance(getEncoderPose(), 0, tolerance);
   }
 
   @Override

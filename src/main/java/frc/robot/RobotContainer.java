@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -17,6 +18,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -93,46 +95,28 @@ public class RobotContainer {
     }
 
     // Elevator and Arm setting Commands - Timeouts subject to change
-    private final Command homeElevatorArm() {
-        return new ParallelRaceGroup( // possibly revert back to ParallelCommandGroup if the arm doesn't signal
+    /*private final Command homeElevatorArm() {
+        return new SequentialCommandGroup(m_armSubsystem.manualPitchMotor(1)
+        .onlyIf(m_elevatorSubsystem::isSafe)
+        .until(m_armSubsystem::withinRange)
+        .finallyDo(m_armSubsystem.stop()), 
                 m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO)
-                        .until(m_elevatorSubsystem::isAtTarget)
-                .andThen(m_elevatorSubsystem.runCurrentZeroing())
-                        .until(m_elevatorSubsystem::isAtZero),
-                m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
-                        .until(m_armSubsystem::isAtTarget))  
-                .withTimeout(5) // Might need to add this to each parallel command and 3 is too much
-                .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL))
-                        .until(m_armSubsystem::isAtTarget) // possibly unnecessary
-                .withTimeout(2);
-    }
+                .onlyIf(m_armSubsystem::isSafeFromFunnel));
+    }*/
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
         return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
                 .until(m_armSubsystem::isAtTarget).withTimeout(1)
                 .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
-                        .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle()))).withTimeout(2);
+                        .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle()))).withTimeout(2.5);
     }
 
     // autoScore
-    private final Command autoScore(){
+    /*private final Command autoScore(){
         return setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4).withTimeout(3) // change timeouts as necessary
                 .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)).withTimeout(3)
                 .andThen(homeElevatorArm()).withTimeout(3);
-        }
-
-    // Ground Commands
-    private final Command groundSafe() {
-        return m_groundIntakeSubsystem.setIntakePosition(GroundIntakeSetpoint.IN)
-                .onlyWhile(() -> m_elevatorSubsystem.getEncoderPose() > ElevatorHeights.OBIWAN.getHeight() &&
-                        Utility.betweenRange(m_armSubsystem.getEncoderPose(), -2, 2))
-                .finallyDo(() -> m_groundIntakeSubsystem.stopRotation());
-    }
-
-    private final Command elevatorUpThenIntake(GroundIntakeSetpoint setpoint) {
-        return new SequentialCommandGroup(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.OBIWAN)
-                .until(() -> m_elevatorSubsystem.isAtTarget()), m_groundIntakeSubsystem.setIntakePosition(setpoint));
-    }
+        }*/
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,
             0);
@@ -149,13 +133,15 @@ public class RobotContainer {
         burnAllFlash();
 
         configureBindings();
+
+        //PortForwarder.add(5800, "10.95.62.204", 5800); // photonvision2.local
     }
 
     private void registerCommands() {
         NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
         NamedCommands.registerCommand("goToBestFunnel", goToBestFunnel);
         NamedCommands.registerCommand("goToBestNotFunnel", goToBestNotFunnel);
-        NamedCommands.registerCommand("ScoreCoral", autoScore());
+        //NamedCommands.registerCommand("ScoreCoral", autoScore());
         NamedCommands.registerCommand("Intake", m_armSubsystem.intakeOuttake(IntakeDirection.IN));
     }
 
@@ -185,9 +171,9 @@ public class RobotContainer {
         // XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));
         XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B)); // 67.17 in
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
-        XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
+        XController.leftTrigger().onChange(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.L4))); // 26.85 in
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
-        XController.x().onChange(homeElevatorArm());
+        //XController.x().onTrue(homeElevatorArm());
         //XController.y().onTrue(goToBestFunnel);
         //XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
         
@@ -197,12 +183,14 @@ public class RobotContainer {
         XController.povDown().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         XController.povRight().onChange(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
 
+        XController.rightStick().onChange(m_armSubsystem.runCurrentZeroing().andThen(m_armSubsystem.turnPitchMotor(-39)));
+        XController.leftStick().onChange(m_armSubsystem.turnPitchMotor(0).withTimeout(0.5));
+
         // eggYoke.button(10).toggleOnTrue(follow);
 
-        XController.rightBumper().onChange(intakeCoralAlgae());
+        XController.rightBumper().onTrue(intakeCoralAlgae());
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
-
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan
         // XController.x().onTrue(new InstantCommand(() ->

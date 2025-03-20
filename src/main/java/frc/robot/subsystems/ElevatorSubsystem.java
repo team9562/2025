@@ -116,7 +116,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command runCurrentZeroing() {
     return this
-        .run(() -> pid.setReference(-2.5, ControlType.kVoltage, slot0)) // decrease??
+        .run(() -> pid.setReference(-1, ControlType.kVoltage, slot0)) // decrease??
         .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
         .andThen(() -> resetEncoderPose())
         .finallyDo(() -> pid.setReference(0, ControlType.kVoltage, slot0));

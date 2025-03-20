@@ -32,7 +32,6 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.NeoMotorConstants;
@@ -44,7 +43,7 @@ public class ArmSubsystem extends SubsystemBase {
 
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
-  private final AnalogInput lampreyIn = new AnalogInput(3);
+  private final AnalogInput lampreyIn = new AnalogInput(2);
   private final AnalogEncoder lamprey = new AnalogEncoder(lampreyIn);
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
@@ -145,8 +144,8 @@ public class ArmSubsystem extends SubsystemBase {
     return run(() -> pidPitch.setReference(angle.getAngle(), ControlType.kPosition, slot0, 0.0, ArbFFUnits.kVoltage));
   }
 
-  public Command manualPitchMotor(double volts) {
-    return run(() -> pidPitch.setReference(volts * 2, ControlType.kVoltage, slot0, 0.0, ArbFFUnits.kVoltage));
+  public void manualPitchMotor(double volts) {
+    pidPitch.setReference(volts * 2, ControlType.kVoltage, slot0, 0.0, ArbFFUnits.kVoltage);
   }
 
   public Command intakeOuttake(double intake){
@@ -158,12 +157,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public Command runCurrentZeroing(){
-    return run(() -> pidPitch.setReference(1, ControlType.kVoltage, slot0))
-    .until(() -> pitchSpark.getOutputCurrent() > 20)
-    .andThen(new SequentialCommandGroup(run(() -> pidPitch.setReference(-1, ControlType.kVoltage, slot0))
-                    .withTimeout(0.3)))
-    .andThen(() -> pitchEncoder.setPosition(ArmAngles.ZERO.getAngle()))
-    .finallyDo(() -> pitchSpark.stopMotor());
+    return run(() -> pidPitch.setReference(2, ControlType.kVoltage, slot0));
   }
 
   public boolean isAtTarget(){
@@ -174,11 +168,8 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
-    SmartDashboard.putNumber("Arm/Current: ", pitchSpark.getOutputCurrent());
-    SmartDashboard.putNumber("Arm/Lamprey/Reading: ", getLampreyPose());
-    SmartDashboard.putNumber("Arm/Lamprey/Voltage: ", lampreyIn.getVoltage());
-    SmartDashboard.putNumber("Arm/Lamprey/Average Voltage: ", lampreyIn.getAverageVoltage());
-    SmartDashboard.putNumber("Arm/Lamprey/Average Bits: ", lampreyIn.getAverageBits());
+    SmartDashboard.putNumber("Arm/Lamprey Reading: ", getLampreyPose());
+    SmartDashboard.putNumber("Arm/Lamprey Voltage: ", lampreyIn.getVoltage());
     SmartDashboard.putNumber("Arm/Arm Target: ", target);
     SmartDashboard.putBoolean("Arm/At Target", isAtTarget());
 

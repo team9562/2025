@@ -7,7 +7,6 @@ package frc.robot.commands.SwerveCommands;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
@@ -48,8 +47,6 @@ public class GoToBestTargetCommand extends Command {
 
   private Timer wallPushTimer;
   private boolean pushingIntoWall = false;
-
-  private VisionConstants m_VisionConstants = new VisionConstants();
 
   public GoToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request, boolean alfredo) { // alfredo = robot side -> funnel side = true
     this.m_drivetrain = sub1;
@@ -102,19 +99,9 @@ public void execute() {
     }
     // Determine movement direction
     double yawDirection;
-    double angleError = 0;
-    double cam3AngleError = -22.5; // this is a guess, check on photonvision if correct
-    double cam4AngleError = 22.5;
-
-    if(m_visionSubsystem.compareCameras(myCamera) == 2){
-      angleError = cam3AngleError;
-    }else if(m_visionSubsystem.compareCameras(myCamera) == 3){
-      angleError = cam4AngleError;
-    }
-    double adjustedAngle = currentYaw - accuracyYaw;
-      if (adjustedAngle > accuracyYaw) { 
+    if (currentYaw > accuracyYaw) { 
         yawDirection = (m_visionSubsystem.compareCameras(myCamera) == 0) ? -1 : 1; // Adjust left/right based on camera
-    } else if (adjustedAngle < -accuracyYaw) { 
+    } else if (currentYaw < -accuracyYaw) { 
         yawDirection = (m_visionSubsystem.compareCameras(myCamera) == 0) ? 1 : -1;
     } else { 
       yawDirection = 0;
@@ -123,8 +110,7 @@ public void execute() {
         speedToTarget = speedToTarget/2; // divide the speed by 2 to make it easier to approach a smaller tolerance value
       }
     }
-    
-    System.out.println("[GO-TO INFO] Tag detected! Yaw: " + adjustedAngle + " | Moving: " + yawDirection);
+    System.out.println("[GO-TO INFO] Tag detected! Yaw: " + currentYaw + " | Moving: " + yawDirection);
 
     // **Move Robot Sideways**  
     this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * speedToTarget)); // -> starts at (+/- 1) * (0.5)
@@ -135,10 +121,13 @@ public void execute() {
     // run velocity command to align to specific id-camera displacement
     // finally we can make the robot go forward until distance fwd/bwd is also aligned
 
-    if(m_visionSubsystem.compareCameras(myCamera) == 0 && m_VisionConstants.Coral_ID.contains(myClosestTarget.getFiducialId())){
+    if(m_visionSubsystem.compareCameras(myCamera) == 0 && (myClosestTarget.getFiducialId() == 1 || myClosestTarget.getFiducialId() == 2)){ // coral intake station camera
+      startPushingIntoWall(1, 0.2511, 0.2); // cam to middle arm displacement A -> middle arm is now aligned to middle tag
+      startPushingIntoWall(1, 0.1651, 0.2); // tag to coral branches displacement B -> arm is now aligned to a coral branch column
       while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 1){
         // drive towards coral station until distance is less than 2 meters
         this.m_drivetrain.setControl(m_drive.withVelocityX(1)); // direction +/- 1
+        
         
       }
       while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 0.75){
@@ -148,10 +137,7 @@ public void execute() {
       //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1
       // this last one is incase any extra push into the wall is needed
       isDoneAligning = true;
-    }
-    else if(m_visionSubsystem.compareCameras(myCamera) != 0 && m_VisionConstants.Reef_ID.contains(myClosestTarget.getFiducialId())){ // reef tags
-      startPushingIntoWall(1, 0.2511, 0.2, true); // cam to middle arm displacement A -> middle arm is now aligned to middle tag
-      startPushingIntoWall(1, 0.1651, 0.2, true); // tag to coral branches displacement B -> arm is now aligned to a coral branch column
+    } else if(m_visionSubsystem.compareCameras(myCamera) != 0 && (myClosestTarget.getFiducialId() <= 11 || myClosestTarget.getFiducialId() >= 6)){ // reef tags
       while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 1){
         // drive towards coral station until distance is less than 2 meters
         this.m_drivetrain.setControl(m_drive.withVelocityX(1)); // direction +/- 1
@@ -161,26 +147,22 @@ public void execute() {
         this.m_drivetrain.setControl(m_drive.withVelocityX(0.25)); // direction +/- 1
       }
 
-      startPushingIntoWall(1, 0.75, 0.25, false); // cam to middle arm displacement A -> middle arm is now aligned to middle tag
+      startPushingIntoWall(1, 0.75, 0.25); // cam to middle arm displacement A -> middle arm is now aligned to middle tag
 
+      //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1
+      // this last one is incase any extra push into the wall is needed
 
       isDoneAligning = true;
     } else isDoneAligning = true; // something else happened so exit by assuming that alignment is done
 }
 
-private void startPushingIntoWall(int directionBobabowa, double targetDisplacement, double speedToTarget, boolean movingSideways) { 
-  // directionBobabowa = +/- 1, movingSideways -> true = Y axis, false = X axis
+private void startPushingIntoWall(int directionBobabowa, double targetDisplacement, double speedToTarget) { // directionBobabowa = +/- 1 , msPushDuration = # in ms
   long msPushDuration = Math.round(targetDisplacement/speedToTarget); // time = displacement / velocity
   if (!pushingIntoWall) {
       pushingIntoWall = true;
-      if(movingSideways){
-        System.out.println("[ALIGN] moving sideways for " + msPushDuration + "ms.");
-        this.m_drivetrain.setControl(m_drive.withVelocityY(directionBobabowa*0.25)); // Small right OR left force depending on +/-
-      }
-      else{
-        System.out.println("[ALIGN] Pushing into the wall for " + msPushDuration + "ms.");
-        this.m_drivetrain.setControl(m_drive.withVelocityX(directionBobabowa*0.25)); // Small forward OR backward force depending on +/-
-      }
+      System.out.println("[ALIGN] Pushing into the wall for " + msPushDuration + "ms.");
+      this.m_drivetrain.setControl(m_drive.withVelocityX(directionBobabowa*0.2)); // Small forward OR backward force depending on +/-
+
       // Start a timer to stop pushing after `pushDuration` milliseconds
       wallPushTimer = new Timer();
       wallPushTimer.schedule(new TimerTask() {

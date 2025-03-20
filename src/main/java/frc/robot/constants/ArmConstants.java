@@ -27,8 +27,8 @@ public class ArmConstants {
 
     //In dutycycle percent
     public enum IntakeDirection {
-        IN(0.2), 
-        OUT(-0.2), 
+        IN(1.0), 
+        OUT(-1.0), 
         STOP(0.0);
     
         private final double power;
@@ -44,11 +44,11 @@ public class ArmConstants {
 
     //in degrees
     public enum ArmAngles {
-        L2(-103 - 39),
-        L3(-103 - 39),
-        L4(-129.94 - 39),
-        CORAL(39 - 39),
-        ZERO(0 - 39),
+        L2(-103),
+        L3(-103),
+        L4(-129.94),
+        CORAL(39),
+        ZERO(0),
         B(0);
     
         private final double angle;

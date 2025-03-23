@@ -139,6 +139,9 @@ public class LedSubsystem extends SubsystemBase {
             case IDLE:
                 setColor(100, 100, 100);
                 break;
+            default:
+                setColor(255, 255, 255);
+                break;
         }
     }
 }

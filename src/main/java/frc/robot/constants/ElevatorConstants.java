@@ -19,7 +19,7 @@ public class ElevatorConstants {
     public static final ClosedLoopSlot E_SLOT = ClosedLoopSlot.kSlot0;
 
     // in
-    public static final int E_MAXHEIGHT = 70;
+    public static final int E_MAXHEIGHT = 80;
     public static final double E_TOLERANCE = 0.5;
 
     public static final double E_MAX_VEL = 5556.79;

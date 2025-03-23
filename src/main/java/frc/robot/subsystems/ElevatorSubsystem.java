@@ -130,6 +130,10 @@ public class ElevatorSubsystem extends SubsystemBase {
     return Utility.withinTolerance(getEncoderPose(), 0, tolerance);
   }
 
+  public Boolean isWithinSafeRange() {
+    return Utility.betweenRange(getEncoderPose(), 0, 2) || Utility.betweenRange(getEncoderPose(), 30, ElevatorConstants.E_MAXHEIGHT);
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

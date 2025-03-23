@@ -75,6 +75,7 @@ public class GoToBestTargetCommand extends Command {
   @Override
 public void execute() {
 
+  System.out.println("[GOTOBESTTARGET]: COMMAND IS CALLED");
 
     // Update vision data
 
@@ -98,6 +99,8 @@ public void execute() {
         return;
     }
     // Determine movement direction
+    System.out.println("[GOTO PASSED ERRORS]: PASSED ALL ERROR CATCHES");
+
     double yawDirection;
     if (currentYaw > accuracyYaw) { 
         yawDirection = (m_visionSubsystem.compareCameras(myCamera) == 0) ? -1 : 1; // Adjust left/right based on camera
@@ -110,17 +113,19 @@ public void execute() {
         speedToTarget = speedToTarget/2; // divide the speed by 2 to make it easier to approach a smaller tolerance value
       }
     }
-    System.out.println("[GO-TO INFO] Tag detected! Yaw: " + currentYaw + " | Moving: " + yawDirection);
+    System.out.println("[GO-TO DIRECTION] Tag detected! Yaw: " + currentYaw + " | Moving: " + yawDirection);
 
     // **Move Robot Sideways**  
     this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * speedToTarget)); // -> starts at (+/- 1) * (0.5)
+    System.out.println("[GOTO MOVED ALIGN]: ALIGNING TO TARGET");
+
     // Y-axis is for side-to-side movement
 
     // add two integer arrays of tag ids here to access values for scoring area displacement (x&y)
     // then access array values with getFuidicalID() and compare to determine displacement
     // run velocity command to align to specific id-camera displacement
     // finally we can make the robot go forward until distance fwd/bwd is also aligned
-
+if(currentYaw<accuracyYaw){
     if(m_visionSubsystem.compareCameras(myCamera) == 0 && (myClosestTarget.getFiducialId() == 1 || myClosestTarget.getFiducialId() == 2)){ // coral intake station camera
       startPushingIntoWall(1, 0.2511, 0.2); // cam to middle arm displacement A -> middle arm is now aligned to middle tag
       startPushingIntoWall(1, 0.1651, 0.2); // tag to coral branches displacement B -> arm is now aligned to a coral branch column
@@ -136,6 +141,7 @@ public void execute() {
       }
       //this.m_drivetrain.setControl(m_drive.withVelocityX(0.2)); // direction +/- 1
       // this last one is incase any extra push into the wall is needed
+      System.out.println("[GOTO CLOSED DISTANCE]: CLOSED DISTANCE");
       isDoneAligning = true;
     } else if(m_visionSubsystem.compareCameras(myCamera) != 0 && (myClosestTarget.getFiducialId() <= 11 || myClosestTarget.getFiducialId() >= 6)){ // reef tags
       while(m_visionSubsystem.getTargetDistance(myClosestTarget.getFiducialId(), m_visionSubsystem.compareCameras(myCamera)) > 1){
@@ -153,8 +159,12 @@ public void execute() {
       // this last one is incase any extra push into the wall is needed
 
       isDoneAligning = true;
+      System.out.println("[GOTO CLOSED DISTANCE]: CLOSED DISTANCE");
+
     } else isDoneAligning = true; // something else happened so exit by assuming that alignment is done
-}
+  }
+  }
+
 
 private void startPushingIntoWall(int directionBobabowa, double targetDisplacement, double speedToTarget) { // directionBobabowa = +/- 1 , msPushDuration = # in ms
   long msPushDuration = Math.round(targetDisplacement/speedToTarget); // time = displacement / velocity
@@ -188,6 +198,6 @@ private void stopMovement() {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {// if(currentYaw < accuracyYaw)
-    return isDoneAligning;
+    return currentYaw < accuracyYaw;
   }
 }

@@ -12,7 +12,7 @@ public class ElevatorConstants {
     public static final double E_PULLEY_LENGTH = 180 / 25.4; // 180 is the circumference in mm ( / 25.4 = in)
     public static final double kConversionFactor = E_GEAR_RATIO * E_PULLEY_LENGTH;
 
-    public static final double kP = 0.1;
+    public static final double kP = 0.15;
     public static final double kI = 0;
     public static final double kD = 0;
     public static final double kFF = 0.46; // test feed forward to counteract gravity

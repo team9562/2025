@@ -98,7 +98,7 @@ public class VisionSubsystem extends SubsystemBase {
       return camera1; // only 1 camera on that side
     }
     else{ // pick between 3 other cameras
-      PhotonCamera joe=camera1; // placeholder for best camera in the given array of cameras (2-4)
+      PhotonCamera joe = camera1; // placeholder for best camera in the given array of cameras (2-4)
 
       newDist = Double.MAX_VALUE;
     for (PhotonCamera camera : cameras) { // all cameras
@@ -271,7 +271,7 @@ public class VisionSubsystem extends SubsystemBase {
         return null;
     }
 
-     System.out.println("[INFO VISION-SUB] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
+     // System.out.println("[INFO VISION-SUB] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
     return bestTarget;
   }
 
@@ -373,7 +373,7 @@ public void periodic() {
   }
   SmartDashboard.putString("Vision/Detected IDs: ", oldIdsString);
   if (closestTarget != null && bestCamera != null) {
-      System.out.println("SOMETHING IS FOUND!!!!!!!!!");
+      // System.out.println("SOMETHING IS FOUND!!!!!!!!!");
       SmartDashboard.putString("Vision/Using Camera: ", bestCamera.getName());
       SmartDashboard.putNumber("Vision/Best Yaw: ", closestTarget.getYaw());
       SmartDashboard.putNumber("Vision/Best Pitch: ", closestTarget.getPitch());

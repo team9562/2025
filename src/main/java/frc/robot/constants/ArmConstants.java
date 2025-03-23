@@ -44,11 +44,11 @@ public class ArmConstants {
 
     //in degrees
     public enum ArmAngles {
-        L2(-103 - 39),
-        L3(-103 - 39),
-        L4(-129.94 - 39),
-        CORAL(39 - 39),
-        ZERO(0 - 39),
+        L2(-142),
+        L3(-142),
+        L4(-168.94),
+        CORAL(0),
+        ZERO(-39),
         B(0);
     
         private final double angle;
@@ -60,7 +60,5 @@ public class ArmConstants {
         public double getAngle() {
             return angle;
         }
-    }
-    
-     
+    }    
 }

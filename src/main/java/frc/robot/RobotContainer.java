@@ -119,10 +119,11 @@ public class RobotContainer {
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
         return (m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
-                .until(m_armSubsystem::isAtTarget)
-                .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
-                .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle()))))
-                .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.READY_TO_SHOOT)));
+                .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)))
+                .andThen((m_elevatorSubsystem.setElevatorHeight(height.getHeight())
+                    .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
+                .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle())
+                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle()))));
     }
 
     // autoScore
@@ -185,23 +186,21 @@ public class RobotContainer {
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
         XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
-        XController.x().onChange(homeElevatorArm().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
-        XController.a().onChange(simpleHome().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
-        //XController.y().onTrue(goToBestFunnel);
-        //XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
-        
-        //XController.rightStick().onTrue(homeElevatorArm());
+        XController.x().onChange(m_elevatorSubsystem.runCurrentZeroing().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
+        //XController.a().onChange(simpleHome().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
+        XController.a().onTrue(goToBestFunnel);
+        XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
 
         // reset the field-centric heading on left bumper press
         XController.povDown().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         XController.povRight().onChange(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
 
-        // eggYoke.button(10).toggleOnTrue(follow);
-
-        XController.rightBumper().onChange(intakeCoralAlgae());
+        XController.rightBumper().onTrue(intakeCoralAlgae());
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
 
+
+        XController.rightStick().onChange(m_armSubsystem.runCurrentZeroing());
         // Don't create a new command everytime it needs to be run, init at the top
         // laserCan
         // XController.x().onTrue(new InstantCommand(() ->

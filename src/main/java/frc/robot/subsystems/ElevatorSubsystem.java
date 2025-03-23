@@ -7,6 +7,8 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.constants.ArmConstants;
+import frc.robot.constants.ArmConstants.ArmAngles;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.constants.NeoMotorConstants;
 import frc.robot.constants.ElevatorConstants.ElevatorHeights;
@@ -132,6 +134,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Boolean isWithinSafeRange() {
     return Utility.betweenRange(getEncoderPose(), 0, 2) || Utility.betweenRange(getEncoderPose(), 30, ElevatorConstants.E_MAXHEIGHT);
+  }
+
+  public boolean isAtPoint(double point){
+    return Utility.withinTolerance(getEncoderPose(), point, ElevatorConstants.E_TOLERANCE);
+  }
+
+  public boolean isAtPoint(ElevatorHeights height){
+    return Utility.withinTolerance(getEncoderPose(), height.getHeight(), ElevatorConstants.E_TOLERANCE);
   }
 
   @Override

@@ -24,6 +24,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.estimator.KalmanFilter;
 import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -106,7 +107,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getLampreyPose(){
-    return ((lamprey.get() / 5) * lampreyIn.getVoltage()) * 360;
+    return ((lamprey.get() / 5) * 3.3) * 360;
   }
 
   public double getEncoderPose() {
@@ -177,8 +178,12 @@ public class ArmSubsystem extends SubsystemBase {
     return Utility.withinTolerance(getEncoderPose(), -39, 10);
   }
 
-  public boolean isAtPoint(int point){
+  public boolean isAtPoint(double point){
     return Utility.withinTolerance(getEncoderPose(), point, ArmConstants.A_TOLERANCE);
+  }
+
+  public boolean isAtPoint(ArmAngles angle){
+    return Utility.withinTolerance(getEncoderPose(), angle.getAngle(), ArmConstants.A_TOLERANCE);
   }
 
 

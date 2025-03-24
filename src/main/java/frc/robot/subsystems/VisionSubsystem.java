@@ -12,8 +12,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonUtils;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.proto.Photon;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -22,11 +25,13 @@ import com.revrobotics.spark.SparkBase.ControlType;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,7 +41,7 @@ import frc.robot.constants.VisionConstants;
 
 public class VisionSubsystem extends SubsystemBase {
   /** Creates a new VisionSubsystem. */
-  private PhotonCamera camera1;
+  //private PhotonCamera camera1;
   private PhotonCamera camera2;
   private PhotonCamera camera3;
   private PhotonCamera camera4;
@@ -61,44 +66,55 @@ public class VisionSubsystem extends SubsystemBase {
   long iteration = 0;
   String oldIdsString = "";
 
+  PhotonPoseEstimator camera2PoseEstimator;
+  PhotonPoseEstimator camera3PoseEstimator;
+  PhotonPoseEstimator camera4PoseEstimator;
+
   private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
-      .loadField(AprilTagFields.k2025Reefscape);
+      .loadField(AprilTagFields.k2025ReefscapeWelded);
 
   public VisionSubsystem() {
-    this.cameraPositions[0] = VisionConstants.camera1ToRobot;
+    //this.cameraPositions[0] = VisionConstants.camera1ToRobot;
     this.cameraPositions[1] = VisionConstants.camera2ToRobot;
     this.cameraPositions[2] = VisionConstants.camera3ToRobot;
     this.cameraPositions[3] = VisionConstants.camera4ToRobot;
 
-    this.camera1 = new PhotonCamera(VisionConstants.cameraName1);
+    //this.camera1 = new PhotonCamera(VisionConstants.cameraName1);
     this.camera2 = new PhotonCamera(VisionConstants.cameraName2);
     this.camera3 = new PhotonCamera(VisionConstants.cameraName3);
     this.camera4 = new PhotonCamera(VisionConstants.cameraName4);
-    this.cameras = new PhotonCamera[] { camera1, camera2, camera3, camera4 };
+    this.cameras = new PhotonCamera[] { camera2, camera3, camera4 };
 
     this.results = new PhotonPipelineResult[] {
-        camera1.getLatestResult(),
+        //camera1.getLatestResult(),
         camera2.getLatestResult(),
         camera3.getLatestResult(),
         camera4.getLatestResult() };
 
-    CAMERA_HEIGHTS.put(camera1, VisionConstants.camera1Z);
+    //CAMERA_HEIGHTS.put(camera1, VisionConstants.camera1Z);
     CAMERA_HEIGHTS.put(camera2, VisionConstants.camera2Z);
     CAMERA_HEIGHTS.put(camera3, VisionConstants.camera3Z);
     CAMERA_HEIGHTS.put(camera4, VisionConstants.camera4Z);
 
-    CAMERA_PITCHES.put(camera1, VisionConstants.camera1pitch);
+    //CAMERA_PITCHES.put(camera1, VisionConstants.camera1pitch);
     CAMERA_PITCHES.put(camera2, VisionConstants.camera2pitch);
     CAMERA_PITCHES.put(camera3, VisionConstants.camera3pitch);
     CAMERA_PITCHES.put(camera4, VisionConstants.camera4pitch);
+
+    camera2PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera2ToRobot);
+    camera3PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera3ToRobot);
+    camera4PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera4ToRobot);
+
   }
 
   public PhotonCamera cameraPicker(boolean funnelCamUsed){
     if(funnelCamUsed){
-      return camera1; // only 1 camera on that side
+      //return camera1; // only 1 camera on that side
+      return camera4;
     }
     else{ // pick between 3 other cameras
-      PhotonCamera joe = camera1; // placeholder for best camera in the given array of cameras (2-4)
+      //PhotonCamera joe = camera1; // placeholder for best camera in the given array of cameras (2-4)
+      PhotonCamera joe = camera4;
 
       newDist = Double.MAX_VALUE;
     for (PhotonCamera camera : cameras) { // all cameras
@@ -365,6 +381,21 @@ public Command setElevatorHeight(double targetHeight) {
     return this.run(() -> pid.setReference(getError(targetHeight * 2), ControlType.kMAXMotionPositionControl, slot0));
   } // could this be the error
 */
+
+public void estimatePoseMultitag(SwerveDrivePoseEstimator swerveDrivePoseEstimator) {
+  camera2PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
+  camera3PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
+  camera4PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
+
+  EstimatedRobotPose camera2EstimatedPose = camera2PoseEstimator.update(camera2.getLatestResult()).get();
+  EstimatedRobotPose camera3EstimatedPose = camera3PoseEstimator.update(camera3.getLatestResult()).get();
+  EstimatedRobotPose camera4EstimatedPose = camera4PoseEstimator.update(camera4.getLatestResult()).get();
+
+  swerveDrivePoseEstimator.addVisionMeasurement(camera2EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+  swerveDrivePoseEstimator.addVisionMeasurement(camera3EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+  swerveDrivePoseEstimator.addVisionMeasurement(camera4EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+}
+
 @Override
 public void periodic() {
   iteration += 1;

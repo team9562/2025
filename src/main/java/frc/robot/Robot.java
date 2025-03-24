@@ -4,12 +4,16 @@
 
 package frc.robot;
 
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveModule;
 
 import au.grapplerobotics.CanBridge;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -64,10 +68,11 @@ public class Robot extends TimedRobot {
   private final RobotContainer m_robotContainer;
 
   public void addCameraReadings() {
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(0, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(1, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(2, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
-    poseEstimator.addVisionMeasurement(m_vision.estimatePose(3, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    //poseEstimator.addVisionMeasurement(m_vision.estimatePose(0, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    //poseEstimator.addVisionMeasurement(m_vision.estimatePose(1, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    //poseEstimator.addVisionMeasurement(m_vision.estimatePose(2, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    //poseEstimator.addVisionMeasurement(m_vision.estimatePose(3, poseEstimator.getEstimatedPosition()), kDefaultPeriod);
+    
   }
 
   public Robot() {
@@ -84,8 +89,6 @@ public class Robot extends TimedRobot {
             m_backRight.getPosition(true),
         }, new Pose2d(0, 0, new Rotation2d(0)));
 
-    addCameraReadings();
-
     m_robotContainer = new RobotContainer();
   }
 
@@ -99,8 +102,8 @@ public class Robot extends TimedRobot {
             m_backLeft.getPosition(true),
             m_backRight.getPosition(true),
         });
-
-    addCameraReadings();
+    
+    m_vision.estimatePoseMultitag(poseEstimator);
 
     mField.setRobotPose(poseEstimator.getEstimatedPosition());
     SmartDashboard.putData("Field", mField);

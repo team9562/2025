@@ -92,27 +92,11 @@ public class RobotContainer {
         return m_armSubsystem.intakeOuttake(IntakeDirection.STOP);
     }
 
-    // Elevator and Arm setting Commands - Timeouts subject to change
-    private final Command homeElevatorArm() {
-        return new ParallelCommandGroup(
-                m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO)
-                        .until(m_elevatorSubsystem::isAtTarget)
-                                .onlyWhile(m_armSubsystem::isWithinSafeRange),
-
-                m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
-                        .until(m_armSubsystem::isAtTarget)
-                                .onlyWhile(m_elevatorSubsystem::isWithinSafeRange))
-
-                .andThen(m_elevatorSubsystem.runCurrentZeroing().onlyIf(m_armSubsystem::isWithinSafeRange))
-
-                .andThen(m_armSubsystem.runCurrentZeroing().onlyIf(m_elevatorSubsystem::isWithinSafeRange))
-
-                .andThen(m_armSubsystem.turnPitchMotor(ArmAngles.CORAL));
-    }
-
     private final Command simpleHome(){
-        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO).until(m_armSubsystem::isAtTarget)
-        .andThen(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO)).until(m_elevatorSubsystem::isAtTarget)
+        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
+            .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO))
+        .andThen(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO))
+            .until(()-> m_elevatorSubsystem.isAtPoint(ElevatorHeights.ZERO))
         .andThen(m_elevatorSubsystem.runCurrentZeroing())
         .andThen(m_armSubsystem.runCurrentZeroing());
     }
@@ -130,7 +114,7 @@ public class RobotContainer {
     private final Command autoScore(){
         return setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)
                 .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT))
-                .andThen(homeElevatorArm());
+                .andThen(simpleHome());
         }
 
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,
@@ -186,7 +170,7 @@ public class RobotContainer {
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
         XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
-        XController.x().onChange(m_elevatorSubsystem.runCurrentZeroing().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
+        XController.x().onTrue(m_elevatorSubsystem.runCurrentZeroing().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
         //XController.a().onChange(simpleHome().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
         XController.a().onTrue(goToBestFunnel);
         XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later

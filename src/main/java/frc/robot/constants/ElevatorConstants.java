@@ -6,7 +6,7 @@ public class ElevatorConstants {
     // Change device ID's
     public static final int E_LEFT_ID = 25;
     public static final int E_RIGHT_ID = 24;
-    public static final int E_STALL_LIMIT = 40; // 40A
+    public static final int E_STALL_LIMIT = 55; // 40A
 
     public static final double E_GEAR_RATIO = 1 / ((double)6+(double)2/3);
     public static final double E_PULLEY_LENGTH = 180 / 25.4; // 180 is the circumference in mm ( / 25.4 = in)
@@ -21,9 +21,6 @@ public class ElevatorConstants {
     // in
     public static final int E_MAXHEIGHT = 80;
     public static final double E_TOLERANCE = 0.5;
-
-    public static final double E_MAX_VEL = 5556.79;
-    public static final double E_MAX_ACC = 41150.94;
 
     public static final double E_MAXSPEED = 0.25;
 

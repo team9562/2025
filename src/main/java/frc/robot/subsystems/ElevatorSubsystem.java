@@ -119,21 +119,13 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command runCurrentZeroing() {
     return this
         .run(() -> pid.setReference(-2.5, ControlType.kVoltage, slot0)) // decrease??
-        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
+        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT + 1)
         .andThen(() -> resetEncoderPose())
         .finallyDo(() -> pid.setReference(0, ControlType.kVoltage, slot0));
   }
 
   public Boolean isAtTarget() {
     return Utility.withinTolerance(getEncoderPose(), target, tolerance);
-  }
-
-  public Boolean isAtZero() {
-    return Utility.withinTolerance(getEncoderPose(), 0, tolerance);
-  }
-
-  public Boolean isWithinSafeRange() {
-    return Utility.betweenRange(getEncoderPose(), 0, 2) || Utility.betweenRange(getEncoderPose(), 30, ElevatorConstants.E_MAXHEIGHT);
   }
 
   public boolean isAtPoint(double point){

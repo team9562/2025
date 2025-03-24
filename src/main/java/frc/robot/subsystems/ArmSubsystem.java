@@ -155,12 +155,13 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public Command intakeOuttake(IntakeDirection direction) { // ex 1 or 0
-    return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0));
+    return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0))
+      .withTimeout(2);
   }
 
   public Command runCurrentZeroing(){
     return run(() -> pidPitch.setReference(1, ControlType.kVoltage, slot0))
-    .until(() -> pitchSpark.getOutputCurrent() > 20)
+    .until(() -> pitchSpark.getOutputCurrent() > 21)
     .andThen(run(() -> pidPitch.setReference(-1, ControlType.kVoltage, slot0)).withTimeout(0.3))
     .andThen(() -> pitchEncoder.setPosition(0))
     .finallyDo(() -> pitchSpark.stopMotor());

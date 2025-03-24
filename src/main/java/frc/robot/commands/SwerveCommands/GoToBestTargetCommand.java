@@ -193,11 +193,13 @@ private void stopMovement() {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    stopMovement();
+  }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {// if(currentYaw < accuracyYaw)
-    return currentYaw < accuracyYaw;
+    return Math.abs(currentYaw) < 1;
   }
 }

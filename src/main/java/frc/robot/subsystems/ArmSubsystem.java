@@ -3,13 +3,6 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.subsystems;
-
-import java.util.spi.LocaleNameProvider;
-
-import org.littletonrobotics.junction.console.RIOConsoleSource;
-import org.opencv.ml.ANN_MLP;
-
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -24,7 +17,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-import edu.wpi.first.math.estimator.KalmanFilter;
+
 import edu.wpi.first.wpilibj.AnalogEncoder;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -33,7 +26,6 @@ import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.NeoMotorConstants;
@@ -47,6 +39,7 @@ public class ArmSubsystem extends SubsystemBase {
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
   private final AnalogInput lampreyIn = new AnalogInput(3);
   private final AnalogEncoder lamprey = new AnalogEncoder(lampreyIn);
+  private final PWM lampreyPWM = new PWM(8);
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
 
@@ -107,7 +100,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getLampreyPose(){
-    return ((lamprey.get() / 5) * 3.3) * 360;
+    return lamprey.get();
   }
 
   public double getEncoderPose() {
@@ -156,7 +149,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   public Command intakeOuttake(IntakeDirection direction) { // ex 1 or 0
     return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0))
-      .withTimeout(2);
+      .withTimeout(2)
+      .finallyDo(() -> pitchSpark.stopMotor());
   }
 
   public Command runCurrentZeroing(){
@@ -191,8 +185,11 @@ public class ArmSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
-    SmartDashboard.putNumber("Arm/Lamprey Reading: ", getLampreyPose());
-    SmartDashboard.putNumber("Arm/Lamprey Voltage: ", lampreyIn.getVoltage());
+    SmartDashboard.putNumber("Arm/Lamprey PWM Reading: ", lampreyPWM.getPosition());
+    SmartDashboard.putNumber("Arm/Lamprey PWM Pulse(ms): ", lampreyPWM.getPulseTimeMicroseconds());
+    SmartDashboard.putNumber("Arm/Lamprey Analog Reading: ", getLampreyPose());
+    SmartDashboard.putNumber("Arm/Lamprey Analog V.: ", lampreyIn.getVoltage());
+    SmartDashboard.putNumber("Arm/Lamprey Analog Ave. V.: ", lampreyIn.getVoltage());
     SmartDashboard.putNumber("Arm/Arm Target: ", target);
     SmartDashboard.putBoolean("Arm/At Target", isAtTarget());
 

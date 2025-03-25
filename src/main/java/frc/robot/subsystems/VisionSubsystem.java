@@ -17,26 +17,18 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonUtils;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
-import org.photonvision.proto.Photon;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
-
-import com.revrobotics.spark.SparkBase.ControlType;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotContainer;
-import frc.robot.constants.ElevatorConstants;
 import frc.robot.constants.VisionConstants;
 
 public class VisionSubsystem extends SubsystemBase {
@@ -387,13 +379,21 @@ public void estimatePoseMultitag(SwerveDrivePoseEstimator swerveDrivePoseEstimat
   camera3PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
   camera4PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
 
-  EstimatedRobotPose camera2EstimatedPose = camera2PoseEstimator.update(camera2.getLatestResult()).get();
-  EstimatedRobotPose camera3EstimatedPose = camera3PoseEstimator.update(camera3.getLatestResult()).get();
-  EstimatedRobotPose camera4EstimatedPose = camera4PoseEstimator.update(camera4.getLatestResult()).get();
+  EstimatedRobotPose camera2EstimatedPose;
+  EstimatedRobotPose camera3EstimatedPose;
+  EstimatedRobotPose camera4EstimatedPose;
 
-  swerveDrivePoseEstimator.addVisionMeasurement(camera2EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
-  swerveDrivePoseEstimator.addVisionMeasurement(camera3EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
-  swerveDrivePoseEstimator.addVisionMeasurement(camera4EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+  try{
+    camera2EstimatedPose = camera2PoseEstimator.update(camera2.getLatestResult()).get();
+    camera3EstimatedPose = camera3PoseEstimator.update(camera3.getLatestResult()).get();
+    camera4EstimatedPose = camera4PoseEstimator.update(camera4.getLatestResult()).get();
+
+    swerveDrivePoseEstimator.addVisionMeasurement(camera2EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+    swerveDrivePoseEstimator.addVisionMeasurement(camera3EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+    swerveDrivePoseEstimator.addVisionMeasurement(camera4EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+  }
+
+  catch(Exception e){}
 }
 
 @Override

@@ -101,6 +101,11 @@ public class RobotContainer {
         .andThen(m_armSubsystem.runCurrentZeroing());
     }
 
+    private final Command runCurrentZeroing(){
+        return m_elevatorSubsystem.runCurrentZeroing()
+        .andThen(m_armSubsystem.runCurrentZeroing());
+    }
+
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
         return (m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)))
@@ -165,8 +170,8 @@ public class RobotContainer {
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
 
         // Change Around Please
-        // XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight("l2"));
-        XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B)); // 67.17 in
+        XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.L2));
+        //XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B)); // 67.17 in
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
         XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
@@ -180,37 +185,11 @@ public class RobotContainer {
         XController.povRight().onChange(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
 
         XController.rightBumper().onTrue(intakeCoralAlgae());
-        XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
+        XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)
+            .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
 
-
-        XController.rightStick().onChange(m_armSubsystem.runCurrentZeroing());
-        // Don't create a new command everytime it needs to be run, init at the top
-        // laserCan
-        // XController.x().onTrue(new InstantCommand(() ->
-        // m_laserCanSubsystem.detectObject(), m_laserCanSubsystem));
-
-        // Binding the GroundIntakeCommand
-        // XController.a().onTrue(new GroundIntakeCommand(m_groundIntakeSubsystem, 45.0,
-        // 90.0));
-        
-
-        // eggYoke examples for led
-        // eggYoke.button(5).onTrue(new SetLedCommand(ledSubsystem,
-        // RobotState.READY_TO_SHOOT));
-
-        // drivetrain.registerTelemetry(logger::telemeterize);
-
-        // Run SysId routines when holding 11 or 12
-        // Note that each routine should be run exactly once in a single log.
-        /*
-         * eggYoke.button(12).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-         * eggYoke.button(11).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-         * eggYoke.button(12).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward))
-         * ;
-         * eggYoke.button(11).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse))
-         * ;
-         */
+        XController.rightStick().onChange(m_elevatorSubsystem.setElevatorHeight(0));
     }
 
     public Command getAutonomousCommand() {

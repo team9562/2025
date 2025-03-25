@@ -7,8 +7,6 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.constants.ArmConstants;
-import frc.robot.constants.ArmConstants.ArmAngles;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.constants.NeoMotorConstants;
 import frc.robot.constants.ElevatorConstants.ElevatorHeights;
@@ -61,6 +59,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     rightConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .minOutput(ElevatorConstants.minOut)
+        .maxOutput(ElevatorConstants.maxOut)
         .pidf(kP, kI, kD, 0, slot0);
 
     rightConfig.encoder
@@ -75,6 +75,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     leftConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .minOutput(ElevatorConstants.minOut)
+        .maxOutput(ElevatorConstants.maxOut)
         .pidf(kP, kI, kD, 0, slot0);
 
     leftConfig.encoder
@@ -120,9 +122,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     return this
         .run(() -> pid.setReference(-2.5, ControlType.kVoltage, slot0)) // decrease??
         .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT + 1)
-        .andThen(() -> resetEncoderPose())
-        .finallyDo(() -> pid.setReference(0, ControlType.kVoltage, slot0));
+        .andThen(() -> pid.setReference(0, ControlType.kVoltage, slot0))
+        .finallyDo(() -> rightEncoder.setPosition(0));
   }
+
+  /*public Command rocketShip(){
+    return pid.setReference();
+
+  }*/
 
   public Boolean isAtTarget() {
     return Utility.withinTolerance(getEncoderPose(), target, tolerance);

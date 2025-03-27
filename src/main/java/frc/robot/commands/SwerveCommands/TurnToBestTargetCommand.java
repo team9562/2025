@@ -8,10 +8,12 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
 import static edu.wpi.first.units.Units.*;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class TurnToBestTargetCommand extends Command {
@@ -26,6 +28,11 @@ public class TurnToBestTargetCommand extends Command {
   private double currentYaw;
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   private final VisionSubsystem m_visionSubsystem; // for A.T follow command
+  private double adjustedYaw;
+  private double speedToTarget = 1;
+  private boolean isDoneAdjusting = false;
+  private static CommandXboxController XController = new CommandXboxController(0);
+
 
   public TurnToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request, int camNum) {
     this.m_drivetrain = sub1;
@@ -49,6 +56,9 @@ public class TurnToBestTargetCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+
+    // XController.b().onTrue(); // reset exit state
+
     closestTarget = m_visionSubsystem.getBestTarget(myCamNum); // Get the closest AprilTag target from the camera
 
     if (closestTarget == null) {
@@ -66,19 +76,39 @@ public class TurnToBestTargetCommand extends Command {
     }
 
     double yawDirection;
-    double decreasingFactor = 0; // Math.abs(currentYaw) * 0.01; // Gradually reduce speed near target -> fix later
-double accuracyYaw = 5; // how far off the yaw can be from perfect center
-    if (currentYaw > accuracyYaw) { // If target is to the right of midpoint
-      yawDirection = -1; // Turn left
-    } else if (currentYaw < -accuracyYaw) { // If target is to the left of midpoint
-      yawDirection = 1; // Turn right
-    } else { // The target yaw is between +/- accuracyYaw
-      yawDirection = 0; // Stop rotating when aligned
+    adjustedYaw = currentYaw;
+    if(myCamNum == 1){ // adjusting for the angle they face
+      adjustedYaw = currentYaw - 22.5;
+    }else if(myCamNum == 2){
+      adjustedYaw = currentYaw + 22.5;
     }
 
-    System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
 
-    this.m_drivetrain.setControl(m_drive.withRotationalRate((yawDirection * MaxAngularRate/2.5) * (1 - decreasingFactor)));
+
+  double decreasingFactor = 0; // Math.abs(adjustedYaw) * 0.01; // Gradually reduce speed near target -> fix later
+  double accuracyYaw = 5; // how far off the yaw can be from perfect center
+    if (adjustedYaw > 3) { // If target is to the right of midpoint
+      yawDirection = 1; // Turn left
+      speedToTarget = 0.05 * Math.abs(adjustedYaw);
+    } else if (adjustedYaw < -3) { // If target is to the left of midpoint
+      yawDirection = -1; // Turn right
+      speedToTarget = 0.05 * Math.abs(adjustedYaw);
+    } else { // The target yaw is between +/- accuracyYaw
+      yawDirection = 0; // Stop rotating when aligned
+      accuracyYaw--;
+      speedToTarget = 0.15;
+      if(adjustedYaw < 1 && adjustedYaw > -1){
+         isDoneAdjusting = true; // exit command
+      }
+    }
+
+    System.out.println("[INFO] Tag detected! Yaw: " + adjustedYaw + " | Turning: " + yawDirection);
+    if(speedToTarget < 0.5){
+    this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * speedToTarget)); // speedToTarget
+    } else{
+      this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * 0.75));
+    }
+    
   }
 
   // Called once the command ends or is interrupted.
@@ -91,6 +121,6 @@ double accuracyYaw = 5; // how far off the yaw can be from perfect center
   @Override
   public boolean isFinished() {
     // should not end unless button is toggled / lifted
-    return false;
+    return false; // isDoneAdjusting
   }
 }

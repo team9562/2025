@@ -27,7 +27,7 @@ import frc.robot.commands.followGuzPath;
 
 import frc.robot.commands.IntakeCommands.GroundIntakeCommand;
 import frc.robot.commands.LEDCommands.SetLedStateCommand;
-import frc.robot.commands.SwerveCommands.GoToBestTargetCommand;
+import frc.robot.commands.SwerveCommands.AlignToBestTagCommand;
 import frc.robot.commands.SwerveCommands.TurnAroundCommand;
 import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
 import frc.robot.constants.ArmConstants;
@@ -71,6 +71,8 @@ public class RobotContainer {
     public final static VisionSubsystem m_visionSubsystem = new VisionSubsystem();
     public final static LaserCanSubsystem m_laserCan = new LaserCanSubsystem();
     public final LedSubsystem m_ledSubsystem = new LedSubsystem();
+
+    public AlignToBestTagCommand alignToBestTagCommand = new AlignToBestTagCommand(drivetrain, m_visionSubsystem, drive);
 
     private final SendableChooser<Command> autoChooser;
 
@@ -121,13 +123,11 @@ public class RobotContainer {
                 .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT))
                 .andThen(simpleHome());
         }
-
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive,
             0);
+            
 
-    private final Command goToBestFunnel = new GoToBestTargetCommand(drivetrain, m_visionSubsystem, drive, true);
-    private final Command goToBestNotFunnel = new GoToBestTargetCommand(drivetrain, m_visionSubsystem, drive, false);
-
+   
     public RobotContainer() {
 
         registerCommands();
@@ -141,8 +141,7 @@ public class RobotContainer {
 
     private void registerCommands() {
         NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
-        NamedCommands.registerCommand("goToBestFunnel", goToBestFunnel);
-        NamedCommands.registerCommand("goToBestNotFunnel", goToBestNotFunnel);
+        NamedCommands.registerCommand("AlignToBestTag", alignToBestTagCommand);
         NamedCommands.registerCommand("ScoreCoral", autoScore());
         NamedCommands.registerCommand("Intake", m_armSubsystem.intakeOuttake(IntakeDirection.IN));
     }
@@ -160,14 +159,15 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
                 // Drivetrain will execute this command periodically
                 drivetrain.applyRequest(() -> drive
-                        .withVelocityX(-XController.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                        .withVelocityY(-XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                        .withVelocityX(-XController.getLeftY() * MaxSpeed/5) // Drive forward with negative Y (forward)
+                        .withVelocityY(-XController.getLeftX() * MaxSpeed/5) // Drive left with negative X (left)
                         .withRotationalRate(-XController.getRightX() * MaxAngularRate)));
 
         m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
         //m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.run(() -> m_elevatorSubsystem.moveElevator(XController.getRightY())));
         //// m_visionSubsystem.setDefaultCommand(goToBestTargetCommand);
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
+
 
         // Change Around Please
         XController.povUp().onChange(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.L2));
@@ -177,8 +177,7 @@ public class RobotContainer {
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
         XController.x().onTrue(m_elevatorSubsystem.runCurrentZeroing().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
         //XController.a().onChange(simpleHome().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
-        XController.a().onTrue(goToBestFunnel);
-        XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
+        
 
         // reset the field-centric heading on left bumper press
         XController.povDown().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -189,6 +188,8 @@ public class RobotContainer {
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
 
+        // XController.a().onTrue(alignToBestTagCommand);
+        XController.b().onTrue(turnToBestTargetCommand);
         XController.rightStick().onChange(m_elevatorSubsystem.setElevatorHeight(0));
     }
 

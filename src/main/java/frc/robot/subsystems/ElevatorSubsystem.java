@@ -126,10 +126,11 @@ public class ElevatorSubsystem extends SubsystemBase {
         .finallyDo(() -> rightEncoder.setPosition(0));
   }
 
-  /*public Command rocketShip(){
-    return pid.setReference();
-
-  }*/
+  public Command rocketShip(){
+    return run(() -> pid.setReference(ElevatorHeights.ZERO.getHeight(), ControlType.kPosition, slot0))
+    .until(() -> isAtPoint(ElevatorHeights.ZERO))
+    .andThen(runCurrentZeroing());
+  }
 
   public Boolean isAtTarget() {
     return Utility.withinTolerance(getEncoderPose(), target, tolerance);

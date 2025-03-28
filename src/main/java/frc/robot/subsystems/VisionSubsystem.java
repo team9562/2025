@@ -33,7 +33,7 @@ import frc.robot.constants.VisionConstants;
 
 public class VisionSubsystem extends SubsystemBase {
   /** Creates a new VisionSubsystem. */
-  //private PhotonCamera camera1;
+  private PhotonCamera camera1;
   private PhotonCamera camera2;
   private PhotonCamera camera3;
   private PhotonCamera camera4;
@@ -66,29 +66,29 @@ public class VisionSubsystem extends SubsystemBase {
       .loadField(AprilTagFields.k2025ReefscapeWelded);
 
   public VisionSubsystem() {
-    //this.cameraPositions[0] = VisionConstants.camera1ToRobot;
+    this.cameraPositions[0] = VisionConstants.camera1ToRobot;
     this.cameraPositions[1] = VisionConstants.camera2ToRobot;
     this.cameraPositions[2] = VisionConstants.camera3ToRobot;
     this.cameraPositions[3] = VisionConstants.camera4ToRobot;
 
-    //this.camera1 = new PhotonCamera(VisionConstants.cameraName1);
+    this.camera1 = new PhotonCamera(VisionConstants.cameraName1);
     this.camera2 = new PhotonCamera(VisionConstants.cameraName2);
     this.camera3 = new PhotonCamera(VisionConstants.cameraName3);
     this.camera4 = new PhotonCamera(VisionConstants.cameraName4);
-    this.cameras = new PhotonCamera[] { camera2, camera3, camera4 };
+    this.cameras = new PhotonCamera[] { camera1, camera2, camera3, camera4 };
 
     this.results = new PhotonPipelineResult[] {
-        //camera1.getLatestResult(),
+        camera1.getLatestResult(),
         camera2.getLatestResult(),
         camera3.getLatestResult(),
         camera4.getLatestResult() };
 
-    //CAMERA_HEIGHTS.put(camera1, VisionConstants.camera1Z);
+    CAMERA_HEIGHTS.put(camera1, VisionConstants.camera1Z);
     CAMERA_HEIGHTS.put(camera2, VisionConstants.camera2Z);
     CAMERA_HEIGHTS.put(camera3, VisionConstants.camera3Z);
     CAMERA_HEIGHTS.put(camera4, VisionConstants.camera4Z);
 
-    //CAMERA_PITCHES.put(camera1, VisionConstants.camera1pitch);
+    CAMERA_PITCHES.put(camera1, VisionConstants.camera1pitch);
     CAMERA_PITCHES.put(camera2, VisionConstants.camera2pitch);
     CAMERA_PITCHES.put(camera3, VisionConstants.camera3pitch);
     CAMERA_PITCHES.put(camera4, VisionConstants.camera4pitch);

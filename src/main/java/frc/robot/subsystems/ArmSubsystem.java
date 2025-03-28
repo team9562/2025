@@ -17,13 +17,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
-
-import edu.wpi.first.wpilibj.AnalogEncoder;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -35,11 +29,14 @@ import frc.robot.utils.Utility;
 
 public class ArmSubsystem extends SubsystemBase {
 
+  double[] data = new double[10];
+  int index = 0;
+  double avg = 0;
+double currentData = 0;
+double lastData = 0;
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
-  private final AnalogInput lampreyIn = new AnalogInput(3);
-  private final AnalogEncoder lamprey = new AnalogEncoder(lampreyIn);
-  private final PWM lampreyPWM = new PWM(8);
+  private final DutyCycleEncoder lampreyPWM = new DutyCycleEncoder(7, 360, 0);
 
   private final SparkMax openSpark = new SparkMax(ArmConstants.A_OPEN_ID, MotorType.kBrushless);
 
@@ -56,7 +53,7 @@ public class ArmSubsystem extends SubsystemBase {
     basicConfig
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .disableFollowerMode()
-        .idleMode(IdleMode.kBrake);
+        .idleMode(IdleMode.kCoast);
 
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -69,12 +66,14 @@ public class ArmSubsystem extends SubsystemBase {
 
     pitchConfig
         .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
-        .inverted(false)
+        .inverted(true)
         
     .encoder
         .positionConversionFactor(ArmConstants.pConversionFactor);
 
     pitchConfig.closedLoop
+    .minOutput(-0.1)
+    .maxOutput(0.1)
         .pidf(
             ArmConstants.kP_PITCH,
             ArmConstants.kI_PITCH,
@@ -100,7 +99,7 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   public double getLampreyPose(){
-    return lamprey.get();
+    return lampreyPWM.get();
   }
 
   public double getEncoderPose() {
@@ -109,12 +108,6 @@ public class ArmSubsystem extends SubsystemBase {
 
   public void resetPitch(){
     pitchEncoder.setPosition(0);
-  }
-
-  public void resetRelative(){
-    double absolute = getLampreyPose();
-    if(getEncoderPose() < 0) pitchEncoder.setPosition((360 - absolute) * -1);
-    if(getEncoderPose() > 0) pitchEncoder.setPosition(absolute);
   }
 
   public void burnFlash() {
@@ -129,18 +122,18 @@ public class ArmSubsystem extends SubsystemBase {
     return openSpark.getOutputCurrent();
   }
 
-  public Command turnPitchMotor(double angle) {
-    this.target = angle;
-    return run(() -> pidPitch.setReference(angle, ControlType.kPosition, slot0, 0.0, ArbFFUnits.kVoltage));
+  public double getError(double tar){
+   if(Math.abs(tar - avg) > 5) return tar - avg;
+   else return 0;
   }
 
-  public Command turnPitchMotor(ArmAngles angle) {
-    this.target = angle.getAngle();
-    return run(() -> pidPitch.setReference(angle.getAngle(), ControlType.kPosition, slot0, 0.0, ArbFFUnits.kVoltage));
+  public double getComparison(double tar){
+    double error = (getEncoderPose() - avg + 38) + tar;
+    return error; 
   }
 
   public void manualPitchMotor(double volts) {
-    pidPitch.setReference(volts * 2, ControlType.kVoltage, slot0, 0.0, ArbFFUnits.kVoltage);
+    pidPitch.setReference(volts * 1.5, ControlType.kVoltage, slot0, 0.0, ArbFFUnits.kVoltage);
   }
 
   public Command intakeOuttake(double intake){
@@ -151,6 +144,14 @@ public class ArmSubsystem extends SubsystemBase {
     return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0))
       .withTimeout(2)
       .finallyDo(() -> pitchSpark.stopMotor());
+  }
+
+  public Command setWithLamprey(double tar){
+    return run(() -> pidPitch.setReference(getComparison(tar), ControlType.kPosition, slot0));
+  }
+
+  public Command setWithLamprey(ArmAngles angle){
+    return run(() -> pidPitch.setReference(getComparison(angle.getAngle()), ControlType.kPosition, slot0));
   }
 
   public Command runCurrentZeroing(){
@@ -164,37 +165,40 @@ public class ArmSubsystem extends SubsystemBase {
   public boolean isAtTarget(){
     return Utility.withinTolerance(getEncoderPose(), target, ArmConstants.A_TOLERANCE);
   }
-  
-  public boolean isAtCenter(){
-    return Utility.withinTolerance(getEncoderPose(), target, ArmConstants.A_TOLERANCE);
-  }
-
-  public boolean isWithinSafeRange(){
-    return Utility.withinTolerance(getEncoderPose(), -39, 10);
-  }
 
   public boolean isAtPoint(double point){
-    return Utility.withinTolerance(getEncoderPose(), point, ArmConstants.A_TOLERANCE);
+    return Utility.withinTolerance(getEncoderPose() - getComparison(point), point, ArmConstants.A_TOLERANCE);
   }
 
   public boolean isAtPoint(ArmAngles angle){
-    return Utility.withinTolerance(getEncoderPose(), angle.getAngle(), ArmConstants.A_TOLERANCE);
+    return Utility.withinTolerance(getEncoderPose() - getComparison(angle.getAngle()), angle.getAngle(), ArmConstants.A_TOLERANCE);
   }
-
 
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
-    SmartDashboard.putNumber("Arm/Lamprey PWM Reading: ", lampreyPWM.getPosition());
-    SmartDashboard.putNumber("Arm/Lamprey PWM Pulse(ms): ", lampreyPWM.getPulseTimeMicroseconds());
     SmartDashboard.putNumber("Arm/Lamprey Analog Reading: ", getLampreyPose());
-    SmartDashboard.putNumber("Arm/Lamprey Analog V.: ", lampreyIn.getVoltage());
-    SmartDashboard.putNumber("Arm/Lamprey Analog Ave. V.: ", lampreyIn.getVoltage());
+    SmartDashboard.putNumber("Arm/Lamprey Frequency: ", lampreyPWM.getFrequency());
     SmartDashboard.putNumber("Arm/Arm Target: ", target);
     SmartDashboard.putBoolean("Arm/At Target", isAtTarget());
 
-    /*if(!Utility.withinTolerance(getEncoderPose(), getLampreyPose(), 2)){
-      resetRelative();
-    }*/
+    currentData = getLampreyPose();
+
+  if(Math.abs(lastData - currentData) < 45 ){
+    data[index] = currentData;
+    index++;
+    index = index % 10;
+   
+  }
+  lastData = currentData;
+  avg = 0;
+    for(double num : data) avg += num;
+    avg = avg / 10.0;
+
+    if(avg > 180) avg -= 360;
+    if(avg < -180) avg += 360;
+  
+    SmartDashboard.putNumber("Arm/Lamprey Average: ", avg);
+    SmartDashboard.putNumber("Arm/Lamprey Comparison: ", getComparison(0));
   }
 }

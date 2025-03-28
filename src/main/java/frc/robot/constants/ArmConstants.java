@@ -3,6 +3,7 @@ package frc.robot.constants;
 import com.revrobotics.spark.ClosedLoopSlot;
 
 public class ArmConstants {
+
     public static final int A_PITCH_ID = 30;
     public static final int A_OPEN_ID = 29;
 
@@ -44,11 +45,12 @@ public class ArmConstants {
 
     //in degrees
     public enum ArmAngles {
-        L2(-142),
-        L3(-142),
-        L4(-168.94),
-        CORAL(0),
-        ZERO(-39),
+        L2(109),
+        L3(109),
+        L4(135.94),
+        CORAL(-85),
+        ALGAE(90),
+        ZERO(0),
         B(0);
     
         private final double angle;

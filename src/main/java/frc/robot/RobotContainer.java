@@ -44,6 +44,7 @@ import frc.robot.subsystems.LaserCanSubsystem;
 import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.LedSubsystem.RobotState;
+import frc.robot.subsystems.CoralGroundIntake;
 import frc.robot.utils.Utility;
 
 public class RobotContainer {
@@ -67,10 +68,10 @@ public class RobotContainer {
     public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final static ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
     public final static ArmSubsystem m_armSubsystem = new ArmSubsystem();
-    public final static GroundIntakeSubsystem m_groundIntakeSubsystem = new GroundIntakeSubsystem();
     public final static VisionSubsystem m_visionSubsystem = new VisionSubsystem();
     public final static LaserCanSubsystem m_laserCan = new LaserCanSubsystem();
     public final LedSubsystem m_ledSubsystem = new LedSubsystem();
+    public final static CoralGroundIntake m_coralGroundIntake = new CoralGroundIntake();
 
     public AlignToBestTagCommand alignToBestTagCommand = new AlignToBestTagCommand(drivetrain, m_visionSubsystem, drive);
 
@@ -149,7 +150,7 @@ public class RobotContainer {
     private void burnAllFlash() {
         m_elevatorSubsystem.burnFlash();
         m_armSubsystem.burnFlash();
-        m_groundIntakeSubsystem.burnFlash();
+        m_coralGroundIntake.burnFlash();
     }
 
     private void configureBindings() {
@@ -178,6 +179,9 @@ public class RobotContainer {
         XController.x().onTrue(m_elevatorSubsystem.runCurrentZeroing().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
         //XController.a().onChange(simpleHome().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
         
+
+        XController.a().onTrue(m_coralGroundIntake.frontIntakeAndPositionCommand());
+        // THISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONE
 
         // reset the field-centric heading on left bumper press
         XController.povDown().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));

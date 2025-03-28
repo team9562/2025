@@ -85,8 +85,8 @@ public class RobotContainer {
     }
 
     private final Command simpleHome(){
-        return m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
-            .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO))
+        return (m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
+            .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)))
         .andThen(m_elevatorSubsystem.rocketShip())
         .andThen(m_armSubsystem.setWithLamprey(ArmAngles.CORAL)
             .onlyIf(() -> m_coralGroundIntake.getEncoderPose() > 0.15));
@@ -112,8 +112,7 @@ public class RobotContainer {
             m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)),
             m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
-                .until(() ->m_coralGroundIntake.isAtPoint(CoralAngles.ZERO))))
-            .alongWith(new SetLedStateCommand(m_ledSubsystem, RobotState.INTAKE_CORAL));
+                .until(() ->m_coralGroundIntake.isAtPoint(CoralAngles.ZERO))));
     }
 
     // autoScore
@@ -161,8 +160,8 @@ public class RobotContainer {
 
         m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
-        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.run(() -> m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
-            .onlyWhile(m_armSubsystem::isSafe)));
+        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
+            .onlyWhile(m_armSubsystem::isSafe));
 
         XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B));
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));
@@ -177,7 +176,7 @@ public class RobotContainer {
         //resets the arm's rotation angle on d-pad right
         XController.povRight().onChange(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
 
-        //sends the elevator up
+        //sends the elevator up to grab a coral off the reef
         XController.povLeft().onChange(new ParallelCommandGroup(
             m_armSubsystem.setWithLamprey(ArmAngles.ALGAE)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ALGAE)), 
@@ -185,10 +184,10 @@ public class RobotContainer {
 
         //intakes
         XController.rightBumper().onTrue(intakeFromGround());
+        XController.x().onTrue(intakeCoralAlgae());
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
-        XController.x().onTrue(intakeCoralAlgae());
 
         // XController.a().onTrue(alignToBestTagCommand);
         XController.b().onTrue(turnToBestTargetCommand);

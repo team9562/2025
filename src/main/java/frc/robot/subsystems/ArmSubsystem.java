@@ -175,7 +175,7 @@ double lastData = 0;
   }
 
   public boolean isSafe(){
-    return getEncoderPose() - getComparison(getEncoderPose()) > 0;
+    return avg > 38;
   }
 
   @Override
@@ -203,6 +203,7 @@ double lastData = 0;
     if(avg < -180) avg += 360;
   
     SmartDashboard.putNumber("Arm/Lamprey Average: ", avg);
-    SmartDashboard.putNumber("Arm/Lamprey Comparison: ", getComparison(getEncoderPose()));
+    SmartDashboard.putNumber("Arm/Lamprey Comparison: ", getComparison(0));
+    SmartDashboard.putBoolean("Arm/Is Safe For CGI 0: ", isSafe());
   }
 }

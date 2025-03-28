@@ -21,8 +21,6 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
 public class CoralGroundIntake extends SubsystemBase {
@@ -74,6 +72,8 @@ public class CoralGroundIntake extends SubsystemBase {
 
     rotateConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+        .minOutput(-0.75)
+        .maxOutput(0.75)
         .pid(CoralGroundIntakeConstants.ROTATION_kP,
             CoralGroundIntakeConstants.ROTATION_kI,
             CoralGroundIntakeConstants.ROTATION_kD,
@@ -145,6 +145,7 @@ public class CoralGroundIntake extends SubsystemBase {
     SmartDashboard.putNumber("Intake/Front Motor Current", frontIntakeMotor.getOutputCurrent());
     SmartDashboard.putNumber("Intake/Back Motor Current", backIntakeMotor.getOutputCurrent());
     SmartDashboard.putNumber("Intake/Rotate Motor Current", rotateMotor.getOutputCurrent());
+    SmartDashboard.putNumber("Intake/Bus Voltage: ", rotateMotor.getBusVoltage());
     SmartDashboard.putNumber("Intake/Arm Position", rotationEncoder.getPosition());
     SmartDashboard.putBoolean("Intake/Beam Break Sensor", beamBreakSensor.get());
   }

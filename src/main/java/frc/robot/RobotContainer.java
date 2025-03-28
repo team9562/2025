@@ -96,7 +96,7 @@ public class RobotContainer {
     }
 
     private final Command simpleHome(){
-        return m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
+        return m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
             .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO))
         .andThen(m_elevatorSubsystem.setElevatorHeight(ElevatorHeights.ZERO))
             .until(()-> m_elevatorSubsystem.isAtPoint(ElevatorHeights.ZERO))
@@ -110,11 +110,11 @@ public class RobotContainer {
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return (m_armSubsystem.turnPitchMotor(ArmAngles.ZERO)
+        return (m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)))
                 .andThen((m_elevatorSubsystem.setElevatorHeight(height.getHeight())
                     .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
-                .alongWith(m_armSubsystem.turnPitchMotor(angle.getAngle())
+                .alongWith(m_armSubsystem.setWithLamprey(angle.getAngle())
                     .until(() -> m_armSubsystem.isAtPoint(angle.getAngle()))));
     }
 
@@ -176,10 +176,12 @@ public class RobotContainer {
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3)); // 43.86 in
         XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2)); // 26.85 in
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)); // 77.1 in
-        XController.x().onTrue(m_elevatorSubsystem.runCurrentZeroing().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
+        XController.x().onTrue(m_elevatorSubsystem.rocketShip().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
         //XController.a().onChange(simpleHome().alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.MOVING_BLOCK))));
-        
-
+        //XController.a().onTrue(goToBestFunnel);
+        //XController.b().onTrue(goToBestNotFunnel); // no exit command rn -> fix later
+        XController.a().onTrue(m_armSubsystem.setWithLamprey(20));
+        XController.b().onTrue(m_armSubsystem.setWithLamprey(-20));
         XController.a().onTrue(m_coralGroundIntake.frontIntakeAndPositionCommand());
         // THISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONE
 

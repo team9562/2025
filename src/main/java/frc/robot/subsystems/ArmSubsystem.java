@@ -174,6 +174,10 @@ double lastData = 0;
     return Utility.withinTolerance(getEncoderPose() - getComparison(angle.getAngle()), angle.getAngle(), ArmConstants.A_TOLERANCE);
   }
 
+  public boolean isSafe(){
+    return getEncoderPose() - getComparison(getEncoderPose()) > 0;
+  }
+
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Arm/Arm Encoder: ", getEncoderPose());
@@ -199,6 +203,6 @@ double lastData = 0;
     if(avg < -180) avg += 360;
   
     SmartDashboard.putNumber("Arm/Lamprey Average: ", avg);
-    SmartDashboard.putNumber("Arm/Lamprey Comparison: ", getComparison(0));
+    SmartDashboard.putNumber("Arm/Lamprey Comparison: ", getComparison(getEncoderPose()));
   }
 }

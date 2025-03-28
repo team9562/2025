@@ -13,7 +13,6 @@ public class CoralGroundIntakeConstants {
     public static final int PICKUP_MOTOR_STALL_LIMIT = 20;
     public static final int ROTATION_MOTOR_STALL_LIMIT = 20;
 
-    public static final float ROTATION_POSITION_CONVERSION = 1/360f*50f;
     public static final int ROTATION_SLOT = 30;
 
     public static final int ROTATION_kP = 0;
@@ -23,4 +22,19 @@ public class CoralGroundIntakeConstants {
 
     public static final ClosedLoopSlot INTAKE_SLOT = ClosedLoopSlot.kSlot0;
 
+    public enum CoralAngles{
+        FLOOR(0.704),
+        CORAL(0.475),
+        ZERO(0);
+
+        private final double angle;
+    
+        CoralAngles(double angle) {
+            this.angle = angle;
+        }
+    
+        public double getAngle() {
+            return angle;
+        }
+    }
 }

@@ -13,13 +13,13 @@ public class LedSubsystem extends SubsystemBase {
 
     private final AddressableLED m_led1;
     private final AddressableLEDBuffer m_ledBuffer1;
-    
+
     private int rainbowIndex = 0;
     private double lastRainbowUpdateTime = 0;
     private static final double RAINBOW_INTERVAL = 0.5;
     private final int[][] rainbowColors = {
-            {255, 0, 0}, {255, 127, 0}, {255, 255, 0},
-            {0, 255, 0}, {0, 0, 255}, {75, 0, 130}, {148, 0, 211}
+            { 255, 0, 0 }, { 255, 127, 0 }, { 255, 255, 0 },
+            { 0, 255, 0 }, { 0, 0, 255 }, { 75, 0, 130 }, { 148, 0, 211 }
     };
 
     private boolean flashOn = false;
@@ -32,8 +32,8 @@ public class LedSubsystem extends SubsystemBase {
     private static final double BLOCK_MOVE_INTERVAL = 0.02;
 
     public enum RobotState {
-        IDLE, RAINBOW, MOVING_BLOCK, SOLID_RED, SOLID_BLUE, INTAKE_CORAL, INTAKE_BALL,
-        SHOOTING_REEF, SHOOTING_BARGE, READY_TO_SHOOT
+        IDLE, RAINBOW, MOVING_BLOCK_DOWN, MOVING_BLOCK_UP, SOLID_RED, SOLID_BLUE, INTAKE_CORAL, INTAKE_BALL,
+        SHOOTING_REEF, SHOOTING_BARGE, READY_TO_SHOOT,
     }
 
     private RobotState currentState = RobotState.IDLE;
@@ -75,10 +75,52 @@ public class LedSubsystem extends SubsystemBase {
                 m_ledBuffer1.setRGB(i, 0, 0, 0);
             }
             for (int i = blockPosition; i < blockPosition + BLOCK_SIZE && i < m_ledBuffer1.getLength(); i++) {
-                m_ledBuffer1.setRGB(i, 255, 0, 0);
+                m_ledBuffer1.setRGB(i, 139, 0, 0);
             }
             m_led1.setData(m_ledBuffer1);
             blockPosition = (blockPosition + 1) % (m_ledBuffer1.getLength() - BLOCK_SIZE);
+            lastBlockUpdateTime = Timer.getFPGATimestamp();
+        }
+    }
+
+    private void runBlockEffect(int r, int g, int b) {
+        if (Timer.getFPGATimestamp() - lastBlockUpdateTime >= BLOCK_MOVE_INTERVAL) {
+            for (int i = 0; i < m_ledBuffer1.getLength(); i++) {
+                m_ledBuffer1.setRGB(i, 0, 0, 0);
+            }
+            for (int i = blockPosition; i < blockPosition + BLOCK_SIZE && i < m_ledBuffer1.getLength(); i++) {
+                m_ledBuffer1.setRGB(i, r, g, b);
+            }
+            m_led1.setData(m_ledBuffer1);
+            blockPosition = (blockPosition + 1) % (m_ledBuffer1.getLength() - BLOCK_SIZE);
+            lastBlockUpdateTime = Timer.getFPGATimestamp();
+        }
+    }
+
+    private void runBlockEffectReverse() {
+        if (Timer.getFPGATimestamp() - lastBlockUpdateTime >= BLOCK_MOVE_INTERVAL) {
+            for (int i = 0; i < m_ledBuffer1.getLength(); i++) {
+                m_ledBuffer1.setRGB(i, 0, 0, 0);
+            }
+            for (int i = blockPosition; i < blockPosition + BLOCK_SIZE && i < m_ledBuffer1.getLength(); i++) {
+                m_ledBuffer1.setRGB(i, 139, 0, 0);
+            }
+            m_led1.setData(m_ledBuffer1);
+            blockPosition = (blockPosition - 1) % (m_ledBuffer1.getLength() - BLOCK_SIZE);
+            lastBlockUpdateTime = Timer.getFPGATimestamp();
+        }
+    }
+
+    private void runBlockEffectReverse(int r, int g, int b) {
+        if (Timer.getFPGATimestamp() - lastBlockUpdateTime >= BLOCK_MOVE_INTERVAL) {
+            for (int i = 0; i < m_ledBuffer1.getLength(); i++) {
+                m_ledBuffer1.setRGB(i, 0, 0, 0);
+            }
+            for (int i = blockPosition; i < blockPosition + BLOCK_SIZE && i < m_ledBuffer1.getLength(); i++) {
+                m_ledBuffer1.setRGB(i, r, g, b);
+            }
+            m_led1.setData(m_ledBuffer1);
+            blockPosition = (blockPosition - 1) % (m_ledBuffer1.getLength() - BLOCK_SIZE);
             lastBlockUpdateTime = Timer.getFPGATimestamp();
         }
     }
@@ -93,7 +135,7 @@ public class LedSubsystem extends SubsystemBase {
     private void resetFlashing() {
         flashOn = false;
         lastFlashTime = Timer.getFPGATimestamp();
-    }    
+    }
 
     private void setFlashingColor(int r, int g, int b) {
         double currentTime = Timer.getFPGATimestamp();
@@ -101,11 +143,11 @@ public class LedSubsystem extends SubsystemBase {
             flashOn = !flashOn;
             lastFlashTime = currentTime;
         }
-        
+
         int displayR = flashOn ? r : 0;
         int displayG = flashOn ? g : 0;
         int displayB = flashOn ? b : 0;
-        
+
         for (int i = 0; i < m_ledBuffer1.getLength(); i++) {
             m_ledBuffer1.setRGB(i, displayR, displayG, displayB);
         }
@@ -118,29 +160,32 @@ public class LedSubsystem extends SubsystemBase {
             case RAINBOW:
                 runRainbowEffect();
                 break;
-            case MOVING_BLOCK:
-                runBlockEffect();
+            case MOVING_BLOCK_DOWN:
+                runBlockEffect(); // moves down
+                break;
+            case MOVING_BLOCK_UP:
+                runBlockEffectReverse(); // moves down
                 break;
             case INTAKE_CORAL:
-                setFlashingColor(255, 0, 0);
+                setFlashingColor(255, 248, 220); // white like coral (but it's off white cuz normal white is boring)
                 break;
             case INTAKE_BALL:
-                setFlashingColor(0, 0, 255);
+                setFlashingColor(100, 233, 134); // teal like algae
                 break;
             case SHOOTING_REEF:
-                setFlashingColor(0, 0, 255);
+                setFlashingColor(120, 81, 169); // purple like the reef
                 break;
             case SHOOTING_BARGE:
-                setFlashingColor(0, 0, 255);
+                setFlashingColor(255, 160, 122); // orange like the net
                 break;
             case READY_TO_SHOOT:
-                setFlashingColor(0, 0, 255);
+                runRainbowEffect();
+                setFlashingColor(255, 255, 255); // does this switch between rainbow and flash?
                 break;
             case IDLE:
-                setColor(100, 100, 100);
+                setColor(139, 0, 0); // royals colour ish
                 break;
             default:
-                setColor(255, 255, 255);
                 break;
         }
     }

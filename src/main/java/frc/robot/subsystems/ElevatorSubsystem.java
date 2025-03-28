@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ElevatorConstants;
 import frc.robot.constants.NeoMotorConstants;
@@ -43,10 +44,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private double tolerance = ElevatorConstants.E_TOLERANCE;
   private double target;
-
-  // debug info
-  double inputVolts = 0;
-  boolean isReacting = false;
 
   public ElevatorSubsystem() {
 
@@ -103,19 +100,35 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public void moveElevator(double volts) {
-    this.isReacting = true;
-    this.inputVolts = volts;
     pid.setReference(volts * 5, ControlType.kVoltage, slot0);
   }
 
   public Command setElevatorHeight(double targetHeight) {
-    this.target = targetHeight;
     return run(() -> pid.setReference(targetHeight, ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage)); // resolve error
   }
 
   public Command setElevatorHeight(ElevatorHeights height) {
-    this.target = height.getHeight();
     return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage));
+  }
+
+  public Command setDeltaHeight(){
+    double delta;
+    if(isAtPoint(ElevatorHeights.L2)){
+      delta = getEncoderPose() + ElevatorHeights.L3.getHeight() - ElevatorHeights.L2.getHeight();
+      this.target = delta;
+      return setElevatorHeight(delta);
+    }
+
+    else if(isAtPoint(ElevatorHeights.L3)){
+      delta = getEncoderPose() + ElevatorHeights.L4.getHeight() - ElevatorHeights.L3.getHeight();
+      this.target = delta;
+      return setElevatorHeight(delta);
+    }
+
+    else {
+      this.target = -1;
+      return run(() -> stopElevator());
+     } // or run a new instant command
   }
 
   public Command runCurrentZeroing() {
@@ -154,8 +167,5 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     SmartDashboard.putBoolean("Elevator/Target Reached: ", isAtTarget());
     SmartDashboard.putNumber("Elevator/Target Height: ", target);
-
-    SmartDashboard.putBoolean("Elevator/Manual Move: ", isReacting);
-    SmartDashboard.putNumber("Elevator/Input Volts", inputVolts); // should be between one or negative one
   }
 }

@@ -13,7 +13,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.swerve.SwerveModule;
 
 import au.grapplerobotics.CanBridge;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -109,9 +108,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Field", mField);
 
     CommandScheduler.getInstance().run();
-
-    // System.out.println("X: " + currentPosX);
-    // System.out.println("Y: " + currentPosY);
   }
 
   @Override

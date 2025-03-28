@@ -9,13 +9,13 @@ public class CoralGroundIntakeConstants {
 
     public static final int BEAM_BREAK_SENSOR_ID = 9;
 
-    public static final int ROTATION_TOLERANCE = 1;
+    public static final double ROTATION_TOLERANCE = 0.05;
     public static final int PICKUP_MOTOR_STALL_LIMIT = 20;
-    public static final int ROTATION_MOTOR_STALL_LIMIT = 20;
+    public static final int ROTATION_MOTOR_STALL_LIMIT = 40;
 
     public static final int ROTATION_SLOT = 30;
 
-    public static final int ROTATION_kP = 0;
+    public static final double ROTATION_kP = 0.05;
     public static final int ROTATION_kI = 0;
     public static final int ROTATION_kD = 0;
     public static final int ROTATION_kFF = 0;

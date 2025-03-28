@@ -7,20 +7,16 @@ package frc.robot;
 import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.utils.guzPath;
 
 public final class Main {
-  public static final int john = 0;
   public static ArrayList<PVector> botPath = new ArrayList<PVector>();
 
   private Main() {
   }
 
   public static void main(String... args) {
-    guzPath guzBot = new guzPath();
-    System.out.println("Staringg guz thread");
-    guzBot.start();
-    System.out.println("Thread started successfully.");
     RobotBase.startRobot(Robot::new);
+    
+    System.out.println("[ROBOT STARTED] We did something right, that's for sure");
   }
 }

@@ -48,34 +48,35 @@ public class CoralGroundIntake extends SubsystemBase {
   // Sensor
   private final DigitalInput beamBreakSensor = new DigitalInput(CoralGroundIntakeConstants.BEAM_BREAK_SENSOR_ID);
 
+  private final double tolerance = CoralGroundIntakeConstants.ROTATION_TOLERANCE;
+
   public CoralGroundIntake() {
     // Configure Front Intake Motor
     frontIntakeConfig
         .smartCurrentLimit(CoralGroundIntakeConstants.PICKUP_MOTOR_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-        .idleMode(IdleMode.kBrake)
+        .idleMode(IdleMode.kCoast)
         .inverted(true);
 
     // Configure Back Intake Motor
     backIntakeConfig
         .smartCurrentLimit(CoralGroundIntakeConstants.PICKUP_MOTOR_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-        .idleMode(IdleMode.kBrake)
+        .idleMode(IdleMode.kCoast)
         .inverted(false);
 
     // Configure Rotate Motor with PID settings
     rotateConfig
         .smartCurrentLimit(CoralGroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-        .idleMode(IdleMode.kCoast)
+        .idleMode(IdleMode.kBrake)
         .inverted(false);
 
     rotateConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-        .pidf(CoralGroundIntakeConstants.ROTATION_kP,
+        .pid(CoralGroundIntakeConstants.ROTATION_kP,
             CoralGroundIntakeConstants.ROTATION_kI,
             CoralGroundIntakeConstants.ROTATION_kD,
-            CoralGroundIntakeConstants.ROTATION_kFF,
             slot0);
   }
 
@@ -84,13 +85,6 @@ public class CoralGroundIntake extends SubsystemBase {
     frontIntakeMotor.configure(frontIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     backIntakeMotor.configure(backIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     rotateMotor.configure(rotateConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-  }
-
-  // Main Intake Sequence
-  public Command intakeSequence() {
-    return new SequentialCommandGroup(IntakeWithBeamBreak(),
-    setIntakePosition(CoralAngles.CORAL)
-    );
   }
 
   public void intakeFront(){
@@ -103,7 +97,7 @@ public class CoralGroundIntake extends SubsystemBase {
 
   public void intakeBoth(){
      intakeFront();
-     intakeBack(); // this might be an error
+     intakeBack(); // this might be an error but prolly not
   }
 
   public void stopIntake(){
@@ -118,27 +112,28 @@ public class CoralGroundIntake extends SubsystemBase {
         .finallyDo(() -> stopIntake());
   }
 
+  // Main Intake Sequence
+  public Command intakeSequence() {
+    return new SequentialCommandGroup(IntakeWithBeamBreak(),
+    setIntakePosition(CoralAngles.CORAL)
+    );
+  }
+
   // Set Intake Arm Position using PID
   public Command setIntakePosition(double position) {
-    return run(() -> rotationPID.setReference(position, ControlType.kPosition, CoralGroundIntakeConstants.INTAKE_SLOT));
+    return run(() -> rotationPID.setReference(position, ControlType.kPosition, slot0));
   }
 
   public Command setIntakePosition(CoralAngles position) {
-    return run(() -> rotationPID.setReference(position.getAngle(), ControlType.kPosition, CoralGroundIntakeConstants.INTAKE_SLOT));
-  }
-
-  public Command logBeamBreakStatus() {
-    return new InstantCommand(() -> {
-      System.out.println("Beam Break Sensor: " + (beamBreakSensor.get() ? "Unbroken" : "Broken"));
-    }, this);
+    return run(() -> rotationPID.setReference(position.getAngle(), ControlType.kPosition, slot0));
   }
 
   public boolean isAtPoint(double point){
-    return Utility.withinTolerance(getEncoderPose(), point, 0.05); // 0.05???????
+    return Utility.withinTolerance(getEncoderPose(), point, tolerance);
   }
 
   public boolean isAtPoint(CoralAngles point){
-    return Utility.withinTolerance(getEncoderPose(), point.getAngle(), 0.05); // 0.05???????
+    return Utility.withinTolerance(getEncoderPose(), point.getAngle(), tolerance);
   }
 
   public double getEncoderPose(){
@@ -152,6 +147,5 @@ public class CoralGroundIntake extends SubsystemBase {
     SmartDashboard.putNumber("Intake/Rotate Motor Current", rotateMotor.getOutputCurrent());
     SmartDashboard.putNumber("Intake/Arm Position", rotationEncoder.getPosition());
     SmartDashboard.putBoolean("Intake/Beam Break Sensor", beamBreakSensor.get());
-    System.out.println(rotationEncoder.getPosition());
   }
 }

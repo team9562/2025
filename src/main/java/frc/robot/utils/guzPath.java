@@ -1,4 +1,4 @@
-package frc.robot.utils;
+/*package frc.robot.utils;
 
 import java.util.Scanner;
 
@@ -32,7 +32,7 @@ public class guzPath extends Thread {
              * } catch (InterruptedException e) {
              * e.printStackTrace();
              * }
-             */
+             *
             if (!userInput.equals(lastUserInput) && userInput.length() > 0) {
                 lastUserInput = userInput;
 
@@ -81,4 +81,4 @@ public class guzPath extends Thread {
     private boolean isNumeric(String str) {
         return str != null && str.matches("{-=}?\\d*\\.?\\d+");
     }
-}
+}*/

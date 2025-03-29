@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.02390188709655,
-        "y": 6.1598947438711384
+        "x": 7.636945392491467,
+        "y": 3.2962457337883957
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.025754837537087,
-        "y": 6.644336431684383
+        "x": 5.810210488936478,
+        "y": 2.7933604457471013
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.812090163934426,
-        "y": 5.241752049180327
+        "x": 3.7036689419795215,
+        "y": 2.777133105802047
       },
       "prevControl": {
-        "x": 4.176487488070856,
-        "y": 6.02872712788156
+        "x": 6.061485710329796,
+        "y": 3.110592996270235
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "EndStartToCoral"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -58.39249775375109
+    "rotation": 59.85861444792466
   },
   "reversed": false,
   "folder": "Blue Auto Pose 2",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -58.39249775375109
+    "rotation": -179.28384005452955
   },
   "useDefaultConstraints": true
 }

@@ -9,7 +9,7 @@ public class CoralGroundIntakeConstants {
 
     public static final int BEAM_BREAK_SENSOR_ID = 9;
 
-    public static final double ROTATION_TOLERANCE = 1;
+    public static final double ROTATION_TOLERANCE = 0.01;
     public static final int PICKUP_MOTOR_STALL_LIMIT = 20;
     public static final int ROTATION_MOTOR_STALL_LIMIT = 40;
 
@@ -22,9 +22,9 @@ public class CoralGroundIntakeConstants {
     public static final ClosedLoopSlot INTAKE_SLOT = ClosedLoopSlot.kSlot0;
 
     public enum CoralAngles{
-        FLOOR(0.704),
-        CORAL(0.475),
-        ZERO(0);
+        FLOOR(0.709),
+        CORAL(0.539),
+        ZERO(0.022);
 
         private final double angle;
     

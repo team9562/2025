@@ -89,7 +89,7 @@ public class RobotContainer {
             .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)))
         .andThen(m_elevatorSubsystem.rocketShip())
         .andThen(m_armSubsystem.setWithLamprey(ArmAngles.CORAL)
-            .onlyIf(() -> m_coralGroundIntake.getEncoderPose() > 0.15));
+            .onlyIf(() -> m_coralGroundIntake.getEncoderPose() > 0.3));
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
@@ -160,8 +160,8 @@ public class RobotContainer {
 
         m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
-        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
-            .onlyWhile(m_armSubsystem::isSafe));
+        m_coralGroundIntake.setDefaultCommand((m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
+            .onlyWhile(() -> m_armSubsystem.isSafe() && !m_coralGroundIntake.isAtPoint(CoralAngles.ZERO))));
 
         XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B));
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));

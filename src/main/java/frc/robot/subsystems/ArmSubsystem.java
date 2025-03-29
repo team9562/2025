@@ -167,11 +167,11 @@ double lastData = 0;
   }
 
   public boolean isAtPoint(double point){
-    return Utility.withinTolerance(getEncoderPose() - getComparison(point), point, ArmConstants.A_TOLERANCE);
+    return Utility.withinTolerance(avg - 38, point, ArmConstants.A_TOLERANCE);
   }
 
   public boolean isAtPoint(ArmAngles angle){
-    return Utility.withinTolerance(getEncoderPose() - getComparison(angle.getAngle()), angle.getAngle(), ArmConstants.A_TOLERANCE);
+    return Utility.withinTolerance(avg - 38, angle.getAngle(), ArmConstants.A_TOLERANCE);
   }
 
   public boolean isSafe(){

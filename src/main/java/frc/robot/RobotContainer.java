@@ -47,7 +47,7 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.3)
+            .withDeadband(MaxSpeed * 0.2).withRotationalDeadband(MaxAngularRate * 0.3)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
 
     // private final Telemetry logger = new Telemetry(MaxSpeed);
@@ -70,13 +70,13 @@ public class RobotContainer {
     private final Command intakeCoralAlgae() {
 
         if (m_laserCan.processMeasurement()) {
-            return m_armSubsystem.intakeOuttake(IntakeDirection.IN).alongWith(new SetLedStateCommand(m_ledSubsystem, RobotState.INTAKE_BALL))
+            return m_armSubsystem.intakeOuttake(IntakeDirection.IN)
                     .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
                     .andThen(m_armSubsystem.intakeOuttake(0.4)); // find a good percent to hold the algae in
         }
 
-        else if (!m_laserCan.processMeasurement()) {
-            return m_armSubsystem.intakeOuttake(IntakeDirection.IN).alongWith(new SetLedStateCommand(m_ledSubsystem, RobotState.INTAKE_CORAL))
+        else if (!m_laserCan.processMeasurement()){
+            return m_armSubsystem.intakeOuttake(IntakeDirection.IN)
                     .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
                     .finallyDo(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
         }
@@ -85,34 +85,28 @@ public class RobotContainer {
     }
 
     private final Command simpleHome(){
-        return (m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
-            .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)))
-        .andThen(m_elevatorSubsystem.rocketShip())
-        .andThen(m_armSubsystem.setWithLamprey(ArmAngles.CORAL)
-            .onlyIf(() -> m_coralGroundIntake.getEncoderPose() > 0.3));
+        return m_armSubsystem.zero()
+        .andThen(m_elevatorSubsystem.rocketShip());
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return ((m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
-                .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)))
+        return (m_armSubsystem.zero()
                 .andThen((m_elevatorSubsystem.setElevatorHeight(height.getHeight())
                     .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
-                .alongWith(m_armSubsystem.setWithLamprey(angle.getAngle())
-                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())))
-                .alongWith(new SetLedStateCommand(m_ledSubsystem, RobotState.MOVING_BLOCK_UP))))
-                .andThen(new SetLedStateCommand(m_ledSubsystem, RobotState.SHOOTING_REEF));
+                .alongWith(m_armSubsystem.setPitch(angle.getAngle())
+                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())))));
     }
 
     private final Command intakeFromGround(){
-        return (new SequentialCommandGroup(m_coralGroundIntake.intakeSequence(), 
-            m_armSubsystem.setWithLamprey(ArmAngles.CORAL)
+        return new SequentialCommandGroup(m_coralGroundIntake.intakeSequence(), 
+            m_armSubsystem.setPitch(ArmAngles.CORAL)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.CORAL)), 
             new ParallelRaceGroup(intakeCoralAlgae(), 
                 m_coralGroundIntake.run(() -> m_coralGroundIntake.intakeBoth())), 
-            m_armSubsystem.setWithLamprey(ArmAngles.ZERO)
-                .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ZERO)),
+            m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.4),
+            m_armSubsystem.zero(),
             m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
-                .until(() ->m_coralGroundIntake.isAtPoint(CoralAngles.ZERO))));
+                .until(() ->m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
     }
 
     // autoScore
@@ -160,10 +154,12 @@ public class RobotContainer {
 
         m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
-        m_coralGroundIntake.setDefaultCommand((m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
-            .onlyWhile(() -> m_armSubsystem.isSafe() && !m_coralGroundIntake.isAtPoint(CoralAngles.ZERO))));
 
-        XController.povUp().onChange(setHeightAngleToPOI(ArmAngles.B, ElevatorHeights.B));
+        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
+            .onlyIf(() -> m_armSubsystem.isSafe())
+            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
+
+        XController.povDown().onChange(simpleHome());
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));
         XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2));
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4));
@@ -171,20 +167,21 @@ public class RobotContainer {
         // THISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONE
 
         // reset the field-centric heading on d-pad down
-        XController.povDown().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        XController.povUp().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         //resets the arm's rotation angle on d-pad right
-        XController.povRight().onChange(m_armSubsystem.runOnce(() -> m_armSubsystem.resetPitch()));
+        XController.povRight().onChange(m_armSubsystem.zero());
 
         //sends the elevator up to grab a coral off the reef
         XController.povLeft().onChange(new ParallelCommandGroup(
-            m_armSubsystem.setWithLamprey(ArmAngles.ALGAE)
+            m_armSubsystem.setPitch(ArmAngles.ALGAE)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ALGAE)), 
         m_elevatorSubsystem.setDeltaHeight().until(() -> m_elevatorSubsystem.isAtTarget())));
 
         //intakes
         XController.rightBumper().onTrue(intakeFromGround());
-        XController.x().onTrue(intakeCoralAlgae());
+        XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
+        XController.a().onFalse(m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()));
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));

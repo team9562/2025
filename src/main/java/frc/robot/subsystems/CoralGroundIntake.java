@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.constants.CoralGroundIntakeConstants;
 import frc.robot.constants.NeoMotorConstants;
 import frc.robot.constants.CoralGroundIntakeConstants.CoralAngles;
@@ -72,8 +73,8 @@ public class CoralGroundIntake extends SubsystemBase {
 
     rotateConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-        .minOutput(-0.75)
-        .maxOutput(0.75)
+        .minOutput(-0.9)
+        .maxOutput(0.9)
         .pid(CoralGroundIntakeConstants.ROTATION_kP,
             CoralGroundIntakeConstants.ROTATION_kI,
             CoralGroundIntakeConstants.ROTATION_kD,
@@ -92,12 +93,34 @@ public class CoralGroundIntake extends SubsystemBase {
   }
 
   public void intakeBack(){
-    backIntakeMotor.set(0.5);
+    backIntakeMotor.set(0.35);
+  }
+
+  public void outakeFront(){
+    frontIntakeMotor.set(-0.2);
+  }
+
+  public void outakeBack(){
+    backIntakeMotor.set(-0.5);
   }
 
   public void intakeBoth(){
      intakeFront();
-     intakeBack(); // this might be an error but prolly not
+     intakeBack();
+  }
+
+  public void outakeBoth(){
+    outakeFront();
+    outakeBack();
+  }
+
+  public Command outtake(){
+    outakeBoth();
+    if(beamBreakSensor.get()){
+      return new WaitCommand(2)
+      .andThen(() -> stopIntake());
+    }
+    else return run(() -> outakeBoth());
   }
 
   public void stopIntake(){
@@ -105,18 +128,14 @@ public class CoralGroundIntake extends SubsystemBase {
     backIntakeMotor.stopMotor();
   }
 
-  public Command IntakeWithBeamBreak() {
-    return run(() -> setIntakePosition(CoralAngles.FLOOR).until(() -> isAtPoint(CoralAngles.FLOOR)))
-        .andThen(run(() -> intakeBoth())
-          .until(() -> beamBreakSensor.get()))
-        .finallyDo(() -> stopIntake());
-  }
-
   // Main Intake Sequence
   public Command intakeSequence() {
     return new SequentialCommandGroup(IntakeWithBeamBreak(),
-    setIntakePosition(CoralAngles.CORAL)
-    );
+    setIntakePosition(CoralAngles.CORAL).until(() -> isAtPoint(CoralAngles.CORAL)));
+  }
+
+  public void stopRotate(){
+    rotateMotor.stopMotor();
   }
 
   // Set Intake Arm Position using PID
@@ -128,12 +147,19 @@ public class CoralGroundIntake extends SubsystemBase {
     return run(() -> rotationPID.setReference(position.getAngle(), ControlType.kPosition, slot0));
   }
 
+  public Command IntakeWithBeamBreak() {
+    return (setIntakePosition(CoralAngles.FLOOR).until(() -> isAtPoint(CoralAngles.FLOOR)))
+      .andThen(run(() -> intakeBoth())
+        .onlyWhile(() -> beamBreakSensor.get()))
+      .finallyDo(() -> stopIntake());
+  }
+
   public boolean isAtPoint(double point){
-    return Utility.withinTolerance(getEncoderPose(), point, tolerance);
+    return Utility.withinTolerance(getEncoderPose(), point, 0.08);
   }
 
   public boolean isAtPoint(CoralAngles point){
-    return Utility.withinTolerance(getEncoderPose(), point.getAngle(), tolerance);
+    return Utility.withinTolerance(getEncoderPose(), point.getAngle(), 0.08);
   }
 
   public double getEncoderPose(){

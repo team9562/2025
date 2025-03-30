@@ -53,7 +53,7 @@ double lastData = 0;
     basicConfig
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
         .disableFollowerMode()
-        .idleMode(IdleMode.kCoast);
+        .idleMode(IdleMode.kBrake);
 
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -72,8 +72,8 @@ double lastData = 0;
         .positionConversionFactor(ArmConstants.pConversionFactor);
 
     pitchConfig.closedLoop
-    .minOutput(-0.1)
-    .maxOutput(0.1)
+    .minOutput(-0.2)
+    .maxOutput(0.2)
         .pidf(
             ArmConstants.kP_PITCH,
             ArmConstants.kI_PITCH,
@@ -110,6 +110,10 @@ double lastData = 0;
     pitchEncoder.setPosition(0);
   }
 
+  public void stopPitch(){
+    pitchSpark.stopMotor();
+  }
+
   public void burnFlash() {
     pitchSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     openSpark.configure(basicConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -122,14 +126,8 @@ double lastData = 0;
     return openSpark.getOutputCurrent();
   }
 
-  public double getError(double tar){
-   if(Math.abs(tar - avg) > 5) return tar - avg;
-   else return 0;
-  }
-
   public double getComparison(double tar){
-    double error = (getEncoderPose() - avg + 38) + tar;
-    return error; 
+    return (getEncoderPose() - avg + 38) + tar;
   }
 
   public void manualPitchMotor(double volts) {
@@ -154,12 +152,19 @@ double lastData = 0;
     return run(() -> pidPitch.setReference(getComparison(angle.getAngle()), ControlType.kPosition, slot0));
   }
 
-  public Command runCurrentZeroing(){
-    return run(() -> pidPitch.setReference(1, ControlType.kVoltage, slot0))
-    .until(() -> pitchSpark.getOutputCurrent() > 21)
-    .andThen(run(() -> pidPitch.setReference(-1, ControlType.kVoltage, slot0)).withTimeout(0.3))
-    .andThen(() -> pitchEncoder.setPosition(0))
-    .finallyDo(() -> pitchSpark.stopMotor());
+  public Command setPitch(double tar){
+    return run(() -> pidPitch.setReference(tar, ControlType.kPosition, slot0));
+  }
+
+  public Command setPitch(ArmAngles angle){
+    return run(() -> pidPitch.setReference(angle.getAngle(), ControlType.kPosition, slot0));
+  }
+
+  public Command zero(){
+    return (setWithLamprey(ArmAngles.ZERO)
+    .until(() -> isAtPoint(getComparison(0))))
+    .andThen(() -> stopPitch())
+    .andThen(() -> resetPitch());
   }
 
   public boolean isAtTarget(){
@@ -167,15 +172,15 @@ double lastData = 0;
   }
 
   public boolean isAtPoint(double point){
-    return Utility.withinTolerance(avg - 38, point, ArmConstants.A_TOLERANCE);
+    return Utility.withinTolerance(getEncoderPose(), point, ArmConstants.A_TOLERANCE);
   }
 
   public boolean isAtPoint(ArmAngles angle){
-    return Utility.withinTolerance(avg - 38, angle.getAngle(), ArmConstants.A_TOLERANCE);
+    return Utility.withinTolerance(getEncoderPose(), angle.getAngle(), ArmConstants.A_TOLERANCE);
   }
 
   public boolean isSafe(){
-    return avg > 38;
+    return avg > 36;
   }
 
   @Override
@@ -199,7 +204,7 @@ double lastData = 0;
     for(double num : data) avg += num;
     avg = avg / 10.0;
 
-    if(avg > 180) avg -= 360;
+    if(avg > 182) avg -= 360;
     if(avg < -180) avg += 360;
   
     SmartDashboard.putNumber("Arm/Lamprey Average: ", avg);

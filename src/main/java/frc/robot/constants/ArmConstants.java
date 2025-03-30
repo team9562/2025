@@ -45,9 +45,9 @@ public class ArmConstants {
 
     //in degrees
     public enum ArmAngles {
-        L2(109),
-        L3(109),
-        L4(135.94),
+        L2(107),
+        L3(107),
+        L4(133),
         CORAL(-85),
         ALGAE(90),
         ZERO(0),

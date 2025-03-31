@@ -93,7 +93,7 @@ public class CoralGroundIntake extends SubsystemBase {
   }
 
   public void intakeBack(){
-    backIntakeMotor.set(0.35);
+    backIntakeMotor.set(0.70);
   }
 
   public void outakeFront(){

@@ -48,7 +48,7 @@ public class ArmConstants {
         L2(107),
         L3(107),
         L4(133),
-        CORAL(-85),
+        CORAL(-79),
         ALGAE(90),
         ZERO(0),
         B(0);

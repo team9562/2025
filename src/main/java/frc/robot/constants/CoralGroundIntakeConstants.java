@@ -15,7 +15,7 @@ public class CoralGroundIntakeConstants {
 
     public static final int ROTATION_SLOT = 30;
 
-    public static final double ROTATION_kP = 1.5;
+    public static final double ROTATION_kP = 1.4;
     public static final int ROTATION_kI = 0;
     public static final int ROTATION_kD = 0;
 
@@ -23,7 +23,7 @@ public class CoralGroundIntakeConstants {
 
     public enum CoralAngles{
         FLOOR(0.709),
-        CORAL(0.46),
+        CORAL(0.461),
         ZERO(0.022);
 
         private final double angle;

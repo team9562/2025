@@ -52,8 +52,7 @@ double lastData = 0;
   public ArmSubsystem() {
     basicConfig
         .voltageCompensation(NeoMotorConstants.NEO_NOMINAL_VOLTAGE)
-        .disableFollowerMode()
-        .idleMode(IdleMode.kBrake);
+        .disableFollowerMode();
 
     basicConfig.closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -67,13 +66,14 @@ double lastData = 0;
     pitchConfig
         .smartCurrentLimit(ArmConstants.PITCH_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
         .inverted(true)
+        .idleMode(IdleMode.kBrake)
         
     .encoder
         .positionConversionFactor(ArmConstants.pConversionFactor);
 
     pitchConfig.closedLoop
-    .minOutput(-0.2)
-    .maxOutput(0.2)
+    .minOutput(-0.6)
+    .maxOutput(0.6)
         .pidf(
             ArmConstants.kP_PITCH,
             ArmConstants.kI_PITCH,
@@ -87,9 +87,10 @@ double lastData = 0;
 
     openConfig
         .smartCurrentLimit(ArmConstants.OPEN_STALL_LIMIT, NeoMotorConstants.NEO_FREE_LIMIT)
-        .inverted(false);
+        .inverted(false)
+        .idleMode(IdleMode.kCoast)
 
-    openConfig.closedLoop
+    .closedLoop
         .pidf(
             ArmConstants.kP_OPEN,
             ArmConstants.kI_OPEN,
@@ -180,7 +181,7 @@ double lastData = 0;
   }
 
   public boolean isSafe(){
-    return avg > 36;
+    return avg > 20;
   }
 
   @Override

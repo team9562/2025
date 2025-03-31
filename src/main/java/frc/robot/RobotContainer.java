@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -78,6 +79,7 @@ public class RobotContainer {
         else if (!m_laserCan.processMeasurement()){
             return m_armSubsystem.intakeOuttake(IntakeDirection.IN)
                     .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
+                    .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.IN).withTimeout(0.5))
                     .finallyDo(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
         }
 
@@ -98,33 +100,31 @@ public class RobotContainer {
     }
 
     private final Command intakeFromGround(){
-        return new SequentialCommandGroup(m_coralGroundIntake.intakeSequence(), 
+        return new SequentialCommandGroup(new ParallelCommandGroup(m_coralGroundIntake.intakeSequence(), 
             m_armSubsystem.setPitch(ArmAngles.CORAL)
-                .until(() -> m_armSubsystem.isAtPoint(ArmAngles.CORAL)), 
+                .until(() -> m_armSubsystem.isAtPoint(ArmAngles.CORAL))), 
             new ParallelRaceGroup(intakeCoralAlgae(), 
                 m_coralGroundIntake.run(() -> m_coralGroundIntake.intakeBoth())), 
-            m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.4),
-            m_armSubsystem.zero(),
-            m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
-                .until(() ->m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
+            m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1),
+            m_armSubsystem.zero());
     }
 
     // autoScore
     private final Command autoScoreL4(){
-        return setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4)
-                .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT))
-                .andThen(simpleHome());
+        return m_armSubsystem.zero()
+        .andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4).withTimeout(3.4))
+        .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
+        .andThen(simpleHome());
         }
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
             
     public RobotContainer() {
 
         registerCommands();
-        autoChooser = AutoBuilder.buildAutoChooser("Tests");
+        autoChooser = AutoBuilder.buildAutoChooser("Mac Auto");
         SmartDashboard.putData("Auto chooser", autoChooser);
 
         burnAllFlash();
-
         configureBindings();
     }
 
@@ -157,7 +157,7 @@ public class RobotContainer {
 
         m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
             .onlyIf(() -> m_armSubsystem.isSafe())
-            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
+            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));*/
 
         XController.povDown().onChange(simpleHome());
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));
@@ -165,6 +165,10 @@ public class RobotContainer {
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4));
 
         // THISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONE
+        XController.povLeft().onChange(autoScoreL4());
+
+        //XController.rightBumper().onTrue();
+        //XController.rightBumper().onFalse();
 
         // reset the field-centric heading on d-pad down
         XController.povUp().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
@@ -173,21 +177,21 @@ public class RobotContainer {
         XController.povRight().onChange(m_armSubsystem.zero());
 
         //sends the elevator up to grab a coral off the reef
-        XController.povLeft().onChange(new ParallelCommandGroup(
+        /*XController.povLeft().onChange(new ParallelCommandGroup(
             m_armSubsystem.setPitch(ArmAngles.ALGAE)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ALGAE)), 
-        m_elevatorSubsystem.setDeltaHeight().until(() -> m_elevatorSubsystem.isAtTarget())));
+        m_elevatorSubsystem.setDeltaHeight().until(() -> m_elevatorSubsystem.isAtTarget())));*/
 
         //intakes
-        XController.rightBumper().onTrue(intakeFromGround());
-        XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
-        XController.a().onFalse(m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()));
+        //XController.rightBumper().onTrue(intakeFromGround());
+        //XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
+        //XController.a().onFalse(m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(1.8));
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
-        XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP));
+        XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1));
 
         // XController.a().onTrue(alignToBestTagCommand);
-        XController.b().onTrue(turnToBestTargetCommand);
+        // XController.b().onTrue(turnToBestTargetCommand);
     }
 
     public Command getAutonomousCommand() {

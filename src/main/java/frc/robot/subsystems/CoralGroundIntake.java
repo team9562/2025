@@ -79,6 +79,9 @@ public class CoralGroundIntake extends SubsystemBase {
             CoralGroundIntakeConstants.ROTATION_kI,
             CoralGroundIntakeConstants.ROTATION_kD,
             slot0);
+
+    rotateConfig.absoluteEncoder
+      .zeroOffset(0.6458818);
   }
 
   // Call this method once during initialization to store settings to flash
@@ -89,11 +92,11 @@ public class CoralGroundIntake extends SubsystemBase {
   }
 
   public void intakeFront(){
-    frontIntakeMotor.set(0.2);
+    frontIntakeMotor.set(0.4);
   }
 
   public void intakeBack(){
-    backIntakeMotor.set(0.35);
+    backIntakeMotor.set(0.7);
   }
 
   public void outakeFront(){
@@ -140,11 +143,11 @@ public class CoralGroundIntake extends SubsystemBase {
 
   // Set Intake Arm Position using PID
   public Command setIntakePosition(double position) {
-    return run(() -> rotationPID.setReference(position, ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position + 0.11, ControlType.kPosition, slot0));
   }
 
   public Command setIntakePosition(CoralAngles position) {
-    return run(() -> rotationPID.setReference(position.getAngle(), ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position.getAngle() + 0.11, ControlType.kPosition, slot0));
   }
 
   public Command IntakeWithBeamBreak() {
@@ -155,11 +158,11 @@ public class CoralGroundIntake extends SubsystemBase {
   }
 
   public boolean isAtPoint(double point){
-    return Utility.withinTolerance(getEncoderPose(), point, 0.08);
+    return Utility.withinTolerance(getEncoderPose(), point + 0.11, 0.08);
   }
 
   public boolean isAtPoint(CoralAngles point){
-    return Utility.withinTolerance(getEncoderPose(), point.getAngle(), 0.08);
+    return Utility.withinTolerance(getEncoderPose(), point.getAngle() + 0.11, 0.08);
   }
 
   public double getEncoderPose(){

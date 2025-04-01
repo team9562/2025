@@ -87,16 +87,21 @@ public class RobotContainer {
     }
 
     private final Command simpleHome(){
-        return m_armSubsystem.zero()
-        .andThen(m_elevatorSubsystem.rocketShip());
+        return m_elevatorSubsystem.run(() -> System.out.println("[HOMING] Homing Sequence Started Using Elevator Resources"))
+        .andThen(m_armSubsystem.zero()
+            .alongWith(m_elevatorSubsystem.rocketShip()))
+        .finallyDo(() -> System.out.println("[HOMING] Homing Sequence Complete"));
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return (m_armSubsystem.zero()
+        return m_elevatorSubsystem.run(() -> System.out.println("[SCORING] Height Angle Sequence Started Using Elevator Resources"))
+            .andThen(m_armSubsystem.zero())
                 .andThen((m_elevatorSubsystem.setElevatorHeight(height.getHeight())
                     .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
                 .alongWith(m_armSubsystem.setPitch(angle.getAngle())
-                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())))));
+                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle()))))
+                .finallyDo(() -> System.out.println("[SCORING] Reached Height: " + height.getHeight() + 
+                                                  "\n[SCORING] Reached Angle: " + angle.getAngle()));
     }
 
     private final Command intakeFromGround(){
@@ -111,17 +116,19 @@ public class RobotContainer {
 
     // autoScore
     private final Command autoScoreL4(){
-        return m_armSubsystem.zero()
+        return m_elevatorSubsystem.run(() -> System.out.println("[AUTO SCORE] Auto Score Started Using Elevator Resources"))
+        .andThen(m_armSubsystem.zero())
         .andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4).withTimeout(3.4))
         .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
-        .andThen(simpleHome());
+        .andThen(simpleHome())
+        .finallyDo(() -> System.out.println("[AUTO SCORE] Auto Score Completed"));
         }
     private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
             
     public RobotContainer() {
 
         registerCommands();
-        autoChooser = AutoBuilder.buildAutoChooser("Mac Auto");
+        autoChooser = AutoBuilder.buildAutoChooser("Score");
         SmartDashboard.putData("Auto chooser", autoChooser);
 
         burnAllFlash();
@@ -174,21 +181,21 @@ public class RobotContainer {
         // reset the field-centric heading on d-pad down
         XController.povUp().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        //resets the arm's rotation angle on d-pad right
+        //zero the arm on d-pad right
         XController.povRight().onChange(m_armSubsystem.zero());
 
         //sends the elevator up to grab a coral off the reef
-
-/* 
-        XController.povLeft().onChange(new ParallelCommandGroup(
+        /* XController.povLeft().onChange(new ParallelCommandGroup(
             m_armSubsystem.setPitch(ArmAngles.ALGAE)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ALGAE)), 
-        m_elevatorSubsystem.setDeltaHeight().until(() -> m_elevatorSubsystem.isAtTarget())));
-*/
+        m_elevatorSubsystem.setDeltaHeight().until(() -> m_elevatorSubsystem.isAtTarget())));*/
+
         //intakes
         XController.rightBumper().onTrue(intakeFromGround());
+        
         XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
-        XController.a().onFalse(m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(1.8));
+        XController.a().onFalse(m_coralGroundIntake.runOnce(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1));
+
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1));

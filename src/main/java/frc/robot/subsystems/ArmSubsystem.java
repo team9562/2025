@@ -141,7 +141,6 @@ double lastData = 0;
 
   public Command intakeOuttake(IntakeDirection direction) { // ex 1 or 0
     return run(() -> pidOpen.setReference(direction.getPower(), ControlType.kDutyCycle, slot0))
-      .withTimeout(2)
       .finallyDo(() -> pitchSpark.stopMotor());
   }
 

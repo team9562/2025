@@ -157,7 +157,7 @@ public class RobotContainer {
 
         m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
             .onlyIf(() -> m_armSubsystem.isSafe())
-            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));*/
+            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
 
         XController.povDown().onChange(simpleHome());
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));
@@ -165,6 +165,7 @@ public class RobotContainer {
         XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4));
 
         // THISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONE
+        
         XController.povLeft().onChange(autoScoreL4());
 
         //XController.rightBumper().onTrue();
@@ -177,21 +178,23 @@ public class RobotContainer {
         XController.povRight().onChange(m_armSubsystem.zero());
 
         //sends the elevator up to grab a coral off the reef
-        /*XController.povLeft().onChange(new ParallelCommandGroup(
+
+/* 
+        XController.povLeft().onChange(new ParallelCommandGroup(
             m_armSubsystem.setPitch(ArmAngles.ALGAE)
                 .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ALGAE)), 
-        m_elevatorSubsystem.setDeltaHeight().until(() -> m_elevatorSubsystem.isAtTarget())));*/
-
+        m_elevatorSubsystem.setDeltaHeight().until(() -> m_elevatorSubsystem.isAtTarget())));
+*/
         //intakes
-        //XController.rightBumper().onTrue(intakeFromGround());
-        //XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
-        //XController.a().onFalse(m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(1.8));
+        XController.rightBumper().onTrue(intakeFromGround());
+        XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
+        XController.a().onFalse(m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(1.8));
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1));
 
         // XController.a().onTrue(alignToBestTagCommand);
-        // XController.b().onTrue(turnToBestTargetCommand);
+     XController.b().onTrue(turnToBestTargetCommand);
     }
 
     public Command getAutonomousCommand() {

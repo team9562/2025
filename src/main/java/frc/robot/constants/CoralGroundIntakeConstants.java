@@ -22,9 +22,9 @@ public class CoralGroundIntakeConstants {
     public static final ClosedLoopSlot INTAKE_SLOT = ClosedLoopSlot.kSlot0;
 
     public enum CoralAngles{
-        FLOOR(0.709),
-        CORAL(0.461),
-        ZERO(0.022);
+        FLOOR(0.647),
+        CORAL(0.405),
+        ZERO(0.002);
 
         private final double angle;
     

@@ -1,28 +1,27 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.constants.CoralGroundIntakeConstants;
-import frc.robot.constants.NeoMotorConstants;
-import frc.robot.constants.CoralGroundIntakeConstants.CoralAngles;
-import frc.robot.utils.Utility;
-
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.constants.CoralGroundIntakeConstants;
+import frc.robot.constants.CoralGroundIntakeConstants.CoralAngles;
+import frc.robot.constants.NeoMotorConstants;
+import frc.robot.utils.Utility;
 
 public class CoralGroundIntake extends SubsystemBase {
 
@@ -81,7 +80,7 @@ public class CoralGroundIntake extends SubsystemBase {
             slot0);
 
     rotateConfig.absoluteEncoder
-      .zeroOffset(0.6458818);
+      .zeroOffset(0.061899);
   }
 
   // Call this method once during initialization to store settings to flash
@@ -92,11 +91,11 @@ public class CoralGroundIntake extends SubsystemBase {
   }
 
   public void intakeFront(){
-    frontIntakeMotor.set(0.4);
+    frontIntakeMotor.set(0.7);
   }
 
   public void intakeBack(){
-    backIntakeMotor.set(0.35);
+    backIntakeMotor.set(0.82);
   }
 
   public void outakeFront(){

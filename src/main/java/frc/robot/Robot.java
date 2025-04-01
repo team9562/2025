@@ -144,6 +144,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    //CommandScheduler.getInstance().cancelAll(); //if this doesn't work, move all commands to robot.java
   }
 
   @Override

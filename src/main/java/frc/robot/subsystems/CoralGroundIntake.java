@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -41,7 +42,7 @@ public class CoralGroundIntake extends SubsystemBase {
 
   // PID and Encoder Stuff
   private final SparkClosedLoopController rotationPID = rotateMotor.getClosedLoopController();
-  private final AbsoluteEncoder rotationEncoder = rotateMotor.getAbsoluteEncoder();
+  private final RelativeEncoder rotationEncoder = rotateMotor.getEncoder();
 
   // Sensor
   private final DigitalInput beamBreakSensor = new DigitalInput(CoralGroundIntakeConstants.BEAM_BREAK_SENSOR_ID);
@@ -78,9 +79,6 @@ public class CoralGroundIntake extends SubsystemBase {
             CoralGroundIntakeConstants.ROTATION_kI,
             CoralGroundIntakeConstants.ROTATION_kD,
             slot0);
-
-    rotateConfig.absoluteEncoder
-      .zeroOffset(0.061899);
   }
 
   // Call this method once during initialization to store settings to flash
@@ -132,7 +130,7 @@ public class CoralGroundIntake extends SubsystemBase {
 
   // Main Intake Sequence
   public Command intakeSequence() {
-    return new SequentialCommandGroup(IntakeWithBeamBreak(),
+    return new SequentialCommandGroup(intakeWithBeamBreak(),
     setIntakePosition(CoralAngles.CORAL).until(() -> isAtPoint(CoralAngles.CORAL)));
   }
 
@@ -142,15 +140,15 @@ public class CoralGroundIntake extends SubsystemBase {
 
   // Set Intake Arm Position using PID
   public Command setIntakePosition(double position) {
-    return run(() -> rotationPID.setReference(position + 0.11, ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position, ControlType.kPosition, slot0));
   }
 
   public Command setIntakePosition(CoralAngles position) {
-    return run(() -> rotationPID.setReference(position.getAngle() + 0.11, ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position.getAngle(), ControlType.kPosition, slot0));
   }
 
-  public Command IntakeWithBeamBreak() {
-    return (setIntakePosition(CoralAngles.FLOOR).until(() -> isAtPoint(CoralAngles.FLOOR)))
+  public Command intakeWithBeamBreak() {
+    return (setIntakePosition(CoralAngles.FLOOR).until(() -> isAtPoint(CoralAngles.FLOOR) || rotateMotor.getOutputCurrent() > CoralGroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT))
       .andThen(run(() -> intakeBoth())
         .onlyWhile(() -> beamBreakSensor.get()))
       .finallyDo(() -> stopIntake());
@@ -166,6 +164,13 @@ public class CoralGroundIntake extends SubsystemBase {
 
   public double getEncoderPose(){
     return rotationEncoder.getPosition();
+  }
+
+  public Command runCurrentZeroing(){
+    return run(() -> rotateMotor.setVoltage(2))
+    .until(() -> rotateMotor.getOutputCurrent() > CoralGroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT)
+    .andThen(() -> rotateMotor.stopMotor())
+    .finallyDo(() -> rotationEncoder.setPosition(0));
   }
 
   @Override

@@ -4,11 +4,14 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Rotation;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 // import java.util.Optional;
 import java.util.Set;
 
@@ -25,7 +28,9 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -34,14 +39,14 @@ import frc.robot.constants.VisionConstants;
 public class VisionSubsystem extends SubsystemBase {
   /** Creates a new VisionSubsystem. */
   private PhotonCamera camera1;
-  private PhotonCamera camera2;
-  private PhotonCamera camera3;
+  // private PhotonCamera camera2;
+  // private PhotonCamera camera3;
   // private PhotonCamera camera4;
-  private PhotonCamera[] cameras;
+  // private PhotonCamera[] cameras;
 
-  private PhotonPipelineResult[] results;
+  private PhotonPipelineResult result;
 
-  private final Transform3d[] cameraPositions = new Transform3d[3];
+  private final Transform3d cameraPositions;
 
   private static final Map<PhotonCamera, Double> CAMERA_HEIGHTS = new HashMap<>();
   private static final Map<PhotonCamera, Double> CAMERA_PITCHES = new HashMap<>();
@@ -59,92 +64,56 @@ public class VisionSubsystem extends SubsystemBase {
   String oldIdsString = "";
 
   PhotonPoseEstimator camera1PoseEstimator;
-  PhotonPoseEstimator camera2PoseEstimator;
-  PhotonPoseEstimator camera3PoseEstimator;
+  // PhotonPoseEstimator camera2PoseEstimator;
+  // PhotonPoseEstimator camera3PoseEstimator;
   // PhotonPoseEstimator camera4PoseEstimator;
 
   private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
       .loadField(AprilTagFields.k2025ReefscapeWelded);
 
   public VisionSubsystem() {
-    this.cameraPositions[0] = VisionConstants.camera1ToRobot;
-    this.cameraPositions[1] = VisionConstants.camera2ToRobot;
-    this.cameraPositions[2] = VisionConstants.camera3ToRobot;
+    this.cameraPositions= VisionConstants.camera1ToRobot;
+    // this.cameraPositions[1] = VisionConstants.camera2ToRobot;
+    // this.cameraPositions[2] = VisionConstants.camera3ToRobot;
     // this.cameraPositions[3] = VisionConstants.camera4ToRobot;
 
     this.camera1 = new PhotonCamera(VisionConstants.cameraName1);
-    this.camera2 = new PhotonCamera(VisionConstants.cameraName2);
-    this.camera3 = new PhotonCamera(VisionConstants.cameraName3);
+    // this.camera2 = new PhotonCamera(VisionConstants.cameraName2);
+    // this.camera3 = new PhotonCamera(VisionConstants.cameraName3);
     // this.camera4 = new PhotonCamera(VisionConstants.cameraName4);
-    this.cameras = new PhotonCamera[] {camera1, camera2, camera3};
+    // this.cameras = new PhotonCamera[] {camera1};
 
-    this.results = new PhotonPipelineResult[] {
-        camera1.getLatestResult(),
-        camera2.getLatestResult(),
-        camera3.getLatestResult(),
-        // camera4.getLatestResult() 
-        };
+    //this.result = new PhotonPipelineResult (camera1.getLatestResult());
+    this.result = new PhotonPipelineResult();
 
     CAMERA_HEIGHTS.put(camera1, VisionConstants.camera1Z);
-    CAMERA_HEIGHTS.put(camera2, VisionConstants.camera2Z);
-    CAMERA_HEIGHTS.put(camera3, VisionConstants.camera3Z);
+    // CAMERA_HEIGHTS.put(camera2, VisionConstants.camera2Z);
+    // CAMERA_HEIGHTS.put(camera3, VisionConstants.camera3Z);
     // CAMERA_HEIGHTS.put(camera4, VisionConstants.camera4Z);
 
     CAMERA_PITCHES.put(camera1, VisionConstants.camera1pitch);
-    CAMERA_PITCHES.put(camera2, VisionConstants.camera2pitch);
-    CAMERA_PITCHES.put(camera3, VisionConstants.camera3pitch);
+    // CAMERA_PITCHES.put(camera2, VisionConstants.camera2pitch);
+    // CAMERA_PITCHES.put(camera3, VisionConstants.camera3pitch);
     // CAMERA_PITCHES.put(camera4, VisionConstants.camera4pitch);
     
     camera1PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera1ToRobot);
-    camera2PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera2ToRobot);
-    camera3PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera3ToRobot);
+    // camera2PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera2ToRobot);
+    // camera3PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera3ToRobot);
     // camera4PoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, VisionConstants.camera4ToRobot);
 
   }
 
-  public PhotonCamera cameraPicker(){
-    
-     // pick between 3 cameras
-      PhotonCamera joe = null; // placeholder for best camera in the given array of cameras (2-4)
-
-      newDist = Double.MAX_VALUE;
-    for (PhotonCamera camera : cameras) { // all cameras
-      if(getCameraNumber(camera) != 0){ // exclude camera index 0 (camera1)
-      PhotonPipelineResult result = camera.getLatestResult();
-
-      if (result.hasTargets()) {
-        List<PhotonTrackedTarget> targets = result.getTargets();
-
-        double CamHeight = CAMERA_HEIGHTS.get(camera);
-        double CamPitch = CAMERA_PITCHES.get(camera);
-        for (PhotonTrackedTarget target : targets) {
-          distance = PhotonUtils.calculateDistanceToTargetMeters(CamHeight,
-              aprilTagFieldLayout.getTagPose(target.getFiducialId()).get().getZ(), CamPitch, target.getPitch());
-
-          if (distance < newDist) {
-            newDist = distance;
-            closestTarget = target;
-            joe = camera;
-          }
-        }
-      }
-    }
-    }
-    // after the for loop, return the best camera found based off target distance
-    return joe;
-    
-  }
+  
 
   public void findBestCameraToTarget() { // find closest apriltag
     newDist = Double.MAX_VALUE;
-    for (PhotonCamera camera : cameras) {
-      PhotonPipelineResult result = camera.getLatestResult();
+    result = camera1.getLatestResult();
 
       if (result.hasTargets()) {
         List<PhotonTrackedTarget> targets = result.getTargets();
 
-        double CamHeight = CAMERA_HEIGHTS.get(camera);
-        double CamPitch = CAMERA_PITCHES.get(camera);
+        double CamHeight = CAMERA_HEIGHTS.get(camera1);
+        double CamPitch = CAMERA_PITCHES.get(camera1);
 
         for (PhotonTrackedTarget target : targets) {
 // distance also used for gotobesttarget
@@ -154,23 +123,14 @@ public class VisionSubsystem extends SubsystemBase {
           if (distance < newDist) {
             newDist = distance;
             closestTarget = target;
-            bestCamera = camera;
           }
         }
       }
-    }
+    
   }
 
-  public int getCameraNumber(PhotonCamera compCamera){
-    for (PhotonCamera camera : cameras) {
-      if (compCamera.equals(camera)){
-        return camera.getPipelineIndex();
-      }
-    }
-    return -1;
-  }
-  public PhotonCamera getBestCamera(){
-    return bestCamera;
+  public Pose2d getOldPose(){
+    return robotPose.toPose2d();
   }
 
   public PhotonTrackedTarget getClosestTarget(){ // from all cameras (not just one)
@@ -182,9 +142,8 @@ public class VisionSubsystem extends SubsystemBase {
     return closestTarget.getYaw();
   }
 
-  public double getTargetDistance(int targetid, int camNumero){ // any error returns -1
-    PhotonCamera cameraBababoey = cameras[camNumero];
-    PhotonPipelineResult result = cameraBababoey.getLatestResult();
+  public double getTargetDistance(int targetid){ // any error returns -1
+    result = camera1.getLatestResult();
     PhotonTrackedTarget targetBababoey;
 
     if(result.hasTargets()){
@@ -192,8 +151,8 @@ public class VisionSubsystem extends SubsystemBase {
       for (PhotonTrackedTarget target : targets) {
         if(target.getFiducialId()==targetid){
           targetBababoey = target;
-          double CamHeight = CAMERA_HEIGHTS.get(cameraBababoey);
-          double CamPitch = CAMERA_PITCHES.get(cameraBababoey);
+          double CamHeight = CAMERA_HEIGHTS.get(camera1);
+          double CamPitch = CAMERA_PITCHES.get(camera1);
           return PhotonUtils.calculateDistanceToTargetMeters(CamHeight,
           aprilTagFieldLayout.getTagPose(targetid).get().getZ(), CamPitch, targetBababoey.getPitch());
         }
@@ -201,6 +160,8 @@ public class VisionSubsystem extends SubsystemBase {
       return -1;
     }else return -1;
   }
+
+
 
   public void findBestCameraToPOI(String tagType) { // find closest apriltag of type
     newDist = Double.MAX_VALUE;
@@ -225,14 +186,13 @@ public class VisionSubsystem extends SubsystemBase {
       ID_SET = VisionConstants.Barge_ID;
     }
 
-    for (PhotonCamera camera : cameras) {
-      PhotonPipelineResult result = camera.getLatestResult();
+       result = camera1.getLatestResult();
 
       if (result.hasTargets()) {
         List<PhotonTrackedTarget> targets = result.getTargets();
 
-        double CamHeight = CAMERA_HEIGHTS.get(camera);
-        double CamPitch = CAMERA_PITCHES.get(camera);
+        double CamHeight = CAMERA_HEIGHTS.get(camera1);
+        double CamPitch = CAMERA_PITCHES.get(camera1);
 
         for (PhotonTrackedTarget target : targets) {
 
@@ -244,41 +204,32 @@ public class VisionSubsystem extends SubsystemBase {
             if (distance < newDist) {
               newDist = distance;
               closestTarget = target;
-              bestCamera = camera;
             }
           }
         }
       }
-    }
+    
   }
 
-  public PhotonTrackedTarget getBestTarget(int cameraNum) { // find closest apriltag to specific camera
+  public PhotonTrackedTarget getBestTarget() { // find closest apriltag to specific camera
     // Check if the cameraNum is valid
-    if (cameraNum < 0 || cameraNum >= cameras.length) {
-        System.out.println("[ERROR] Invalid camera index: " + cameraNum);
+
+    result = camera1.getLatestResult();
+
+    if (result == null || !result.hasTargets()) {
+        System.out.println("[WARN] Camera " + 1 + " returned NULL result.");
         return null;
     }
 
-    results[cameraNum] = cameras[cameraNum].getLatestResult();
 
-    if (results[cameraNum] == null) {
-        System.out.println("[WARN] Camera " + cameraNum + " returned NULL result.");
-        return null;
-    }
-
-    if (!results[cameraNum].hasTargets()) {
-        // System.out.println("[INFO] Camera " + cameraNum + " found no AprilTags."); // 
-        return null;
-    }
-
-    PhotonTrackedTarget bestTarget = results[cameraNum].getBestTarget();
+    PhotonTrackedTarget bestTarget = result.getBestTarget();
 
     if (bestTarget == null) {
-        System.out.println("[ERROR] Camera " + cameraNum + " hasTargets() was TRUE but getBestTarget() is NULL.");
+        System.out.println("[ERROR] Camera " + 1 + " hasTargets() was TRUE but getBestTarget() is NULL.");
         return null;
     }
 
-      System.out.println("[INFO VISION-SUB] Camera " + cameraNum + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
+      System.out.println("[INFO VISION-SUB] Camera " + 1 + " detected AprilTag with Yaw: " + bestTarget.getYaw() + ", and id: " + bestTarget.getFiducialId());
     return bestTarget;
   }
 /* 
@@ -332,15 +283,15 @@ public class VisionSubsystem extends SubsystemBase {
     return map;
   }
 */
-  public Pose2d estimatePose(int i, Pose2d oldPose) { // estimate robot pose based on camera
-    PhotonTrackedTarget bababoey = getBestTarget(i);
+  public Pose2d estimatePose(Pose2d oldPose) { // estimate robot pose based on camera
+    PhotonTrackedTarget bababoey = getBestTarget();
     if (bababoey != null) {
       
       if (aprilTagFieldLayout.getTagPose(bababoey.getFiducialId()).isPresent()) {
         robotPose = PhotonUtils.estimateFieldToRobotAprilTag(
             bababoey.getBestCameraToTarget(),
             aprilTagFieldLayout.getTagPose(bababoey.getFiducialId()).get(),
-            cameraPositions[i]);
+            cameraPositions);
         return robotPose.toPose2d();
       }
       else
@@ -351,6 +302,35 @@ public class VisionSubsystem extends SubsystemBase {
       return oldPose;
 
   }
+
+  public Pose2d calculateScoringPose (Pose2d tagPose, boolean isLeftBranch){
+    // Distance from tag to the center of the reef's scoring branch
+    double REEF_OFFSET = 0.1651; // in meters (measured on CAD)
+    double ARM_OFFSET = 0.2511425; // same
+
+    double TOTAL_OFFSET = REEF_OFFSET - ARM_OFFSET; // Adjust for the arm being off-center
+
+    // (+) Y = left in WPILib coordinates
+    double yOffset = isLeftBranch ? TOTAL_OFFSET : - TOTAL_OFFSET; 
+
+    Translation2d offset = new Translation2d(0, yOffset).rotateBy(tagPose.getRotation());
+
+    return new Pose2d(
+      tagPose.getTranslation().plus(offset),
+      tagPose.getRotation().rotateBy(Rotation2d.fromDegrees(180))
+    );
+  }
+/* 
+    public Pose2d getEstimatedRobotPose() {
+        var result = camera1PoseEstimator.update();
+        if (result.isPresent()) {
+            return result.get().estimatedPose.toPose2d();
+        }
+        return new Pose2d();
+    }
+        */
+        
+
 /* 
 public Command turnToBestTarget(int camNum) { 
   // double targetID = getBestTarget(camNum).getFiducialId(); // i dont think i need this idk
@@ -375,22 +355,22 @@ public Command setElevatorHeight(double targetHeight) {
 
 public void estimatePoseMultitag(SwerveDrivePoseEstimator swerveDrivePoseEstimator) {
   camera1PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
-  camera2PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
-  camera3PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
+  // camera2PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
+  // camera3PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
   // camera4PoseEstimator.setReferencePose(swerveDrivePoseEstimator.getEstimatedPosition());
   EstimatedRobotPose camera1EstimatedPose;
-  EstimatedRobotPose camera2EstimatedPose;
-  EstimatedRobotPose camera3EstimatedPose;
+  //EstimatedRobotPose camera2EstimatedPose;
+  //EstimatedRobotPose camera3EstimatedPose;
   // EstimatedRobotPose camera4EstimatedPose;
 
   try{
     camera1EstimatedPose = camera1PoseEstimator.update(camera1.getLatestResult()).get();
-    camera2EstimatedPose = camera2PoseEstimator.update(camera2.getLatestResult()).get();
-    camera3EstimatedPose = camera3PoseEstimator.update(camera3.getLatestResult()).get();
+    // camera2EstimatedPose = camera2PoseEstimator.update(camera2.getLatestResult()).get();
+    // camera3EstimatedPose = camera3PoseEstimator.update(camera3.getLatestResult()).get();
     // camera4EstimatedPose = camera4PoseEstimator.update(camera4.getLatestResult()).get();
     swerveDrivePoseEstimator.addVisionMeasurement(camera1EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
-    swerveDrivePoseEstimator.addVisionMeasurement(camera2EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
-    swerveDrivePoseEstimator.addVisionMeasurement(camera3EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+    // swerveDrivePoseEstimator.addVisionMeasurement(camera2EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
+    // swerveDrivePoseEstimator.addVisionMeasurement(camera3EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
     // swerveDrivePoseEstimator.addVisionMeasurement(camera4EstimatedPose.estimatedPose.toPose2d(), Timer.getFPGATimestamp());
   }
 

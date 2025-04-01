@@ -63,7 +63,6 @@ public class ForwardToBestTagCommand extends Command {
 
     // Update vision data
     m_visionSubsystem.findBestCameraToTarget();
-    myBestCamera = m_visionSubsystem.getBestCamera();
     myClosestTarget = m_visionSubsystem.getClosestTarget();
 
     // If no valid target, STOP IMMEDIATELY
@@ -82,12 +81,7 @@ public class ForwardToBestTagCommand extends Command {
         
     // Determine movement direction
     double yawDirection;
-    if(m_visionSubsystem.getCameraNumber(myBestCamera)==10){ // adjusting for the angle they face
-      adjustedYaw = currentYaw + 22.5;
-    }else if(m_visionSubsystem.getCameraNumber(myBestCamera)==11){
-      adjustedYaw = currentYaw - 22.5;
-    }
-    else adjustedYaw = currentYaw;
+    
 
     if(adjustedYaw>accuracyYaw){
       yawDirection = 1;

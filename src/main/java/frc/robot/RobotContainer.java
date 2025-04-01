@@ -63,7 +63,7 @@ public class RobotContainer {
     public final static LedSubsystem m_ledSubsystem = new LedSubsystem();
     public final static CoralGroundIntake m_coralGroundIntake = new CoralGroundIntake();
 
-    public AlignToBestTagCommand alignToBestTagCommand = new AlignToBestTagCommand(drivetrain, m_visionSubsystem, drive);
+    public AlignToBestTagCommand alignToBestTagCommand = new AlignToBestTagCommand(drivetrain, m_visionSubsystem);
 
     private final SendableChooser<Command> autoChooser;
 
@@ -116,7 +116,7 @@ public class RobotContainer {
         .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
         .andThen(simpleHome());
         }
-    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive, 0);
+    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive);
             
     public RobotContainer() {
 
@@ -193,8 +193,8 @@ public class RobotContainer {
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1));
 
-        // XController.a().onTrue(alignToBestTagCommand);
-     XController.b().onTrue(turnToBestTargetCommand);
+        XController.b().onTrue(alignToBestTagCommand);
+        // XController.b().onTrue(turnToBestTargetCommand);
     }
 
     public Command getAutonomousCommand() {

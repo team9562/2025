@@ -1,133 +1,52 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.commands.SwerveCommands;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
-import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.generated.TunerConstants;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.*;
+import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
-import static edu.wpi.first.units.Units.*;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import com.ctre.phoenix6.swerve.SwerveDrivetrain;
-
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import java.util.List;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class AlignToBestTagCommand extends Command {
-  /** Creates a new AlignToBestTagCommand. */
-  private final CommandSwerveDrivetrain m_drivetrain;
-  private final SwerveRequest.FieldCentric m_drive;
-  //private PhotonTrackedTarget closestTarget;
-  // private Pigeon2 imu;
-  // private double target; // to track a specific tag number in the future (not
-  // yet implemented)
-  //private int myidNum;
-  private double currentYaw;
-  private PhotonTrackedTarget myClosestTarget;
-  private PhotonCamera myBestCamera;
-  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
-  private final VisionSubsystem m_visionSubsystem; // for A.T follow command
-  private final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // check final idk
-  private double accuracyYaw = 5; // Acceptable margin of error for yaw
-  private double adjustmentSpeed = 0.5; // m/s
-  private double adjustedYaw;
-  private double camBeingUsed;
+public class AlignToBestTagCommand extends InstantCommand {
+    private final CommandSwerveDrivetrain drivetrain;
+    private final VisionSubsystem vision;
 
-  private final double scoringDisplacementA = 0.2511; // A: Cam to middle of arm in meters
-  private final double scoringDisplacementB = 0.1651; // B: Tag to coral branches in meters
-
-  public AlignToBestTagCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request) {
-    // Use addRequirements() here to declare subsystem dependencies.
-    this.m_drivetrain = sub1;
-    this.m_visionSubsystem = sub2;
-    this.m_drive = request;
-    //this.camBeingUsed = myCamBeingUsed;
-
-    //this.myidNum = idNum;
-    // imu = m_drivetrain.getPigeon2();
-
-    addRequirements(m_drivetrain);
-    addRequirements(m_visionSubsystem); 
-  }
-
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {}
-
-  // Called every time the scheduler runs while the command is scheduled.
-  @Override
-  public void execute() {
-    
-
-    // Update vision data
-    m_visionSubsystem.findBestCameraToTarget();
-    myBestCamera = m_visionSubsystem.getBestCamera();
-    myClosestTarget = m_visionSubsystem.getClosestTarget();
-
-    // If no valid target, STOP IMMEDIATELY
-    if (myClosestTarget == null || myBestCamera == null) {
-        System.out.println("[WARN] No valid target or camera detected. Stopping movement.");
-        
-        this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
-        this.m_drivetrain.setControl(m_drive.withVelocityX(0).withVelocityY(0)); // Stop all movement
-        return; // Exit early
+    public AlignToBestTagCommand(CommandSwerveDrivetrain drivetrain, VisionSubsystem vision) {
+        this.drivetrain = drivetrain;
+        this.vision = vision;
+        addRequirements(drivetrain, vision);
     }
 
-    try {
-        currentYaw = myClosestTarget.getYaw();
-        System.out.println("[GO-TO] Got target YAW: " + currentYaw);
+    @Override
+    public void initialize() {
+        PhotonTrackedTarget target = vision.getClosestTarget();
+        if (target == null) {
+            System.out.println("[AutoAlign] No target detected.");
+            return;
+        }
 
-        
-    // Determine movement direction
-    double yawDirection;
-    if(m_visionSubsystem.getCameraNumber(myBestCamera)==10){ // adjusting for the angle they face
-      adjustedYaw = currentYaw + 22.5;
-    }else if(m_visionSubsystem.getCameraNumber(myBestCamera)==11){
-      adjustedYaw = currentYaw - 22.5;
+        Pose2d tagPose = vision.estimatePose(vision.getOldPose()); // Optional override: use AprilTagFieldLayout
+        Pose2d targetPose = vision.calculateScoringPose(tagPose, true);
+
+        ChassisSpeeds currentVelocity = drivetrain.getKinematics().toChassisSpeeds();
+        // now i have no clue if this is gonna work, but if it does then thats cool af and ill take it LOL
+        Rotation2d heading = new Rotation2d(currentVelocity.vxMetersPerSecond, currentVelocity.vyMetersPerSecond);
+
+        PathPlannerPath path = new PathPlannerPath(
+                PathPlannerPath.waypointsFromPoses(
+                        new Pose2d(vision.getOldPose().getTranslation(), heading),
+                        targetPose
+                ),
+                new PathConstraints(2.0, 2.0, Math.toRadians(540), Math.toRadians(720)),
+                new IdealStartingState(new Translation2d(currentVelocity.vxMetersPerSecond, currentVelocity.vyMetersPerSecond).getNorm(), heading),
+                new GoalEndState(0.0, targetPose.getRotation())
+        );
+
+        path.preventFlipping = true;
+
+        AutoBuilder.followPath(path).schedule();
     }
-    else adjustedYaw = currentYaw;
-
-    if(adjustedYaw>accuracyYaw){
-      yawDirection = 1;
-    } else if (adjustedYaw < -accuracyYaw){
-      yawDirection = -1;
-    } else { 
-      adjustmentSpeed = adjustmentSpeed/2;
-      yawDirection = 0; // Target reached
-      accuracyYaw--;
-  }
-
-  this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * adjustmentSpeed));
-  
-    System.out.println("[GO-TO INFO] Tag detected! Yaw: " + adjustedYaw + " | Moving: " + yawDirection);
-
-    } catch (Exception e) {
-        System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
-
-        // Stop movement if yaw cannot be retrieved
-        this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
-        this.m_drivetrain.setControl(m_drive.withVelocityX(0).withVelocityY(0));
-        return;
-    }
-
-    // **Move Robot Sideways**  
-    
-  }
-
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(boolean interrupted) {}
-
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return Math.abs(adjustedYaw) < 1; // aligned 
-  }
 }

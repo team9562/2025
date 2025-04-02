@@ -21,8 +21,8 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 import frc.robot.commands.LEDCommands.SetLedStateCommand;
-import frc.robot.commands.SwerveCommands.AlignToBestTagCommand;
-import frc.robot.commands.SwerveCommands.TurnToBestTargetCommand;
+import frc.robot.commands.SwerveCommands.PathPlannerAlignment;
+import frc.robot.commands.SwerveCommands.ManualAutoAlign;
 import frc.robot.constants.ArmConstants;
 import frc.robot.constants.ArmConstants.ArmAngles;
 import frc.robot.constants.ArmConstants.IntakeDirection;
@@ -63,7 +63,8 @@ public class RobotContainer {
     public final static LedSubsystem m_ledSubsystem = new LedSubsystem();
     public final static CoralGroundIntake m_coralGroundIntake = new CoralGroundIntake();
 
-    public AlignToBestTagCommand alignToBestTagCommand = new AlignToBestTagCommand(drivetrain, m_visionSubsystem);
+    public PathPlannerAlignment pathPlannerAlignmentLeft = new PathPlannerAlignment(drivetrain, m_visionSubsystem, true);
+    public PathPlannerAlignment pathPlannerAlignmentRight = new PathPlannerAlignment(drivetrain, m_visionSubsystem, false);
 
     private final SendableChooser<Command> autoChooser;
 
@@ -113,6 +114,7 @@ public class RobotContainer {
             m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1),
             m_armSubsystem.zero());
     }
+    
 
     // autoScore
     private final Command autoScoreL4(){
@@ -123,7 +125,7 @@ public class RobotContainer {
         .andThen(simpleHome())
         .finallyDo(() -> System.out.println("[AUTO SCORE] Auto Score Completed"));
         }
-    private final Command turnToBestTargetCommand = new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive);
+    private final Command manualAutoAlign = new ManualAutoAlign(drivetrain, m_visionSubsystem, drive);
             
     public RobotContainer() {
 
@@ -136,8 +138,10 @@ public class RobotContainer {
     }
 
     private void registerCommands() {
-        NamedCommands.registerCommand("turnToBestTarget", turnToBestTargetCommand);
-        NamedCommands.registerCommand("AlignToBestTag", alignToBestTagCommand);
+        NamedCommands.registerCommand("manualAutoAlign", manualAutoAlign);
+        NamedCommands.registerCommand("pathPlannerAlignmentLeft", pathPlannerAlignmentLeft);
+        NamedCommands.registerCommand("pathPlannerAlignmentRight", pathPlannerAlignmentRight);
+
         NamedCommands.registerCommand("ScoreCoral", autoScoreL4());
         NamedCommands.registerCommand("Intake", intakeFromGround());
     }
@@ -162,9 +166,9 @@ public class RobotContainer {
         m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
  
-        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
+        /*m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
             .onlyIf(() -> m_armSubsystem.isSafe())
-            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
+            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));*/
 
         XController.povDown().onChange(simpleHome());
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));
@@ -200,8 +204,9 @@ public class RobotContainer {
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1));
 
-        // XController.b().onTrue(alignToBestTagCommand);
-         XController.b().whileTrue(new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive));
+         XController.b().onTrue(pathPlannerAlignmentLeft);
+        // XController.b().onTrue(pathPlannerAlignmentRight);
+        // XController.b().whileTrue(new ManualAutoAlign(drivetrain, m_visionSubsystem, drive));
     }
 
     public Command getAutonomousCommand() {

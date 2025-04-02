@@ -46,7 +46,7 @@ public class VisionSubsystem extends SubsystemBase {
 
   private PhotonPipelineResult result;
 
-  private final Transform3d cameraPositions;
+  public final Transform3d cameraPositions;
 
   private static final Map<PhotonCamera, Double> CAMERA_HEIGHTS = new HashMap<>();
   private static final Map<PhotonCamera, Double> CAMERA_PITCHES = new HashMap<>();
@@ -58,7 +58,7 @@ public class VisionSubsystem extends SubsystemBase {
   double distance;
   double newDist = Double.MAX_VALUE;
 
-  Pose3d robotPose;
+  public Pose3d robotPose;
 
   long iteration = 0;
   String oldIdsString = "";
@@ -112,8 +112,8 @@ public class VisionSubsystem extends SubsystemBase {
       if (result.hasTargets()) {
         List<PhotonTrackedTarget> targets = result.getTargets();
 
-        double CamHeight = CAMERA_HEIGHTS.get(camera1);
-        double CamPitch = CAMERA_PITCHES.get(camera1);
+        double CamHeight = CAMERA_HEIGHTS.get(camera1); // fix this one
+        double CamPitch = CAMERA_PITCHES.get(camera1); // fix this one
 
         for (PhotonTrackedTarget target : targets) {
 // distance also used for gotobesttarget
@@ -130,10 +130,15 @@ public class VisionSubsystem extends SubsystemBase {
   }
 
   public Pose2d getOldPose(){
-    return robotPose.toPose2d();
+    if(robotPose != null){
+      return robotPose.toPose2d();
+    }else{
+      return null;
+    }
   }
 
   public PhotonTrackedTarget getClosestTarget(){ // from all cameras (not just one)
+    findBestCameraToTarget();
     return closestTarget;
   }
   

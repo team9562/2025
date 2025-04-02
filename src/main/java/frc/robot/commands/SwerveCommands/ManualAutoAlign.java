@@ -17,7 +17,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class TurnToBestTargetCommand extends Command {
+public class ManualAutoAlign extends Command {
 
   private final CommandSwerveDrivetrain m_drivetrain;
   private final SwerveRequest.FieldCentric m_drive;
@@ -32,7 +32,7 @@ public class TurnToBestTargetCommand extends Command {
   private static CommandXboxController XController = new CommandXboxController(0);
 
 
-  public TurnToBestTargetCommand(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request) {
+  public ManualAutoAlign(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request) {
     this.m_drivetrain = sub1;
     this.m_visionSubsystem = sub2;
     this.m_drive = request;

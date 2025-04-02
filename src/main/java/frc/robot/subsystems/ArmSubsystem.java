@@ -32,8 +32,8 @@ public class ArmSubsystem extends SubsystemBase {
   double[] data = new double[10];
   int index = 0;
   double avg = 0;
-double currentData = 0;
-double lastData = 0;
+  double currentData = 0;
+  double lastData = 0;
   private final SparkMax pitchSpark = new SparkMax(ArmConstants.A_PITCH_ID, MotorType.kBrushless);
   private final RelativeEncoder pitchEncoder = pitchSpark.getEncoder();
   private final DutyCycleEncoder lampreyPWM = new DutyCycleEncoder(7, 360, 0);
@@ -204,7 +204,7 @@ double lastData = 0;
     for(double num : data) avg += num;
     avg = avg / 10.0;
 
-    if(avg > 182) avg -= 360;
+    if(avg > 190) avg -= 360;
     if(avg < -180) avg += 360;
   
     SmartDashboard.putNumber("Arm/Lamprey Average: ", avg);

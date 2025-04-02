@@ -95,14 +95,11 @@ public class RobotContainer {
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return m_elevatorSubsystem.runOnce(() -> System.out.println("[SCORING] Height Angle Sequence Started Using Elevator Resources"))
-            .andThen(m_armSubsystem.zero())
+        return m_armSubsystem.zero()
                 .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
                     .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
                 .andThen(m_armSubsystem.setPitch(angle.getAngle())
-                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())))
-                .finallyDo(() -> m_elevatorSubsystem.runOnce(() -> System.out.println("[SCORING] Reached Height: " + height.getHeight() + 
-                                                  "\n[SCORING] Reached Angle: " + angle.getAngle())));
+                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())));
     }
 
     private final Command intakeFromGround(){
@@ -119,12 +116,10 @@ public class RobotContainer {
 
     // autoScore
     private final Command autoScoreL4(){
-        return m_elevatorSubsystem.runOnce(() -> System.out.println("[AUTO SCORE] Auto Score Started Using Elevator Resources"))
-        .andThen(m_armSubsystem.zero())
+        return m_armSubsystem.zero()
         .andThen(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2).withTimeout(3.4))
         .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
-        .andThen(simpleHome())
-        .finallyDo(() -> m_elevatorSubsystem.runOnce(() -> System.out.println("[AUTO SCORE] Auto Score Completed")));
+        .andThen(simpleHome());
         }
     private final Command manualAutoAlign = new ManualAutoAlign(drivetrain, m_visionSubsystem, drive);
             
@@ -164,12 +159,12 @@ public class RobotContainer {
                         .withVelocityY(-XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-XController.getRightX() * MaxAngularRate)));
 
-        m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        //m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
  
-        /*m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
+        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
             .onlyIf(() -> m_armSubsystem.isSafe())
-            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));*/
+            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
 
         XController.povDown().onChange(simpleHome());
         XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));

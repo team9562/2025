@@ -8,7 +8,7 @@ public class ArmConstants {
     public static final int A_OPEN_ID = 29;
 
     public static final int PITCH_STALL_LIMIT = 40;
-    public static final int OPEN_STALL_LIMIT = 20;
+    public static final int OPEN_STALL_LIMIT = 25;
 
     public static final double pConversionFactor = 3.6;
 

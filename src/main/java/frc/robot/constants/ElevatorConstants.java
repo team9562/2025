@@ -12,7 +12,7 @@ public class ElevatorConstants {
     public static final double E_PULLEY_LENGTH = 180 / 25.4; // 180 is the circumference in mm ( / 25.4 = in)
     public static final double kConversionFactor = E_GEAR_RATIO * E_PULLEY_LENGTH;
 
-    public static final double kP = 0.04; //0.04
+    public static final double kP = 0.045; //0.04
     public static final double kI = 0;
     public static final double kD = 0.0004;
     public static final double minOut = -0.40;
@@ -22,7 +22,7 @@ public class ElevatorConstants {
 
     // in
     public static final int E_MAXHEIGHT = 80;
-    public static final double E_TOLERANCE = 0.75;
+    public static final double E_TOLERANCE = 1;
 
     public static final double E_MAXSPEED = 0.25;
 

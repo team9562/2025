@@ -42,7 +42,7 @@ public class CoralGroundIntake extends SubsystemBase {
 
   // PID and Encoder Stuff
   private final SparkClosedLoopController rotationPID = rotateMotor.getClosedLoopController();
-  private final RelativeEncoder rotationEncoder = rotateMotor.getEncoder();
+  private final AbsoluteEncoder rotationEncoder = rotateMotor.getAbsoluteEncoder();
 
   // Sensor
   private final DigitalInput beamBreakSensor = new DigitalInput(CoralGroundIntakeConstants.BEAM_BREAK_SENSOR_ID);
@@ -140,11 +140,11 @@ public class CoralGroundIntake extends SubsystemBase {
 
   // Set Intake Arm Position using PID
   public Command setIntakePosition(double position) {
-    return run(() -> rotationPID.setReference(position, ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position + 0.11, ControlType.kPosition, slot0));
   }
 
   public Command setIntakePosition(CoralAngles position) {
-    return run(() -> rotationPID.setReference(position.getAngle(), ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position.getAngle() + 0.11, ControlType.kPosition, slot0));
   }
 
   public Command intakeWithBeamBreak() {
@@ -164,13 +164,6 @@ public class CoralGroundIntake extends SubsystemBase {
 
   public double getEncoderPose(){
     return rotationEncoder.getPosition();
-  }
-
-  public Command runCurrentZeroing(){
-    return run(() -> rotateMotor.setVoltage(2))
-    .until(() -> rotateMotor.getOutputCurrent() > CoralGroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT)
-    .andThen(() -> rotateMotor.stopMotor())
-    .finallyDo(() -> rotationEncoder.setPosition(0));
   }
 
   @Override

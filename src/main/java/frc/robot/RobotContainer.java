@@ -118,7 +118,7 @@ public class RobotContainer {
     private final Command autoScoreL4(){
         return m_elevatorSubsystem.run(() -> System.out.println("[AUTO SCORE] Auto Score Started Using Elevator Resources"))
         .andThen(m_armSubsystem.zero())
-        .andThen(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4).withTimeout(3.4))
+        .andThen(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2).withTimeout(3.4))
         .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
         .andThen(simpleHome())
         .finallyDo(() -> System.out.println("[AUTO SCORE] Auto Score Completed"));
@@ -161,7 +161,7 @@ public class RobotContainer {
 
         m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
-
+ 
         m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
             .onlyIf(() -> m_armSubsystem.isSafe())
             .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
@@ -200,8 +200,8 @@ public class RobotContainer {
             .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1));
 
-        XController.b().onTrue(alignToBestTagCommand);
-        // XController.b().onTrue(turnToBestTargetCommand);
+        // XController.b().onTrue(alignToBestTagCommand);
+         XController.b().whileTrue(new TurnToBestTargetCommand(drivetrain, m_visionSubsystem, drive));
     }
 
     public Command getAutonomousCommand() {

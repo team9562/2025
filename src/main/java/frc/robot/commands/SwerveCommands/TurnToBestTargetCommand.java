@@ -9,6 +9,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentric;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
 import static edu.wpi.first.units.Units.*;
@@ -21,7 +22,8 @@ public class TurnToBestTargetCommand extends Command {
   private final CommandSwerveDrivetrain m_drivetrain;
   private final SwerveRequest.FieldCentric m_drive;
   private PhotonTrackedTarget closestTarget;
-  
+    private final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // check final idk
+
   private double currentYaw;
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   private final VisionSubsystem m_visionSubsystem; // for A.T follow command
@@ -84,7 +86,7 @@ public class TurnToBestTargetCommand extends Command {
     }
 
     System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
-    double maxSpeedToNotKillItself = 1.5;
+    double maxSpeedToNotKillItself = MaxSpeed*3/4;
     if(speedToTarget < maxSpeedToNotKillItself){
     this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * speedToTarget)); // speedToTarget
     } else{
@@ -103,6 +105,6 @@ public class TurnToBestTargetCommand extends Command {
   @Override
   public boolean isFinished() {
     // should not end unless button is toggled / lifted
-    return false; // isDoneAdjusting
+    return isDoneAdjusting; // isDoneAdjusting
   }
 }

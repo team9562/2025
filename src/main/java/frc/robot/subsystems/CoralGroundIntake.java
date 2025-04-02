@@ -49,6 +49,8 @@ public class CoralGroundIntake extends SubsystemBase {
 
   private final double tolerance = CoralGroundIntakeConstants.ROTATION_TOLERANCE;
 
+  private final double overshoot = 0.14;
+
   public CoralGroundIntake() {
     // Configure Front Intake Motor
     frontIntakeConfig
@@ -79,6 +81,8 @@ public class CoralGroundIntake extends SubsystemBase {
             CoralGroundIntakeConstants.ROTATION_kI,
             CoralGroundIntakeConstants.ROTATION_kD,
             slot0);
+    rotateConfig.absoluteEncoder
+      .zeroOffset(0.7136407);
   }
 
   // Call this method once during initialization to store settings to flash
@@ -140,26 +144,26 @@ public class CoralGroundIntake extends SubsystemBase {
 
   // Set Intake Arm Position using PID
   public Command setIntakePosition(double position) {
-    return run(() -> rotationPID.setReference(position + 0.11, ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position + overshoot, ControlType.kPosition, slot0));
   }
 
   public Command setIntakePosition(CoralAngles position) {
-    return run(() -> rotationPID.setReference(position.getAngle() + 0.11, ControlType.kPosition, slot0));
+    return run(() -> rotationPID.setReference(position.getAngle() + overshoot, ControlType.kPosition, slot0));
   }
 
   public Command intakeWithBeamBreak() {
-    return (setIntakePosition(CoralAngles.FLOOR).until(() -> isAtPoint(CoralAngles.FLOOR) || rotateMotor.getOutputCurrent() > CoralGroundIntakeConstants.ROTATION_MOTOR_STALL_LIMIT))
+    return (setIntakePosition(CoralAngles.FLOOR).until(() -> isAtPoint(CoralAngles.FLOOR)))
       .andThen(run(() -> intakeBoth())
         .onlyWhile(() -> beamBreakSensor.get()))
       .finallyDo(() -> stopIntake());
   }
 
   public boolean isAtPoint(double point){
-    return Utility.withinTolerance(getEncoderPose(), point + 0.11, 0.08);
+    return Utility.withinTolerance(getEncoderPose(), point + overshoot, 0.08);
   }
 
   public boolean isAtPoint(CoralAngles point){
-    return Utility.withinTolerance(getEncoderPose(), point.getAngle() + 0.11, 0.08);
+    return Utility.withinTolerance(getEncoderPose(), point.getAngle() + overshoot, 0.08);
   }
 
   public double getEncoderPose(){

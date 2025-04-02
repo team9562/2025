@@ -88,21 +88,21 @@ public class RobotContainer {
     }
 
     private final Command simpleHome(){
-        return m_elevatorSubsystem.run(() -> System.out.println("[HOMING] Homing Sequence Started Using Elevator Resources"))
+        return m_elevatorSubsystem.runOnce(() -> System.out.println("[HOMING] Homing Sequence Started Using Elevator Resources"))
         .andThen(m_armSubsystem.zero()
-            .alongWith(m_elevatorSubsystem.rocketShip()))
-        .finallyDo(() -> System.out.println("[HOMING] Homing Sequence Complete"));
+            .alongWith(m_elevatorSubsystem.rocketShip()));
+        //.finallyDo(() -> m_elevatorSubsystem.runOnce(() -> System.out.println("[HOMING] Homing Sequence Complete")));
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
-        return m_elevatorSubsystem.run(() -> System.out.println("[SCORING] Height Angle Sequence Started Using Elevator Resources"))
+        return m_elevatorSubsystem.runOnce(() -> System.out.println("[SCORING] Height Angle Sequence Started Using Elevator Resources"))
             .andThen(m_armSubsystem.zero())
-                .andThen((m_elevatorSubsystem.setElevatorHeight(height.getHeight())
+                .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
                     .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
-                .alongWith(m_armSubsystem.setPitch(angle.getAngle())
-                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle()))))
-                .finallyDo(() -> System.out.println("[SCORING] Reached Height: " + height.getHeight() + 
-                                                  "\n[SCORING] Reached Angle: " + angle.getAngle()));
+                .andThen(m_armSubsystem.setPitch(angle.getAngle())
+                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())))
+                .finallyDo(() -> m_elevatorSubsystem.runOnce(() -> System.out.println("[SCORING] Reached Height: " + height.getHeight() + 
+                                                  "\n[SCORING] Reached Angle: " + angle.getAngle())));
     }
 
     private final Command intakeFromGround(){
@@ -112,18 +112,19 @@ public class RobotContainer {
             new ParallelRaceGroup(intakeCoralAlgae(), 
                 m_coralGroundIntake.run(() -> m_coralGroundIntake.intakeBoth())), 
             m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1),
+            m_armSubsystem.run(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP)).withTimeout(0.1),
             m_armSubsystem.zero());
     }
     
 
     // autoScore
     private final Command autoScoreL4(){
-        return m_elevatorSubsystem.run(() -> System.out.println("[AUTO SCORE] Auto Score Started Using Elevator Resources"))
+        return m_elevatorSubsystem.runOnce(() -> System.out.println("[AUTO SCORE] Auto Score Started Using Elevator Resources"))
         .andThen(m_armSubsystem.zero())
         .andThen(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2).withTimeout(3.4))
         .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
         .andThen(simpleHome())
-        .finallyDo(() -> System.out.println("[AUTO SCORE] Auto Score Completed"));
+        .finallyDo(() -> m_elevatorSubsystem.runOnce(() -> System.out.println("[AUTO SCORE] Auto Score Completed")));
         }
     private final Command manualAutoAlign = new ManualAutoAlign(drivetrain, m_visionSubsystem, drive);
             

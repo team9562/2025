@@ -25,8 +25,8 @@ public class PathPlannerAlignment extends Command {
     private final CommandSwerveDrivetrain drivetrain;
     private final VisionSubsystem vision;
     private boolean isLeftBranchUsed;
-    private boolean isDoneAligning = false;
     private double hypopottamus;
+    PathPlannerPath path;
     AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
     Pose3d robotPosewow = null;
 
@@ -39,20 +39,13 @@ public class PathPlannerAlignment extends Command {
     }
 
     @Override
-    public void initialize() {
-    }
-
-    // Called every time the scheduler runs while the command is scheduled.
-    @Override
-    public void execute() {
-
+    public void initialize() {        
         System.out.println("PATHPLANNER - AUTO ALIGN COMMAND STARTED");
 
         PhotonTrackedTarget target = vision.getClosestTarget();
         // get the closest tag -> fix this
         if (target == null) {
             System.out.println("[AutoAlign] No target detected.");
-            return;
         }
         try {
             if (aprilTagFieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
@@ -75,17 +68,17 @@ public class PathPlannerAlignment extends Command {
         hypopottamus = Math
                 .sqrt(Math.pow(currentVelocity.vxMetersPerSecond, 2) + Math.pow(currentVelocity.vyMetersPerSecond, 2));
         System.out.println("PATHPLANNER STARTING PATH CREATION");
-        PathPlannerPath path = new PathPlannerPath( // make an alignment path using the
+        path = new PathPlannerPath( // make an alignment path using the
                 // requires waypoints, constraints, idealstartingstate, endstate
                 PathPlannerPath.waypointsFromPoses( // make waypoints using the pose 2Ds
                         robotPosewow.toPose2d(), // waypoint at the old pose
                         targetPose // waypoint at the starting pose
                 ),
-                new PathConstraints(2, 2, Math.toRadians(540), Math.toRadians(720)),
+                new PathConstraints(0.1, 0.1, Math.toRadians(100), Math.toRadians(100)), // 540, 720
                 // physical path constraints -> max velocity + acceleration and max angular
                 // velocity + acceleration
-                // null,
-                new IdealStartingState(hypopottamus, robotPosewow.getRotation().toRotation2d()),
+                null,
+
 
                 // Translation2d -> x & y components of the translation
                 // then getNorm is the displacement between origin and end of translation
@@ -99,23 +92,26 @@ public class PathPlannerAlignment extends Command {
         path.preventFlipping = true; // prevent flipping the path if on the opposite (red) alliance
 
         AutoBuilder.followPath(path).schedule(); // execute the new path
-        if (AutoBuilder.followPath(path).isFinished()) { // wont end lol
-            isDoneAligning = true;
-        }
-        
-        System.out.println("PATHPLANNER THING REACHED THE END WOAHHAHAHAHAH");
+
         // everythings good so where the freak is the error brah >:(
+    }
+
+    // Called every time the scheduler runs while the command is scheduled.
+    @Override
+    public void execute() {
+
     }
 
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
+        System.out.println("PATHPLANNER THING REACHED THE END WOAHHAHAHAHAH");
     }
 
     // Returns true when the command should end.
     @Override
     public boolean isFinished() {
-        return isDoneAligning;
+        return AutoBuilder.followPath(path).isFinished();
     }
 
 }

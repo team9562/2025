@@ -193,6 +193,7 @@ public class RobotContainer {
         //intakes
         XController.rightBumper().onTrue(intakeFromGround());
         
+        
         XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
         XController.a().onFalse(m_coralGroundIntake.runOnce(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1));
 

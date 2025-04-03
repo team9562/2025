@@ -110,27 +110,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command setElevatorHeight(ElevatorHeights height) {
     return run(() -> pid.setReference(height.getHeight(), ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage));
   }
-/* 
-  public Command setDeltaHeight(){
-    double delta;
-    if(isAtPoint(ElevatorHeights.L2)){
-      delta = getEncoderPose() + ElevatorHeights.L3.getHeight() - ElevatorHeights.L2.getHeight();
+
+  public Command setDeltaHeight(ElevatorHeights height){
+      double delta = height.getHeight() - 1;
       this.target = delta;
-      return setElevatorHeight(delta);
+      return setElevatorHeight(delta)
+        .onlyWhile(() -> rightEncoder.getPosition() >= 60)
+        .until(() -> isAtPoint(delta));
     }
 
-    else if(isAtPoint(ElevatorHeights.L3)){
-      delta = getEncoderPose() + ElevatorHeights.L4.getHeight() - ElevatorHeights.L3.getHeight();
-      this.target = delta;
-      return setElevatorHeight(delta);
-    }
-
-    else {
-      this.target = -1;
-      return run(() -> stopElevator());
-     } // or run a new instant command
-  }
-*/
   public Command runCurrentZeroing() {
     return this
         .run(() -> pid.setReference(-2.5, ControlType.kVoltage, slot0)) // decrease??
@@ -140,6 +128,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command rocketShip(){
+
     return run(() -> pid.setReference(ElevatorHeights.ZERO.getHeight(), ControlType.kPosition, slot0))
     .until(() -> elevatorRight.getOutputCurrent() > 40 || isAtPoint(ElevatorHeights.ZERO))
     .andThen(runCurrentZeroing());

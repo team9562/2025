@@ -40,45 +40,39 @@ public class PathPlannerAlignment extends Command {
 
     @Override
     public void initialize() {        
-        System.out.println("PATHPLANNER - AUTO ALIGN COMMAND STARTED");
+        // System.out.println("PATHPLANNER - AUTO ALIGN COMMAND STARTED");
 
-        PhotonTrackedTarget target = vision.getClosestTarget();
         // get the closest tag -> fix this
-        if (target == null) {
-            System.out.println("[AutoAlign] No target detected.");
+        if (vision.targeta == null) {
+            // System.out.println("[AutoAlign] No target detected, skipping align command.");
         }
         try {
-            if (aprilTagFieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
-                robotPosewow = PhotonUtils.estimateFieldToRobotAprilTag(target.getBestCameraToTarget(),
-                        aprilTagFieldLayout.getTagPose(target.getFiducialId()).get(), vision.cameraPositions);
+            if (aprilTagFieldLayout.getTagPose(vision.targeta.getFiducialId()).isPresent()) {
+                robotPosewow = PhotonUtils.estimateFieldToRobotAprilTag(vision.targeta.getBestCameraToTarget(),
+                        aprilTagFieldLayout.getTagPose(vision.targeta.getFiducialId()).get(), vision.cameraPositions);
             }
         } catch (Exception e) {
-            System.out.println("[ERORR] tralalero tralala?: " + e);
+            // System.out.println("[ERORR] tralalero tralala?: " + e);
         }
-        Pose2d tagPose = vision.estimatePose(vision.getOldPose()); // Optional override: use AprilTagFieldLayout
-        Pose2d targetPose = vision.calculateScoringPose(tagPose, isLeftBranchUsed);
+        try{
+        Pose2d targetPose = vision.calculateScoringPose(vision.tagPose, isLeftBranchUsed);
         // calculates the scoring pose using the tag's pose
-        ChassisSpeeds currentVelocity = drivetrain.getKinematics().toChassisSpeeds(
-                drivetrain.getModules()[0].getCurrentState(), drivetrain.getModules()[1].getCurrentState(),
-                drivetrain.getModules()[2].getCurrentState(), drivetrain.getModules()[3].getCurrentState()); // drivetrain.getKinematics().toChassisSpeeds()
-        // toChassisSpeeds() has parameters: SwerveModuleState, which we dont use
-        // (if anything doesnt work its probably because of this)
-        System.out.println("THIS IS THE DEGREESS: " + robotPosewow.getRotation().getAngle() * 180 / Math.PI);
+       // System.out.println("THIS IS THE DEGREESS: " + robotPosewow.getRotation().getAngle() * 180 / Math.PI);
         //
-        hypopottamus = Math
-                .sqrt(Math.pow(currentVelocity.vxMetersPerSecond, 2) + Math.pow(currentVelocity.vyMetersPerSecond, 2));
-        System.out.println("PATHPLANNER STARTING PATH CREATION");
+        // hypopottamus = Math // -> dont need this if not using ideal starting state
+        //         .sqrt(Math.pow(vision.currentVelocity.vxMetersPerSecond, 2) + Math.pow(vision.currentVelocity.vyMetersPerSecond, 2));
+        // System.out.println("PATHPLANNER STARTING PATH CREATION");
         path = new PathPlannerPath( // make an alignment path using the
                 // requires waypoints, constraints, idealstartingstate, endstate
                 PathPlannerPath.waypointsFromPoses( // make waypoints using the pose 2Ds
-                        robotPosewow.toPose2d(), // waypoint at the old pose
+                        vision.myPose3d.toPose2d(), // waypoint at the old pose
                         targetPose // waypoint at the starting pose
                 ),
-                new PathConstraints(0.1, 0.1, Math.toRadians(100), Math.toRadians(100)), // 540, 720
+                new PathConstraints(2, 2, Math.toRadians(540), Math.toRadians(720)), 
+                // previous velocities: 2.0, 2.0, 540, 720
                 // physical path constraints -> max velocity + acceleration and max angular
                 // velocity + acceleration
                 null,
-
 
                 // Translation2d -> x & y components of the translation
                 // then getNorm is the displacement between origin and end of translation
@@ -87,12 +81,15 @@ public class PathPlannerAlignment extends Command {
         // end state = final velocity + final pose heading (angle it wanna be at)
         ); // and thats the whole path!
 
-        System.out.println("PATHPLANNER -- PATH CREATED---------------------");
-        System.out.println("THIS IS THE TO STRING THING: " + path.toString()); // idk just trying anything atp
+        // System.out.println("PATHPLANNER -- PATH CREATED---------------------");
+        // System.out.println("THIS IS THE TO STRING THING: " + path.toString()); // idk just trying anything atp
         path.preventFlipping = true; // prevent flipping the path if on the opposite (red) alliance
 
-        AutoBuilder.followPath(path).schedule(); // execute the new path
-
+        AutoBuilder.followPath(path); // execute the new path
+        }
+        catch(Exception e){
+            // System.out.println("ERROR AT PATHPLANNER AUTO ALIGN: " + e);
+        }
         // everythings good so where the freak is the error brah >:(
     }
 
@@ -105,7 +102,7 @@ public class PathPlannerAlignment extends Command {
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
-        System.out.println("PATHPLANNER THING REACHED THE END WOAHHAHAHAHAH");
+        // System.out.println("PATHPLANNER THING REACHED THE END WOAHHAHAHAHAH");
     }
 
     // Returns true when the command should end.

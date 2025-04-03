@@ -17,6 +17,6 @@ public final class Main {
   public static void main(String... args) {
     RobotBase.startRobot(Robot::new);
     
-    System.out.println("[ROBOT STARTED] We did something right, that's for sure");
+    // System.out.println("[ROBOT STARTED] We did something right, that's for sure");
   }
 }

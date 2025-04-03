@@ -36,8 +36,8 @@ public class TurnAroundCommand extends Command {
   }
 
   public void outputYawTarget() {
-    System.out.println("Yaw: " + currentYaw);
-    System.out.println("Target: " + target);
+    // System.out.println("Yaw: " + currentYaw);
+    // System.out.println("Target: " + target);
   }
 
   // Called when the command is initially scheduled.
@@ -61,15 +61,15 @@ public class TurnAroundCommand extends Command {
     this.currentYaw = getPigeonYaw();
 
     // debug info
-    System.out.println("command is executing");
+    // System.out.println("command is executing");
     outputYawTarget();
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    System.out.println("turnAround complete");
-    System.out.println("FINAL VALUES: ");
+    // System.out.println("turnAround complete");
+    // System.out.println("FINAL VALUES: ");
     outputYawTarget();
   }
 

@@ -66,7 +66,7 @@ public class followGuzPath extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    System.out.println(">> STARTING");
+    // System.out.println(">> STARTING");
 
     // Assign the grid & POI values here
 
@@ -152,27 +152,27 @@ public class followGuzPath extends Command {
        * else{
        * current.x = target.x;
        * current.y = target.y;
-       * System.out.println("<Fake Reached: " + current.toString() +"> " +(
+       * // System.out.println("<Fake Reached: " + current.toString() +"> " +(
        * deadZone*2));
        * i = 200;
        * }
        */
 
       if (current.dist2D(target) < deadZone * 2) {
-        System.out.println("Node Reached.  Moving On...");
+        // System.out.println("Node Reached.  Moving On...");
         Main.botPath.remove(0);
         if (Main.botPath.size() > 0) {
-          System.out.println("Next Node available " + Main.botPath.size() + " Remaining... Engaging");
+          // System.out.println("Next Node available " + Main.botPath.size() + " Remaining... Engaging");
           this.target = Main.botPath.get(0);
           this.target.x = (this.target.x + 0.5) * unitScale;
           this.target.y = (this.target.y + 0.5) * unitScale;
           i = 200;
         } else {
           target.x = -1;
-          System.out.println("End of Path Reached.");
+          // System.out.println("End of Path Reached.");
           velX = 0;
           velY = 0;
-          System.out.println("Path System has no Path to follow. STOPPING the Bot!");
+          // System.out.println("Path System has no Path to follow. STOPPING the Bot!");
           m_drivetrain.setControl(drive.withVelocityX(this.velX * RobotContainer.MaxSpeed)
               .withVelocityY(this.velY * RobotContainer.MaxSpeed));
 
@@ -195,7 +195,7 @@ public class followGuzPath extends Command {
       }
 
     } else {// online but with no target
-      System.out.println("Assigning TARGET" + Main.botPath.size());
+      // System.out.println("Assigning TARGET" + Main.botPath.size());
       if (Main.botPath.size() > 0) {
         this.target = Main.botPath.get(0);
         this.target.x = (this.target.x + 0.5) * unitScale;
@@ -206,7 +206,7 @@ public class followGuzPath extends Command {
 
         velX = 0;
         velY = 0;
-        System.out.println("Path System has no Path to follow. STOPPING the Bot!");
+        // System.out.println("Path System has no Path to follow. STOPPING the Bot!");
         m_drivetrain.setControl(drive.withVelocityX(this.velX * RobotContainer.MaxSpeed)
             .withVelocityY(this.velY * RobotContainer.MaxSpeed));
       }
@@ -216,7 +216,7 @@ public class followGuzPath extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    System.out.println("ENDING");
+    // System.out.println("ENDING");
   }
 
   // Returns true when the command should end.

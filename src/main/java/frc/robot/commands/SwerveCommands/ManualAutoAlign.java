@@ -29,7 +29,6 @@ public class ManualAutoAlign extends Command {
   private final VisionSubsystem m_visionSubsystem; // for A.T follow command
   private double speedToTarget = 1;
   private boolean isDoneAdjusting = false;
-  private static CommandXboxController XController = new CommandXboxController(0);
 
 
   public ManualAutoAlign(CommandSwerveDrivetrain sub1, VisionSubsystem sub2, FieldCentric request) {
@@ -49,12 +48,12 @@ public class ManualAutoAlign extends Command {
 
     // XController.b().onTrue(); // reset exit state
 
-    System.out.println("[THIS GOOFY AHH COMMAND IS RUNNING!!!]");
+    // System.out.println("[THIS GOOFY AHH COMMAND IS RUNNING!!!]");
 
     closestTarget = m_visionSubsystem.getBestTarget(); // Get the closest AprilTag target from the camera
 
     if (closestTarget == null) {
-      System.out.println("[WARN] No valid target detected. Stopping rotation.");
+       // System.out.println("[WARN] No valid target detected. Stopping rotation.");
       this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
       return; // Exit early to prevent null pointer issues
     }
@@ -62,7 +61,7 @@ public class ManualAutoAlign extends Command {
     try {
       currentYaw = closestTarget.getYaw(); // Attempt to get yaw
     } catch (Exception e) {
-      System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
+      // System.out.println("[ERROR] closestTarget.getYaw() failed! " + e.getMessage());
       this.m_drivetrain.setControl(m_drive.withRotationalRate(0));
       return;
     }
@@ -85,7 +84,7 @@ public class ManualAutoAlign extends Command {
       }
     }
 
-    System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
+    // System.out.println("[INFO] Tag detected! Yaw: " + currentYaw + " | Turning: " + yawDirection);
     double maxSpeedToNotKillItself = MaxSpeed*3/4;
     if(speedToTarget < maxSpeedToNotKillItself){
     this.m_drivetrain.setControl(m_drive.withVelocityY(yawDirection * speedToTarget)); // speedToTarget

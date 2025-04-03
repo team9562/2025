@@ -18,13 +18,13 @@ public class guzPath extends Thread {
     }
 
     public void run() {
-        System.out.println("Listen Thread Engages");
+        // System.out.println("Listen Thread Engages");
         String userInput = "not N a";
         String lastUserInput = "";
         Scanner scan = new Scanner(System.in);
 
         while (!userInput.equals("A")) {
-            System.out.println(">>" + userInput + "<<");
+            // System.out.println(">>" + userInput + "<<");
             userInput = scan.nextLine();
             /*
              * try {
@@ -75,7 +75,7 @@ public class guzPath extends Thread {
             } // End of user input business.
         }
 
-        System.out.println("Listen Thread Concludes.");
+        // System.out.println("Listen Thread Concludes.");
     }
 
     private boolean isNumeric(String str) {

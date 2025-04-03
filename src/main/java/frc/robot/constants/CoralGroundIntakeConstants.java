@@ -24,6 +24,7 @@ public class CoralGroundIntakeConstants {
     public enum CoralAngles{
         FLOOR(0.702),
         CORAL(0.465),
+        L1(0.14),
         ZERO(0.022);
 
         private final double angle;

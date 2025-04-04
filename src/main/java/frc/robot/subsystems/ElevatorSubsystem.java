@@ -99,10 +99,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     elevatorLeft.stopMotor();
   }
 
-  public void moveElevator(double volts) {
-    pid.setReference(volts * 5, ControlType.kVoltage, slot0);
-  }
-
   public Command setElevatorHeight(double targetHeight) {
     return run(() -> pid.setReference(targetHeight, ControlType.kPosition, slot0, kFF, ArbFFUnits.kVoltage)); // resolve error
   }
@@ -112,25 +108,23 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command setDeltaHeight(ElevatorHeights height){
-      double delta = height.getHeight() - 1;
+      double delta = height.getHeight() - 3;
       this.target = delta;
       return setElevatorHeight(delta)
-        .onlyWhile(() -> rightEncoder.getPosition() >= 60)
-        .until(() -> isAtPoint(delta));
+          .until(() -> isAtPoint(delta));
     }
 
   public Command runCurrentZeroing() {
     return this
-        .run(() -> pid.setReference(-2.5, ControlType.kVoltage, slot0)) // decrease??
-        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT + 1)
+        .run(() -> pid.setReference(-2, ControlType.kVoltage, slot0)) // decrease??
+        .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT)
         .andThen(() -> pid.setReference(0, ControlType.kVoltage, slot0))
         .finallyDo(() -> rightEncoder.setPosition(0));
   }
 
   public Command rocketShip(){
-
     return run(() -> pid.setReference(ElevatorHeights.ZERO.getHeight(), ControlType.kPosition, slot0))
-    .until(() -> elevatorRight.getOutputCurrent() > 40 || isAtPoint(ElevatorHeights.ZERO))
+    .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT || isAtPoint(ElevatorHeights.ZERO))
     .andThen(runCurrentZeroing());
   }
 

@@ -65,8 +65,10 @@ public class RobotContainer {
 
     public final static boolean toggleAlgae = false;
 
-    //public PathPlannerAlignment pathPlannerAlignmentLeft = new PathPlannerAlignment(drivetrain, m_visionSubsystem, true);
-    //public PathPlannerAlignment pathPlannerAlignmentRight = new PathPlannerAlignment(drivetrain, m_visionSubsystem, false);
+    // public PathPlannerAlignment pathPlannerAlignmentLeft = new
+    // PathPlannerAlignment(drivetrain, m_visionSubsystem, true);
+    // public PathPlannerAlignment pathPlannerAlignmentRight = new
+    // PathPlannerAlignment(drivetrain, m_visionSubsystem, false);
 
     private final SendableChooser<Command> autoChooser;
 
@@ -79,7 +81,7 @@ public class RobotContainer {
                     .andThen(m_armSubsystem.intakeOuttake(0.4)); // find a good percent to hold the algae in
         }
 
-        else if (!m_laserCan.processMeasurement()){
+        else if (!m_laserCan.processMeasurement()) {
             return m_armSubsystem.intakeOuttake(IntakeDirection.IN)
                     .until(() -> m_armSubsystem.getOpenCurrent() > ArmConstants.OPEN_STALL_LIMIT)
                     .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.IN).withTimeout(0.5))
@@ -89,54 +91,59 @@ public class RobotContainer {
         return m_armSubsystem.intakeOuttake(IntakeDirection.STOP);
     }
 
-    private final Command simpleHome(){
+    private final Command simpleHome() {
         return m_armSubsystem.zero()
-            .alongWith(m_elevatorSubsystem.rocketShip());
-        //.finallyDo(() -> m_elevatorSubsystem.runOnce(() -> // System.out.println("[HOMING] Homing Sequence Complete")));
+                .alongWith(m_elevatorSubsystem.rocketShip());
     }
 
     private final Command setHeightAngleToPOI(ArmAngles angle, ElevatorHeights height) {
         return m_armSubsystem.zero()
                 .andThen(m_elevatorSubsystem.setElevatorHeight(height.getHeight())
-                    .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
+                        .until(() -> m_elevatorSubsystem.isAtPoint(height.getHeight())))
                 .andThen(m_armSubsystem.setPitch(angle.getAngle())
-                    .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())));
+                        .until(() -> m_armSubsystem.isAtPoint(angle.getAngle())));
     }
 
-    private final Command descoreAlgae(ElevatorHeights height){
+    private final Command descoreAlgae(ElevatorHeights height) {
         return m_elevatorSubsystem.setDeltaHeight(height)
-        .andThen(m_armSubsystem.setPitch(ArmAngles.ALGAE))
-            .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ALGAE))
-        .andThen(intakeCoralAlgae());
+                .andThen(m_armSubsystem.setPitch(ArmAngles.ALGAE))
+                .until(() -> m_armSubsystem.isAtPoint(ArmAngles.ALGAE))
+                .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT));
     }
 
-    private final Command intakeFromGround(){
-        return new SequentialCommandGroup(new ParallelCommandGroup(m_coralGroundIntake.intakeSequence(), 
-            m_armSubsystem.setPitch(ArmAngles.CORAL)
-                .until(() -> m_armSubsystem.isAtPoint(ArmAngles.CORAL))), 
-            new ParallelRaceGroup(intakeCoralAlgae(), 
-                m_coralGroundIntake.run(() -> m_coralGroundIntake.intakeBoth())), 
-            m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1),
-            m_armSubsystem.run(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP)).withTimeout(0.1),
-            m_armSubsystem.zero());
+    private final Command intakeFromGround() {
+        return new SequentialCommandGroup(new ParallelCommandGroup(m_coralGroundIntake.intakeSequence(),
+                m_armSubsystem.setPitch(ArmAngles.CORAL)
+                        .until(() -> m_armSubsystem.isAtPoint(ArmAngles.CORAL))),
+                new ParallelRaceGroup(intakeCoralAlgae(),
+                        m_coralGroundIntake.run(() -> m_coralGroundIntake.intakeBoth())),
+                m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1),
+                m_armSubsystem.run(() -> m_armSubsystem.intakeOuttake(IntakeDirection.STOP)).withTimeout(0.1),
+                m_armSubsystem.zero());
     }
-    
 
     // autoScore
-    /*private final Command autoScoreL4(){
-        return m_armSubsystem.zero()
-        .andThen(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2).withTimeout(3.4))
-        .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
-        .andThen(simpleHome());
-        }*/
-    //private final Command manualAutoAlign = new ManualAutoAlign(drivetrain, m_visionSubsystem, drive);
+    /*
+     * private final Command autoScoreL4(){
+     * return m_armSubsystem.zero()
+     * .andThen(setHeightAngleToPOI(ArmAngles.L2,
+     * ElevatorHeights.L2).withTimeout(3.4))
+     * .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
+     * .andThen(simpleHome());
+     * }
+     */
+    // private final Command manualAutoAlign = new ManualAutoAlign(drivetrain,
+    // m_visionSubsystem, drive);
 
-    /*private final Command L1Score(){
-        return m_coralGroundIntake.intakeWithBeamBreak()
-        .andThen(m_coralGroundIntake.run(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1))
-        .andThen(m_coralGroundIntake.setIntakePosition(CoralAngles.L1));
-    }*/
-            
+    /*
+     * private final Command L1Score(){
+     * return m_coralGroundIntake.intakeWithBeamBreak()
+     * .andThen(m_coralGroundIntake.run(() ->
+     * m_coralGroundIntake.stopIntake()).withTimeout(0.1))
+     * .andThen(m_coralGroundIntake.setIntakePosition(CoralAngles.L1));
+     * }
+     */
+
     public RobotContainer() {
 
         registerCommands();
@@ -148,11 +155,13 @@ public class RobotContainer {
     }
 
     private void registerCommands() {
-        //NamedCommands.registerCommand("manualAutoAlign", manualAutoAlign);
-        //NamedCommands.registerCommand("pathPlannerAlignmentLeft", pathPlannerAlignmentLeft);
-        //NamedCommands.registerCommand("pathPlannerAlignmentRight", pathPlannerAlignmentRight);
+        // NamedCommands.registerCommand("manualAutoAlign", manualAutoAlign);
+        // NamedCommands.registerCommand("pathPlannerAlignmentLeft",
+        // pathPlannerAlignmentLeft);
+        // NamedCommands.registerCommand("pathPlannerAlignmentRight",
+        // pathPlannerAlignmentRight);
 
-        //NamedCommands.registerCommand("ScoreCoral", autoScoreL4());
+        // NamedCommands.registerCommand("ScoreCoral", autoScoreL4());
         NamedCommands.registerCommand("Intake", intakeFromGround());
     }
 
@@ -173,50 +182,48 @@ public class RobotContainer {
                         .withVelocityY(-XController.getLeftX() * MaxSpeed) // Drive left with negative X (left)
                         .withRotationalRate(-XController.getRightX() * MaxAngularRate)));
 
-        //m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() -> m_armSubsystem.manualPitchMotor(XController.getRightY())));
+        // m_armSubsystem.setDefaultCommand(m_armSubsystem.run(() ->
+        // m_armSubsystem.manualPitchMotor(XController.getRightY())));
         m_ledSubsystem.setDefaultCommand(new SetLedStateCommand(m_ledSubsystem, RobotState.RAINBOW));
- 
-        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
-            .onlyIf(() -> m_armSubsystem.isSafe())
-            .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
 
-        XController.povDown().onChange(simpleHome());
-        //XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4));
+        m_coralGroundIntake.setDefaultCommand(m_coralGroundIntake.setIntakePosition(CoralAngles.ZERO)
+                .onlyIf(() -> m_armSubsystem.isSafe())
+                .unless(() -> m_coralGroundIntake.isAtPoint(CoralAngles.ZERO)));
 
         // THISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONETHISONE
-        
-        //XController.povLeft().onChange(L1Score());
-
-        //XController.rightBumper().onTrue();
-        //XController.rightBumper().onFalse();
 
         // reset the field-centric heading on d-pad down
         XController.povUp().onChange(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
-        //zero the arm on d-pad right
+        // zero the arm on d-pad right
         XController.povRight().onChange(m_armSubsystem.zero());
 
-        //sends the elevator up to grab a coral off the reef
-            XController.leftBumper().onChange(descoreAlgae(ElevatorHeights.L3));
-            XController.leftTrigger().onChange(descoreAlgae(ElevatorHeights.L2));
+        // sends the elevator up to grab a coral off the reef
+        XController.rightStick().onChange(descoreAlgae(ElevatorHeights.L3));
+        XController.leftStick().onChange(descoreAlgae(ElevatorHeights.L2));
 
-            XController.rightStick().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));
-            XController.leftStick().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2));
-        
+        XController.leftBumper().onChange(setHeightAngleToPOI(ArmAngles.L3, ElevatorHeights.L3));
+        XController.leftTrigger().onChange(setHeightAngleToPOI(ArmAngles.L2, ElevatorHeights.L2));
+        //XController.rightTrigger().onChange(setHeightAngleToPOI(ArmAngles.L4, ElevatorHeights.L4));
 
-        //intakes
+        XController.povDown().onChange(simpleHome());
+
+        // intakes
         XController.rightBumper().onTrue(intakeFromGround());
-        
+
         XController.a().onTrue(m_coralGroundIntake.run(() -> m_coralGroundIntake.outakeBoth()));
         XController.a().onFalse(m_coralGroundIntake.runOnce(() -> m_coralGroundIntake.stopIntake()).withTimeout(0.1));
 
         XController.y().onTrue(m_armSubsystem.intakeOuttake(IntakeDirection.OUT)
-            .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
+                .alongWith(m_ledSubsystem.run(() -> m_ledSubsystem.setState(RobotState.SHOOTING_REEF))));
         XController.y().onFalse(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1));
+
+        XController.b().onChange(m_coralGroundIntake.L1());
 
         // XController.b().onTrue(pathPlannerAlignmentLeft);
         // XController.b().onTrue(pathPlannerAlignmentRight);
-        // XController.b().whileTrue(new ManualAutoAlign(drivetrain, m_visionSubsystem, drive));
+        // XController.b().whileTrue(new ManualAutoAlign(drivetrain, m_visionSubsystem,
+        // drive));
     }
 
     public Command getAutonomousCommand() {

@@ -138,6 +138,14 @@ public class CoralGroundIntake extends SubsystemBase {
     setIntakePosition(CoralAngles.CORAL).until(() -> isAtPoint(CoralAngles.CORAL)));
   }
 
+  public Command L1(){
+    return new SequentialCommandGroup(
+        (intakeWithBeamBreak()
+          .andThen(setIntakePosition(CoralAngles.L1)))
+      .unless(() -> !beamBreakSensor.get())
+      ,setIntakePosition(CoralAngles.L1));
+  }
+
   public void stopRotate(){
     rotateMotor.stopMotor();
   }

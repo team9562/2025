@@ -82,7 +82,7 @@ public class CoralGroundIntake extends SubsystemBase {
             CoralGroundIntakeConstants.ROTATION_kD,
             slot0);
     rotateConfig.absoluteEncoder
-      .zeroOffset(0.7477774);
+      .zeroOffset(0.7487483);
   }
 
   // Call this method once during initialization to store settings to flash

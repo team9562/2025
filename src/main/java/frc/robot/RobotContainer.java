@@ -132,8 +132,8 @@ public class RobotContainer {
         // autoScore
         private final Command autoScoreL4() {
                 return m_armSubsystem.zero()
-                .andThen(setHeightAngleToPOI(ArmAngles.L2,
-                                ElevatorHeights.L2).withTimeout(3.4))
+                .andThen(setHeightAngleToPOI(ArmAngles.L4,
+                                ElevatorHeights.L4).withTimeout(3.4))
                 .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.OUT).withTimeout(1.5))
                 .andThen(m_armSubsystem.intakeOuttake(IntakeDirection.STOP).withTimeout(0.1))
                 .andThen(simpleHome());
@@ -243,6 +243,6 @@ public class RobotContainer {
                 // return new ParallelDeadlineGroup(new WaitCommand(3),
                 // drivetrain.applyRequest(() -> drive
                 // .withVelocityX(1).withVelocityY(0)));
-                return new PathPlannerAuto("Tests");
+                return new PathPlannerAuto("Mac Auto");
         }
 }

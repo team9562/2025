@@ -77,7 +77,7 @@ public class Robot extends TimedRobot {
   public Robot() {
 
     CanBridge.runTCP();
-
+/* 
     poseEstimator = new SwerveDrivePoseEstimator(
         m_drivetrain.getKinematics(),
         gyro.getRotation2d(),
@@ -86,7 +86,7 @@ public class Robot extends TimedRobot {
             m_frontRight.getPosition(true),
             m_backLeft.getPosition(true),
             m_backRight.getPosition(true),
-        }, new Pose2d(0, 0, new Rotation2d(0)));
+        }, new Pose2d(0, 0, new Rotation2d(0)));*/
 
     m_robotContainer = new RobotContainer();
   }
@@ -94,7 +94,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
 
-    poseEstimator.update(gyro.getRotation2d(),
+    /* poseEstimator.update(gyro.getRotation2d(),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(true),
             m_frontRight.getPosition(true),
@@ -105,7 +105,7 @@ public class Robot extends TimedRobot {
     m_vision.estimatePoseMultitag(poseEstimator);
 
     mField.setRobotPose(poseEstimator.getEstimatedPosition());
-    SmartDashboard.putData("Field", mField);
+    SmartDashboard.putData("Field", mField); */
 
     CommandScheduler.getInstance().run();
   }
@@ -144,7 +144,6 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    //CommandScheduler.getInstance().cancelAll(); //if this doesn't work, move all commands to robot.java
   }
 
   @Override

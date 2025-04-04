@@ -101,11 +101,11 @@ public class CoralGroundIntake extends SubsystemBase {
   }
 
   public void outakeFront(){
-    frontIntakeMotor.set(-0.2);
+    frontIntakeMotor.set(-0.1);
   }
 
   public void outakeBack(){
-    backIntakeMotor.set(-0.5);
+    backIntakeMotor.set(-0.3);
   }
 
   public void intakeBoth(){
@@ -143,7 +143,7 @@ public class CoralGroundIntake extends SubsystemBase {
         (intakeWithBeamBreak()
           .andThen(setIntakePosition(CoralAngles.L1)))
       .unless(() -> !beamBreakSensor.get())
-      ,setIntakePosition(CoralAngles.L1));
+      , setIntakePosition(CoralAngles.L1));
   }
 
   public void stopRotate(){

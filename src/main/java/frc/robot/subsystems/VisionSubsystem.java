@@ -35,6 +35,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.constants.VisionConstants;
 import frc.robot.generated.TunerConstants;
 
@@ -77,7 +78,7 @@ public class VisionSubsystem extends SubsystemBase {
 
   private static final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
       .loadField(AprilTagFields.k2025ReefscapeWelded);
-  public final static CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  public final static CommandSwerveDrivetrain drivetrain = RobotContainer.drivetrain;
 
   public VisionSubsystem() {
     this.cameraPositions = VisionConstants.camera1ToRobot;

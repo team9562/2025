@@ -124,7 +124,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command rocketShip(){
     return run(() -> pid.setReference(ElevatorHeights.ZERO.getHeight(), ControlType.kPosition, slot0))
-    .until(() -> elevatorRight.getOutputCurrent() > ElevatorConstants.E_STALL_LIMIT || isAtPoint(ElevatorHeights.ZERO))
+    .until(() -> isAtPoint(ElevatorHeights.ZERO))
     .andThen(runCurrentZeroing());
   }
 

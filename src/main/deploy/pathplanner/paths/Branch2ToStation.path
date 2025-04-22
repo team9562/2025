@@ -1,0 +1,54 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.524385245901639,
+        "y": 5.0379610655737705
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.2177254098360653,
+        "y": 5.33765368852459
+      },
+      "isLocked": false,
+      "linkedName": "EndBranch2"
+    },
+    {
+      "anchor": {
+        "x": 1.2587090163934425,
+        "y": 6.979969262295082
+      },
+      "prevControl": {
+        "x": 2.0978483606557377,
+        "y": 7.027920081967213
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "EndReefToStation"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 0.5,
+    "maxAcceleration": 0.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 127.99873244250465
+  },
+  "reversed": false,
+  "folder": "Blue Auto Pose 3",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": -59.62087398863172
+  },
+  "useDefaultConstraints": true
+}

@@ -4,12 +4,19 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+
 import edu.wpi.first.wpilibj.RobotBase;
 
 public final class Main {
-  private Main() {}
+  public static ArrayList<PVector> botPath = new ArrayList<PVector>();
+
+  private Main() {
+  }
 
   public static void main(String... args) {
     RobotBase.startRobot(Robot::new);
+    
+    // System.out.println("[ROBOT STARTED] We did something right, that's for sure");
   }
 }
